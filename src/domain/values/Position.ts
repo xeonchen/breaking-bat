@@ -4,14 +4,14 @@
 export class Position {
   private static readonly VALID_POSITIONS = [
     'pitcher',
-    'catcher', 
+    'catcher',
     'first-base',
     'second-base',
     'third-base',
     'shortstop',
     'left-field',
     'center-field',
-    'right-field'
+    'right-field',
   ] as const;
 
   public readonly value: string;
@@ -24,7 +24,9 @@ export class Position {
   }
 
   public static isValid(position: string): boolean {
-    return Position.VALID_POSITIONS.includes(position as any);
+    return Position.VALID_POSITIONS.includes(
+      position as (typeof Position.VALID_POSITIONS)[number]
+    );
   }
 
   public static pitcher(): Position {
@@ -61,6 +63,13 @@ export class Position {
 
   public static rightField(): Position {
     return new Position('right-field');
+  }
+
+  /**
+   * Create a Position from a string value (for deserialization)
+   */
+  public static fromValue(value: string): Position {
+    return new Position(value);
   }
 
   public equals(other: Position): boolean {
