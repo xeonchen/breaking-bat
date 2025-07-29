@@ -1,18 +1,18 @@
-import { AtBat } from '../entities';
+import { AtBat, PlayerStatistics } from '../entities';
 
 /**
  * Repository interface for AtBat entity operations
  */
 export interface AtBatRepository {
   /**
+   * Save (create or update) an at-bat
+   */
+  save(atBat: AtBat): Promise<AtBat>;
+
+  /**
    * Find at-bat by ID
    */
   findById(id: string): Promise<AtBat | null>;
-
-  /**
-   * Find all at-bats
-   */
-  findAll(): Promise<AtBat[]>;
 
   /**
    * Find at-bats by game ID
@@ -25,24 +25,14 @@ export interface AtBatRepository {
   findByInningId(inningId: string): Promise<AtBat[]>;
 
   /**
-   * Find at-bats by player ID
+   * Find at-bats by batter ID
    */
-  findByPlayerId(playerId: string): Promise<AtBat[]>;
+  findByBatterId(batterId: string): Promise<AtBat[]>;
 
   /**
-   * Get at-bats for a player in a specific game
+   * Find at-bats by batting position in a game
    */
-  findByPlayerAndGame(playerId: string, gameId: string): Promise<AtBat[]>;
-
-  /**
-   * Create a new at-bat
-   */
-  create(atBat: AtBat): Promise<AtBat>;
-
-  /**
-   * Update an existing at-bat
-   */
-  update(atBat: AtBat): Promise<AtBat>;
+  findByBattingPosition(gameId: string, position: number): Promise<AtBat[]>;
 
   /**
    * Delete an at-bat
@@ -50,27 +40,28 @@ export interface AtBatRepository {
   delete(id: string): Promise<void>;
 
   /**
-   * Check if at-bat exists
+   * Get player statistics from at-bats
    */
-  exists(id: string): Promise<boolean>;
+  getPlayerStatistics(batterId: string): Promise<PlayerStatistics>;
 
   /**
-   * Get the last at-bat for a game
+   * Get game-wide statistics
    */
-  getLastAtBat(gameId: string): Promise<AtBat | null>;
+  getGameStatistics(gameId: string): Promise<{
+    totalAtBats: number;
+    totalHits: number;
+    totalRuns: number;
+    totalRBIs: number;
+    teamBattingAverage: number;
+  }>;
 
   /**
-   * Get at-bat sequence for a game (chronological order)
+   * Find only at-bats that resulted in hits
    */
-  getAtBatSequence(gameId: string): Promise<AtBat[]>;
+  findHitsOnly(gameId: string): Promise<AtBat[]>;
 
   /**
-   * Get at-bats by batting result
+   * Find at-bats that produced RBIs
    */
-  findByResult(result: string, gameId?: string): Promise<AtBat[]>;
-
-  /**
-   * Count at-bats for statistics
-   */
-  countByPlayer(playerId: string, gameId?: string): Promise<number>;
+  findWithRBIs(gameId: string): Promise<AtBat[]>;
 }
