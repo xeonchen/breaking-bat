@@ -11,8 +11,6 @@ import {
   StatNumber,
   StatHelpText,
   Button,
-  HStack,
-  Icon,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
@@ -92,7 +90,6 @@ export default function HomePage(): JSX.Element {
             h="auto"
             py={6}
             flexDirection="column"
-            spacing={2}
           >
             <Text fontSize="2xl" mb={2}>👥</Text>
             <VStack spacing={1}>
@@ -111,7 +108,6 @@ export default function HomePage(): JSX.Element {
             h="auto"
             py={6}
             flexDirection="column"
-            spacing={2}
           >
             <Text fontSize="2xl" mb={2}>⚾</Text>
             <VStack spacing={1}>

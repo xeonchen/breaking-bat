@@ -33,7 +33,7 @@ export function BottomNavigation(): JSX.Element {
         borderColor={borderColor}
         zIndex={10}
         boxShadow="lg"
-        safeAreaInsetBottom="env(safe-area-inset-bottom)"
+        pb="env(safe-area-inset-bottom)"
       >
         <Flex justify="space-around" py={2}>
           {navigationItems.map((item) => (
