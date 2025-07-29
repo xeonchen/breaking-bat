@@ -1,9 +1,14 @@
-import { Team, Player } from '../entities';
+import { Team } from '../entities';
 
 /**
  * Repository interface for Team entity operations
  */
 export interface TeamRepository {
+  /**
+   * Save (create or update) a team
+   */
+  save(team: Team): Promise<Team>;
+
   /**
    * Find team by ID
    */
@@ -25,37 +30,32 @@ export interface TeamRepository {
   findByName(name: string): Promise<Team | null>;
 
   /**
-   * Create a new team
-   */
-  create(team: Team): Promise<Team>;
-
-  /**
-   * Update an existing team
-   */
-  update(team: Team): Promise<Team>;
-
-  /**
    * Delete a team
    */
   delete(id: string): Promise<void>;
 
   /**
-   * Check if team exists
+   * Add a player to a team
    */
-  exists(id: string): Promise<boolean>;
+  addPlayer(teamId: string, playerId: string): Promise<Team>;
 
   /**
-   * Get team roster (all players)
+   * Remove a player from a team
    */
-  getTeamRoster(teamId: string): Promise<Player[]>;
+  removePlayer(teamId: string, playerId: string): Promise<Team>;
 
   /**
-   * Get active players for a team
+   * Add a season to a team
    */
-  getActivePlayers(teamId: string): Promise<Player[]>;
+  addSeason(teamId: string, seasonId: string): Promise<Team>;
 
   /**
-   * Check if team name is unique
+   * Remove a season from a team
    */
-  isNameUnique(name: string, excludeId?: string): Promise<boolean>;
+  removeSeason(teamId: string, seasonId: string): Promise<Team>;
+
+  /**
+   * Search teams by name
+   */
+  search(query: string): Promise<Team[]>;
 }
