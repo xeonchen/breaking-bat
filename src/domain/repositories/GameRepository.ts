@@ -1,19 +1,19 @@
-import { Game, Inning } from '../entities';
-import { GameStatus } from '../entities/Game';
+import { Game } from '../entities';
+import { GameStatus, GameScore } from '../entities/Game';
 
 /**
  * Repository interface for Game entity operations
  */
 export interface GameRepository {
   /**
+   * Save (create or update) a game
+   */
+  save(game: Game): Promise<Game>;
+
+  /**
    * Find game by ID
    */
   findById(id: string): Promise<Game | null>;
-
-  /**
-   * Find all games
-   */
-  findAll(): Promise<Game[]>;
 
   /**
    * Find games by team ID
@@ -31,24 +31,14 @@ export interface GameRepository {
   findByStatus(status: GameStatus): Promise<Game[]>;
 
   /**
-   * Find incomplete games (setup, in_progress, suspended)
+   * Get games within a date range
    */
-  findIncompleteGames(): Promise<Game[]>;
+  findByDateRange(startDate: Date, endDate: Date): Promise<Game[]>;
 
   /**
-   * Find recent games (limited number, most recent first)
+   * Find active games (in_progress status)
    */
-  findRecentGames(limit: number, teamId?: string): Promise<Game[]>;
-
-  /**
-   * Create a new game
-   */
-  create(game: Game): Promise<Game>;
-
-  /**
-   * Update an existing game
-   */
-  update(game: Game): Promise<Game>;
+  findActiveGames(): Promise<Game[]>;
 
   /**
    * Delete a game
@@ -56,32 +46,28 @@ export interface GameRepository {
   delete(id: string): Promise<void>;
 
   /**
-   * Check if game exists
+   * Add an inning to a game
    */
-  exists(id: string): Promise<boolean>;
+  addInning(gameId: string, inningId: string): Promise<Game>;
 
   /**
-   * Get games within a date range
+   * Update game score
    */
-  findByDateRange(startDate: Date, endDate: Date, teamId?: string): Promise<Game[]>;
+  updateScore(gameId: string, score: GameScore): Promise<Game>;
 
   /**
-   * Find games by opponent
+   * Search games by name or opponent
    */
-  findByOpponent(opponent: string, teamId?: string): Promise<Game[]>;
-
-  /**
-   * Get game with innings
-   */
-  findWithInnings(gameId: string): Promise<{ game: Game; innings: Inning[] } | null>;
+  search(query: string): Promise<Game[]>;
 
   /**
    * Get game statistics summary
    */
   getGameStatistics(gameId: string): Promise<{
-    totalAtBats: number;
-    totalHits: number;
     totalRuns: number;
-    totalInnings: number;
-  } | null>;
+    ourScore: number;
+    opponentScore: number;
+    result: 'W' | 'L' | 'T';
+    inningsPlayed: number;
+  }>;
 }
