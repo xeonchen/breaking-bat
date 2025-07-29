@@ -1,0 +1,183 @@
+id: live-scoring
+title: Live Game Scoring and Statistics
+actor: scorekeeper
+goal: record batting results and game progress in real-time
+outcome: accurate game statistics and scores during live gameplay
+
+inputs:
+  - name: batting_result
+    type: select
+    required: true
+    options: [1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP]
+  - name: baserunner_advancement
+    type: object
+    required: false
+    properties:
+      first_to_second: boolean
+      second_to_third: boolean
+      third_to_home: boolean
+  - name: rbi_count
+    type: number
+    required: false
+    validation: range-0-4
+  - name: opponent_runs
+    type: number
+    required: true
+    validation: range-0-15
+  - name: inning_number
+    type: number
+    required: true
+    validation: range-1-15
+  - name: team_at_bat
+    type: select
+    required: true
+    options: [home, away]
+
+actions:
+  - type: record
+    label: Record At-Bat
+    target: at_bat
+  - type: advance
+    label: Advance Runners
+    target: baserunners
+  - type: score
+    label: Record Runs
+    target: runs
+  - type: update
+    label: Update Scoreboard
+    target: scoreboard
+  - type: next
+    label: Next Batter
+    target: batting_order
+  - type: undo
+    label: Undo Last Action
+    target: last_action
+
+entities:
+  at_bat:
+    properties:
+      - id: uuid
+      - game_id: uuid
+      - inning: number
+      - batter_id: uuid
+      - batting_position: number
+      - result: string
+      - rbis: number
+      - runs_scored: array<player_id>
+      - baserunners_before: object
+      - baserunners_after: object
+      - timestamp: datetime
+  inning:
+    properties:
+      - id: uuid
+      - game_id: uuid
+      - number: number
+      - team_at_bat: enum
+      - runs_scored: number
+      - at_bats: array<at_bat_id>
+      - is_complete: boolean
+  scoreboard:
+    properties:
+      - game_id: uuid
+      - current_inning: number
+      - team_at_bat: enum
+      - home_score: number
+      - away_score: number
+      - inning_scores: object
+  baserunner_state:
+    properties:
+      - first_base: player_id | null
+      - second_base: player_id | null  
+      - third_base: player_id | null
+  game_statistics:
+    properties:
+      - player_id: uuid
+      - at_bats: number
+      - hits: number
+      - runs: number
+      - rbis: number
+      - batting_average: float
+
+acceptance_criteria:
+  - real-time scoreboard shows both teams scores by inning
+  - system automatically selects current batter from lineup
+  - quick-action buttons available for all batting results
+  - baserunner advancement automatically suggested with manual override  
+  - RBI count automatically calculated with manual confirmation
+  - opponent scores can be recorded by inning
+  - all scoring actions immediately saved
+  - interface optimized for touch input during live games
+
+validation_rules:
+  - batting results must be valid softball outcomes
+  - RBI count cannot exceed runners on base + batter
+  - inning scores cannot be negative
+  - baserunner positions must be logically valid
+  - current batter must be in lineup
+
+business_rules:
+  - batting order cycles through lineup automatically
+  - hits advance baserunners according to softball rules
+  - walks (BB/IBB) advance forced runners only
+  - home runs score all baserunners plus batter
+  - strikeouts and outs do not advance runners
+  - sacrifice flies score runners from third base
+  - errors may allow advancement at scorekeeper discretion
+
+auto_calculations:
+  baserunner_advancement:
+    single: 
+      - runners advance one base
+      - runner on second scores
+    double:
+      - all runners advance two bases
+      - runners score from second and third
+    triple:
+      - all runners score
+      - batter reaches third base
+    home_run:
+      - all runners score including batter
+    walk:
+      - forced runners advance
+      - non-forced runners stay
+    sacrifice_fly:
+      - runner on third scores
+      - other runners may advance
+
+workflows:
+  at_bat_recording:
+    steps:
+      - display_current_batter
+      - show_baserunner_state
+      - await_batting_result
+      - calculate_advancement
+      - confirm_rbis
+      - update_statistics
+      - advance_to_next_batter
+  inning_management:
+    steps:
+      - track_outs
+      - switch_sides_at_three_outs
+      - record_inning_totals
+      - update_scoreboard
+  game_flow:
+    steps:
+      - maintain_batting_order
+      - track_current_inning
+      - update_live_statistics
+      - save_all_changes
+
+ui_requirements:
+  - large touch-friendly buttons for batting results
+  - visual baserunner diagram showing current state
+  - prominent scoreboard with inning-by-inning breakdown
+  - current batter highlighted in lineup
+  - quick access to undo functionality
+  - responsive design for tablet use
+
+meta:
+  status: active
+  version: 1.0.0
+  priority: critical
+  dependencies: [game-setup, team-management]
+  created_by: breaking-bat-team

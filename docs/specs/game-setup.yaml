@@ -1,0 +1,144 @@
+id: game-setup
+title: Game Setup and Lineup Management
+actor: scorekeeper
+goal: create new games and configure starting lineups
+outcome: ready-to-play game with proper team selection and batting order
+
+inputs:
+  - name: game_name
+    type: text
+    required: true
+    validation: min-length-2
+  - name: opponent_name
+    type: text
+    required: true
+    validation: min-length-2
+  - name: game_date
+    type: date
+    required: true
+    validation: not-past-date
+  - name: season_id
+    type: select
+    required: true
+    source: seasons
+  - name: game_type_id
+    type: select
+    required: true
+    source: game_types
+  - name: home_away
+    type: radio
+    required: true
+    options: [home, away]
+  - name: starting_lineup
+    type: array
+    required: true
+    validation: min-length-9
+  - name: substitutes
+    type: array
+    required: false
+  - name: batting_position
+    type: number
+    required: true
+    validation: range-1-15
+  - name: defensive_position
+    type: select
+    required: true
+    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field]
+
+actions:
+  - type: create
+    label: Create Game
+    target: game
+  - type: select
+    label: Select Team
+    target: team
+  - type: configure
+    label: Set Lineup
+    target: lineup
+  - type: add
+    label: Add to Lineup
+    target: player
+  - type: remove
+    label: Remove from Lineup
+    target: player
+  - type: reorder
+    label: Reorder Batting Order
+    target: lineup
+  - type: assign
+    label: Assign Position
+    target: player
+
+entities:
+  game:
+    properties:
+      - id: uuid
+      - name: string
+      - opponent: string
+      - date: datetime
+      - season_id: uuid
+      - game_type_id: uuid
+      - home_away: enum
+      - team_id: uuid
+      - status: enum [setup, in_progress, completed]
+      - created_at: datetime
+  lineup:
+    properties:
+      - id: uuid
+      - game_id: uuid
+      - batting_order: array<lineup_position>
+      - substitutes: array<player_id>
+  lineup_position:
+    properties:
+      - batting_order: number
+      - player_id: uuid
+      - defensive_position: string
+      - is_starting: boolean
+
+acceptance_criteria:
+  - games can be created with complete metadata
+  - teams and games can be selected from same interface
+  - new games can be created quickly when needed
+  - starting lineup must have 9 players minimum
+  - batting order can be configured and reordered
+  - defensive positions can be assigned to each player
+  - substitute players can be designated
+  - lineup changes are saved automatically
+  - validation ensures all required positions are filled
+
+validation_rules:
+  - minimum 9 players in starting lineup
+  - maximum 15 players total per game
+  - batting order numbers must be unique and sequential
+  - each defensive position can only be assigned once
+  - game date cannot be in the past
+  - opponent name cannot be same as team name
+
+business_rules:
+  - starting lineup determines initial batting order
+  - substitutes cannot be in batting order initially  
+  - defensive positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF minimum
+  - batting order starts at position 1
+  - game setup must be completed before scoring can begin
+
+workflows:
+  game_creation:
+    steps:
+      - select_team
+      - enter_game_details
+      - configure_lineup
+      - assign_positions
+      - confirm_setup
+  lineup_management:
+    steps:
+      - select_starting_players
+      - set_batting_order
+      - assign_defensive_positions
+      - add_substitutes
+      - validate_lineup
+
+meta:
+  status: active
+  version: 1.0.0
+  priority: high
+  dependencies: [team-management]
+  created_by: breaking-bat-team

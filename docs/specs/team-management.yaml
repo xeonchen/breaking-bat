@@ -1,0 +1,108 @@
+id: team-management
+title: Team and Player Management
+actor: scorekeeper
+goal: create and manage teams, seasons, and players
+outcome: organized data structure for multiple teams and events
+
+inputs:
+  - name: team_name
+    type: text
+    required: true
+    validation: min-length-2
+  - name: season_name
+    type: text
+    required: true
+    validation: min-length-2
+  - name: game_type
+    type: select
+    required: true
+    options: [regular-season, playoffs, tournament, exhibition]
+  - name: player_name
+    type: text
+    required: true
+    validation: min-length-2
+  - name: jersey_number
+    type: number
+    required: true
+    validation: range-1-99
+  - name: position
+    type: select
+    required: false
+    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field]
+
+actions:
+  - type: create
+    label: Create Team
+    target: team
+  - type: create
+    label: Create Season
+    target: season
+  - type: create
+    label: Add Player
+    target: player
+  - type: edit
+    label: Edit Team Info
+    target: team
+  - type: edit
+    label: Edit Player Info
+    target: player
+  - type: delete
+    label: Remove Player
+    target: player
+
+entities:
+  team:
+    properties:
+      - id: uuid
+      - name: string
+      - created_date: datetime
+      - season_ids: array<uuid>
+      - player_ids: array<uuid>
+  season:
+    properties:
+      - id: uuid
+      - name: string
+      - year: number
+      - start_date: date
+      - end_date: date
+  game_type:
+    properties:
+      - id: uuid
+      - name: string
+      - description: string
+  player:
+    properties:
+      - id: uuid
+      - name: string
+      - jersey_number: number
+      - position: string
+      - team_id: uuid
+      - is_active: boolean
+
+acceptance_criteria:
+  - teams can be created with unique names
+  - seasons organize games by time periods
+  - game types categorize different kinds of matches
+  - players can be added to teams with jersey numbers
+  - player positions can be assigned and updated
+  - data persists locally between sessions
+  - all operations work offline
+
+validation_rules:
+  - team names must be unique within a season
+  - jersey numbers must be unique within a team
+  - player names cannot be empty
+  - seasons cannot have overlapping date ranges
+
+business_rules:
+  - maximum 25 players per team roster
+  - jersey numbers range from 1-99
+  - seasons can span multiple calendar years
+  - players can only belong to one team at a time
+
+meta:
+  status: active
+  version: 1.0.0
+  priority: high
+  dependencies: []
+  created_by: breaking-bat-team
