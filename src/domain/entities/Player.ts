@@ -41,11 +41,11 @@ export class Player extends BaseEntity {
     updatedAt?: Date
   ) {
     super(id, createdAt, updatedAt);
-    
+
     if (!name.trim()) {
       throw new Error('Player name cannot be empty');
     }
-    
+
     if (jerseyNumber < 1 || jerseyNumber > 99) {
       throw new Error('Jersey number must be between 1 and 99');
     }
@@ -121,9 +121,10 @@ export class Player extends BaseEntity {
     // Recalculate derived statistics
     const updatedStats = {
       ...newStatistics,
-      battingAverage: newStatistics.atBats > 0 
-        ? newStatistics.hits / newStatistics.atBats 
-        : 0,
+      battingAverage:
+        newStatistics.atBats > 0
+          ? newStatistics.hits / newStatistics.atBats
+          : 0,
       onBasePercentage: this.calculateOnBasePercentage(newStatistics),
       sluggingPercentage: this.calculateSluggingPercentage(newStatistics),
     };
@@ -147,7 +148,7 @@ export class Player extends BaseEntity {
   private calculateOnBasePercentage(stats: PlayerStatistics): number {
     const totalPlateAppearances = stats.atBats + stats.walks;
     if (totalPlateAppearances === 0) return 0;
-    
+
     const timesOnBase = stats.hits + stats.walks;
     return timesOnBase / totalPlateAppearances;
   }
@@ -157,13 +158,13 @@ export class Player extends BaseEntity {
    */
   private calculateSluggingPercentage(stats: PlayerStatistics): number {
     if (stats.atBats === 0) return 0;
-    
-    const totalBases = 
-      stats.singles + 
-      (stats.doubles * 2) + 
-      (stats.triples * 3) + 
-      (stats.homeRuns * 4);
-    
+
+    const totalBases =
+      stats.singles +
+      stats.doubles * 2 +
+      stats.triples * 3 +
+      stats.homeRuns * 4;
+
     return totalBases / stats.atBats;
   }
 
@@ -177,7 +178,7 @@ export class Player extends BaseEntity {
   /**
    * Check if player can play a specific position
    */
-  public canPlayPosition(position: Position): boolean {
+  public canPlayPosition(_position: Position): boolean {
     // In softball, players can generally play any position
     // This could be extended with position-specific logic
     return true;
