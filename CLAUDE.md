@@ -9,6 +9,7 @@ Breaking-Bat is a Progressive Web App (PWA) for recording slowpitch softball gam
 ## Development Commands
 
 ### Core Development
+
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -17,12 +18,15 @@ npm run type-check   # TypeScript type checking
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint         # Run ESLint
 npm run lint:fix     # Fix ESLint issues automatically
+npm run commit       # Interactive conventional commit
 ```
 
 ### Testing
+
 ```bash
 npm run test         # Run unit tests with Jest
 npm run test:watch   # Run tests in watch mode
@@ -33,6 +37,7 @@ npm run test:e2e     # Run end-to-end tests with Playwright
 ## Technology Stack (Latest LTS)
 
 **Core Stack:**
+
 - **React 18.3.1** + **TypeScript 5.6.2** + **Vite 6.0.1**
 - **UI**: Chakra UI 2.10.4 + Framer Motion 11.11.17
 - **State**: Zustand 5.0.2 (lightweight state management)
@@ -43,6 +48,7 @@ npm run test:e2e     # Run end-to-end tests with Playwright
 - **Export**: xlsx 0.18.5 + PapaParse 5.4.1
 
 **Testing Stack:**
+
 - **Unit**: Jest 29.7.0 + Testing Library
 - **E2E**: Playwright 1.49.1
 - **Type**: TypeScript strict mode
@@ -50,6 +56,7 @@ npm run test:e2e     # Run end-to-end tests with Playwright
 ## Architecture Overview
 
 ### Clean Architecture Structure
+
 ```
 src/
 ├── domain/           # Business entities, rules, and interfaces
@@ -71,6 +78,7 @@ src/
 ```
 
 ### Data Flow
+
 ```
 UI Components → Zustand Store → Use Cases → Domain Services → Repositories → IndexedDB
 ```
@@ -80,12 +88,13 @@ UI Components → Zustand Store → Use Cases → Domain Services → Repositori
 This project follows the AI-assisted workflow:
 
 1. **User Stories** (`docs/user-stories/`) - Structured Markdown format
-2. **DSL Specs** (`docs/specs/`) - YAML specifications 
+2. **DSL Specs** (`docs/specs/`) - YAML specifications
 3. **API Contracts** - TypeScript interfaces
 4. **Implementation** - Following Clean Architecture
 5. **Testing** - Unit, Integration, E2E tests
 
 ### Current Documentation
+
 - ✅ `docs/user-stories/team-management.md` - Team and player management
 - ✅ `docs/user-stories/game-setup.md` - Game creation and lineup setup
 - ✅ `docs/user-stories/live-scoring.md` - Real-time scoring functionality
@@ -94,6 +103,7 @@ This project follows the AI-assisted workflow:
 ## Key Design Principles
 
 ### SOLID Principles Implementation
+
 - **Single Responsibility**: Each module has one reason to change
 - **Open/Closed**: Extensible without modification
 - **Liskov Substitution**: Subtypes must be substitutable
@@ -101,6 +111,7 @@ This project follows the AI-assisted workflow:
 - **Dependency Inversion**: Depend on abstractions, not concretions
 
 ### PWA Requirements
+
 - **Offline-First**: Complete functionality without internet
 - **Installable**: Can be installed on mobile/tablet home screen
 - **Responsive**: Optimized for mobile, tablet, desktop
@@ -110,6 +121,7 @@ This project follows the AI-assisted workflow:
 ## Data Models
 
 ### Core Entities
+
 ```typescript
 // Domain entities (simplified)
 Team: { id, name, season, players[] }
@@ -120,6 +132,7 @@ Inning: { number, runs, atBats[] }
 ```
 
 ### Storage Strategy
+
 - **IndexedDB** via Dexie.js for structured data
 - **Automatic persistence** - every user action saves immediately
 - **Export formats**: JSON (complete), CSV (statistics)
@@ -127,28 +140,89 @@ Inning: { number, runs, atBats[] }
 
 ## Development Guidelines
 
+### Commit Message Standards
+
+This project uses **Conventional Commits** for consistent commit history and automated tooling.
+
+**Format:**
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Commit Types:**
+
+- `feat`: New feature for the user
+- `fix`: Bug fix for the user
+- `docs`: Changes to documentation
+- `style`: Formatting, missing semicolons, etc; no production code change
+- `refactor`: Refactoring production code, eg. renaming a variable
+- `test`: Adding missing tests, refactoring tests; no production code change
+- `chore`: Updating grunt tasks etc; no production code change
+- `build`: Changes that affect the build system or external dependencies
+- `ci`: Changes to CI configuration files and scripts
+
+**Scopes (Breaking-Bat specific):**
+
+- `team-management`: Team and player management features
+- `game-setup`: Game creation and lineup configuration
+- `live-scoring`: Real-time scoring functionality
+- `data-persistence`: Offline storage and export/import
+- `ui`: User interface components
+- `theme`: Design system and styling
+- `pwa`: Progressive Web App features
+- `domain`: Domain layer (entities, services)
+- `application`: Application layer (use cases)
+- `infrastructure`: Infrastructure layer (repositories, storage)
+- `presentation`: Presentation layer (React components)
+
+**Examples:**
+
+```bash
+feat(live-scoring): add batting result recording interface
+fix(team-management): correct player jersey number validation
+docs(readme): update development status to reflect completed phases
+test(domain): add unit tests for Player entity
+refactor(ui): extract scoreboard component for reusability
+chore(deps): update dependencies to latest LTS versions
+```
+
+**Interactive Commit:**
+
+```bash
+npm run commit  # Uses commitizen for guided commit creation
+```
+
 ### Component Structure
+
 - Use **Chakra UI** components for consistency
 - Follow **compound component pattern** for complex UI
 - Implement **loading states** and **error boundaries**
 - Optimize for **touch interfaces** (tablets/phones)
 
 ### State Management
+
 - **Zustand stores** for application state
 - **React Hook Form** for form state
 - **Local state** for component-specific data
 - **Persistent state** synced with IndexedDB
 
 ### Testing Strategy
+
 - **Test-driven development** following specs
 - **Unit tests** for domain logic and use cases
-- **Integration tests** for repository implementations  
+- **Integration tests** for repository implementations
 - **E2E tests** for complete user workflows
 - **Component tests** for UI behavior
 
 ## Common Development Tasks
 
 ### Adding New Features
+
 1. Create user story in `docs/user-stories/`
 2. Define DSL spec in `docs/specs/`
 3. Add domain entities and interfaces
@@ -158,6 +232,7 @@ Inning: { number, runs, atBats[] }
 7. Add integration and E2E tests
 
 ### Database Operations
+
 ```typescript
 // Use Dexie for IndexedDB operations
 import { db } from '@/infrastructure/storage/database';
@@ -166,6 +241,7 @@ const games = await db.games.where('teamId').equals(teamId).toArray();
 ```
 
 ### PWA Updates
+
 - Service worker auto-updates on new deployments
 - Use `vite-plugin-pwa` for configuration
 - Test offline functionality during development
@@ -177,5 +253,61 @@ const games = await db.games.where('teamId').equals(teamId).toArray();
 - **IndexedDB indexing** for fast queries
 - **Virtualization** for large lists (game history)
 - **PWA caching** strategy for instant loading
+
+## Development Process
+
+### Phase Completion Checklist
+
+When completing any development phase, ensure:
+
+1. **Code Quality**
+   - [ ] All TypeScript compilation passes (`npm run type-check`)
+   - [ ] All tests pass (`npm run test`)
+   - [ ] Linting passes (`npm run lint`)
+   - [ ] Code is properly formatted
+
+2. **Documentation Updates**
+   - [ ] Update README.md development status
+   - [ ] Update CLAUDE.md if architecture changes
+   - [ ] Add/update user stories or specs if needed
+   - [ ] Update API contracts if interfaces change
+
+3. **Commit Standards**
+   - [ ] Use conventional commit format
+   - [ ] Include proper scope and description
+   - [ ] Reference related issues or specs
+   - [ ] Include breaking change notes if applicable
+
+4. **Testing Verification**
+   - [ ] New features have corresponding tests
+   - [ ] Build process completes successfully (`npm run build`)
+   - [ ] PWA functionality works in development (`npm run dev`)
+
+### Git Workflow
+
+1. **Feature Development**
+
+   ```bash
+   git checkout -b feat/feature-name
+   # Implement feature following Clean Architecture
+   npm run commit  # Use conventional commits
+   ```
+
+2. **Pre-commit Checks**
+   - Husky automatically runs lint-staged
+   - Code is formatted with Prettier
+   - ESLint checks are applied
+   - Commit message is validated
+
+3. **Phase Completion**
+
+   ```bash
+   # Update documentation
+   npm run commit  # "docs: update phase X completion status"
+
+   # Merge to main
+   git checkout main
+   git merge feat/feature-name
+   ```
 
 This project demonstrates structured, spec-driven development with AI assistance, emphasizing maintainability, testability, and user experience in offline-first applications.

@@ -5,6 +5,7 @@ A Progressive Web App (PWA) for recording slowpitch softball game statistics and
 ## 🎯 Project Overview
 
 Breaking-Bat enables scorekeepers to:
+
 - ⚾ Manage teams, players, and game lineups
 - 📊 Record live game statistics and scores in real-time
 - 💾 Store all data locally with automatic saving
@@ -21,6 +22,7 @@ User Stories → DSL Specs → API Contracts → Implementation
 ```
 
 **Technology Stack:**
+
 - **Frontend**: React 18.3.1 + TypeScript 5.6.2 + Vite 6.0.1
 - **UI Framework**: Chakra UI 2.10.4 + Framer Motion
 - **State Management**: Zustand 5.0.2
@@ -38,7 +40,7 @@ breaking-bat/
 │   └── specs/                 # DSL specifications (YAML)
 ├── src/
 │   ├── domain/               # Business entities & rules
-│   ├── application/          # Use cases & services  
+│   ├── application/          # Use cases & services
 │   ├── infrastructure/       # Database & external services
 │   └── presentation/         # UI components & state
 ├── tests/
@@ -51,9 +53,9 @@ breaking-bat/
 ## 🚀 Development Status
 
 - ✅ **Phase 1**: User Stories Documentation
-- ⏳ **Phase 2**: DSL Specifications (YAML)
-- ⏳ **Phase 3**: API Contract Definitions
-- ⏳ **Phase 4**: Project Setup & Clean Architecture
+- ✅ **Phase 2**: DSL Specifications (YAML)
+- ✅ **Phase 3**: API Contract Definitions
+- ✅ **Phase 4**: Project Setup & Clean Architecture
 - ⏳ **Phase 5**: Domain Layer Implementation
 - ⏳ **Phase 6**: Infrastructure Layer (IndexedDB)
 - ⏳ **Phase 7**: Application Layer (Use Cases)
@@ -64,6 +66,7 @@ breaking-bat/
 ## 📋 User Stories
 
 ### Core Features
+
 1. **[Team Management](docs/user-stories/team-management.md)** - Create and manage teams, seasons, and players
 2. **[Game Setup](docs/user-stories/game-setup.md)** - Create games and set up batting lineups
 3. **[Live Scoring](docs/user-stories/live-scoring.md)** - Real-time game scoring and statistics tracking
@@ -71,7 +74,56 @@ breaking-bat/
 
 ## 🛠️ Getting Started
 
-*Development setup instructions will be added once the project structure is implemented.*
+### Prerequisites
+
+- Node.js 18.0.0 or higher
+- npm 8.0.0 or higher
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd breaking-bat
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Development Commands
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run test         # Run unit tests
+npm run test:e2e     # Run end-to-end tests
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript checks
+npm run commit       # Interactive commit with conventional format
+```
+
+### Commit Guidelines
+
+This project uses [Conventional Commits](https://conventionalcommits.org/) for consistent commit messages:
+
+```bash
+npm run commit  # Use interactive commit tool
+# or manually:
+git commit -m "feat(live-scoring): add batting result recording"
+```
+
+**Commit Types:**
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code formatting
+- `refactor`: Code refactoring
+- `test`: Adding or fixing tests
+- `chore`: Maintenance tasks
 
 ## 📄 License
 
