@@ -187,7 +187,7 @@ describe('TeamsPage Component', () => {
         target: { value: 'Blue Jays' },
       });
 
-      const saveButton = screen.getByTestId('save-team-button');
+      const saveButton = screen.getByTestId('confirm-create-team');
       await user.click(saveButton);
 
       expect(mockCreateTeam).toHaveBeenCalledWith({
@@ -206,7 +206,7 @@ describe('TeamsPage Component', () => {
       await user.click(createTeamButton);
 
       // Try to save without team name
-      const saveButton = screen.getByTestId('save-team-button');
+      const saveButton = screen.getByTestId('confirm-create-team');
       await user.click(saveButton);
 
       expect(screen.getByTestId('validation-error')).toHaveTextContent(
@@ -237,8 +237,8 @@ describe('TeamsPage Component', () => {
       renderWithChakra(<TeamsPage />);
 
       expect(screen.getByTestId('teams-list')).toBeInTheDocument();
-      expect(screen.getByTestId('team-card-team-1')).toBeInTheDocument();
-      expect(screen.getByTestId('team-card-team-2')).toBeInTheDocument();
+      expect(screen.getByTestId('team-yankees')).toBeInTheDocument();
+      expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
 
       expect(screen.getByText('Yankees')).toBeInTheDocument();
       expect(screen.getByText('Red Sox')).toBeInTheDocument();
@@ -247,8 +247,8 @@ describe('TeamsPage Component', () => {
     it('should show team player counts', () => {
       renderWithChakra(<TeamsPage />);
 
-      const yankeesCard = screen.getByTestId('team-card-team-1');
-      const redSoxCard = screen.getByTestId('team-card-team-2');
+      const yankeesCard = screen.getByTestId('team-yankees');
+      const redSoxCard = screen.getByTestId('team-red-sox');
 
       expect(yankeesCard).toHaveTextContent('2 Players');
       expect(redSoxCard).toHaveTextContent('1 Player');
@@ -277,10 +277,8 @@ describe('TeamsPage Component', () => {
       fireEvent.change(searchInput, { target: { value: 'Yankees' } });
 
       await waitFor(() => {
-        expect(screen.getByTestId('team-card-team-1')).toBeInTheDocument();
-        expect(
-          screen.queryByTestId('team-card-team-2')
-        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('team-yankees')).toBeInTheDocument();
+        expect(screen.queryByTestId('team-red-sox')).not.toBeInTheDocument();
       });
     });
 
@@ -292,8 +290,8 @@ describe('TeamsPage Component', () => {
       const filterSelect = screen.getByTestId('teams-filter-select');
       await user.selectOptions(filterSelect, 'single-player');
 
-      expect(screen.queryByTestId('team-card-team-1')).not.toBeInTheDocument();
-      expect(screen.getByTestId('team-card-team-2')).toBeInTheDocument();
+      expect(screen.queryByTestId('team-yankees')).not.toBeInTheDocument();
+      expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
     });
 
     it('should allow sorting teams', async () => {
@@ -304,9 +302,9 @@ describe('TeamsPage Component', () => {
       const sortSelect = screen.getByTestId('teams-sort-select');
       await user.selectOptions(sortSelect, 'player-count');
 
-      const teamCards = screen.getAllByTestId(/^team-card-/);
-      expect(teamCards[0]).toHaveAttribute('data-testid', 'team-card-team-2'); // 1 player
-      expect(teamCards[1]).toHaveAttribute('data-testid', 'team-card-team-1'); // 2 players
+      const teamCards = screen.getAllByTestId(/^team-/);
+      expect(teamCards[0]).toHaveAttribute('data-testid', 'team-red-sox'); // 1 player
+      expect(teamCards[1]).toHaveAttribute('data-testid', 'team-yankees'); // 2 players
     });
   });
 
@@ -316,7 +314,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const viewTeamButton = screen.getByTestId('view-team-team-1');
+      const viewTeamButton = screen.getByTestId('view-team-yankees');
       await user.click(viewTeamButton);
 
       // Just check that the modal opens successfully
@@ -328,7 +326,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const viewTeamButton = screen.getByTestId('view-team-team-1');
+      const viewTeamButton = screen.getByTestId('view-team-yankees');
       await user.click(viewTeamButton);
 
       // Just check that the modal opens successfully with team management
@@ -342,7 +340,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const viewTeamButton = screen.getByTestId('view-team-team-1');
+      const viewTeamButton = screen.getByTestId('view-team-yankees');
       await user.click(viewTeamButton);
 
       // Verify that the TeamManagement integration is working
@@ -362,7 +360,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const editTeamButton = screen.getByTestId('edit-team-team-1');
+      const editTeamButton = screen.getByTestId('edit-team-yankees');
       await user.click(editTeamButton);
 
       expect(screen.getByTestId('edit-team-modal')).toBeInTheDocument();
@@ -388,7 +386,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const deleteTeamButton = screen.getByTestId('delete-team-team-1');
+      const deleteTeamButton = screen.getByTestId('delete-team-yankees');
       await user.click(deleteTeamButton);
 
       expect(screen.getByTestId('delete-team-modal')).toBeInTheDocument();
@@ -480,7 +478,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const teamCard = screen.getByTestId('team-card-team-1');
+      const teamCard = screen.getByTestId('team-yankees');
       expect(teamCard).toHaveClass('mobile-compact');
     });
   });
@@ -493,7 +491,7 @@ describe('TeamsPage Component', () => {
       expect(teamsList).toHaveAttribute('role', 'list');
       expect(teamsList).toHaveAttribute('aria-label', 'Teams List');
 
-      const teamCards = screen.getAllByTestId(/^team-card-/);
+      const teamCards = screen.getAllByTestId(/^team-/);
       teamCards.forEach((card) => {
         expect(card).toHaveAttribute('role', 'listitem');
       });
@@ -503,7 +501,7 @@ describe('TeamsPage Component', () => {
       renderWithChakra(<TeamsPage />);
 
       const createButton = screen.getByTestId('create-team-button');
-      const viewButton = screen.getByTestId('view-team-team-1');
+      const viewButton = screen.getByTestId('view-team-yankees');
 
       expect(createButton).toHaveAttribute('tabindex', '0');
       expect(viewButton).toHaveAttribute('tabindex', '0');

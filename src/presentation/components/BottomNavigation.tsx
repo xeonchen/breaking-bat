@@ -15,10 +15,10 @@ export function BottomNavigation(): JSX.Element {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Home', path: '/', icon: '🏠' },
-    { label: 'Teams', path: '/teams', icon: '👥' },
-    { label: 'Game', path: '/games', icon: '⚾' },
-    { label: 'Stats', path: '/stats', icon: '📊' },
+    { label: 'Home', path: '/', icon: '🏠', testId: 'home-tab' },
+    { label: 'Teams', path: '/teams', icon: '👥', testId: 'teams-tab' },
+    { label: 'Game', path: '/games', icon: '⚾', testId: 'games-tab' },
+    { label: 'Stats', path: '/stats', icon: '📊', testId: 'stats-tab' },
   ];
 
   return (
@@ -41,6 +41,7 @@ export function BottomNavigation(): JSX.Element {
               key={item.path}
               as={RouterLink}
               to={item.path}
+              data-testid={item.testId}
               aria-label={item.label}
               variant="ghost"
               colorScheme={location.pathname === item.path ? 'brand' : 'gray'}

@@ -437,7 +437,7 @@ export default function TeamsPage(): JSX.Element {
               Cancel
             </Button>
             <Button
-              data-testid="save-team-button"
+              data-testid="confirm-create-team"
               colorScheme="blue"
               onClick={handleCreateTeam}
               isLoading={loading}
@@ -581,7 +581,7 @@ function TeamCard({
 
   return (
     <Card
-      data-testid={`team-card-${team.id}`}
+      data-testid={`team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
       role="listitem"
       className={isMobile ? 'mobile-compact' : ''}
       bg={cardBg}
@@ -603,7 +603,7 @@ function TeamCard({
 
           <HStack justify="space-between">
             <Button
-              data-testid={`view-team-${team.id}`}
+              data-testid={`view-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
               leftIcon={<ViewIcon />}
               size="sm"
               colorScheme="blue"
@@ -617,7 +617,7 @@ function TeamCard({
             <HStack spacing={2}>
               <Tooltip label="Edit Team">
                 <IconButton
-                  data-testid={`edit-team-${team.id}`}
+                  data-testid={`edit-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
                   aria-label="Edit team"
                   icon={<EditIcon />}
                   size="sm"
@@ -627,7 +627,7 @@ function TeamCard({
               </Tooltip>
               <Tooltip label="Delete Team">
                 <IconButton
-                  data-testid={`delete-team-${team.id}`}
+                  data-testid={`delete-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
                   aria-label="Delete team"
                   icon={<DeleteIcon />}
                   size="sm"

@@ -16,15 +16,23 @@ interface NavigationDrawerProps {
   onClose: () => void;
 }
 
-export function NavigationDrawer({ isOpen, onClose }: NavigationDrawerProps): JSX.Element {
+export function NavigationDrawer({
+  isOpen,
+  onClose,
+}: NavigationDrawerProps): JSX.Element {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Home', path: '/', icon: '🏠' },
-    { label: 'Teams', path: '/teams', icon: '👥' },
-    { label: 'Games', path: '/games', icon: '⚾' },
-    { label: 'Stats', path: '/stats', icon: '📊' },
-    { label: 'Settings', path: '/settings', icon: '⚙️' },
+    { label: 'Home', path: '/', icon: '🏠', testId: 'home-tab' },
+    { label: 'Teams', path: '/teams', icon: '👥', testId: 'teams-tab' },
+    { label: 'Games', path: '/games', icon: '⚾', testId: 'games-tab' },
+    { label: 'Stats', path: '/stats', icon: '📊', testId: 'stats-tab' },
+    {
+      label: 'Settings',
+      path: '/settings',
+      icon: '⚙️',
+      testId: 'settings-tab',
+    },
   ];
 
   return (
@@ -45,6 +53,7 @@ export function NavigationDrawer({ isOpen, onClose }: NavigationDrawerProps): JS
                 key={item.path}
                 as={RouterLink}
                 to={item.path}
+                data-testid={item.testId}
                 onClick={onClose}
                 variant={location.pathname === item.path ? 'solid' : 'ghost'}
                 colorScheme={location.pathname === item.path ? 'brand' : 'gray'}

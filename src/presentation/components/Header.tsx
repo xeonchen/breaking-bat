@@ -22,11 +22,11 @@ export function Header({ onMenuClick }: HeaderProps): JSX.Element {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Home', path: '/' },
-    { label: 'Teams', path: '/teams' },
-    { label: 'Games', path: '/games' },
-    { label: 'Stats', path: '/stats' },
-    { label: 'Settings', path: '/settings' },
+    { label: 'Home', path: '/', testId: 'home-tab' },
+    { label: 'Teams', path: '/teams', testId: 'teams-tab' },
+    { label: 'Games', path: '/games', testId: 'games-tab' },
+    { label: 'Stats', path: '/stats', testId: 'stats-tab' },
+    { label: 'Settings', path: '/settings', testId: 'settings-tab' },
   ];
 
   return (
@@ -78,6 +78,7 @@ export function Header({ onMenuClick }: HeaderProps): JSX.Element {
                 key={item.path}
                 as={RouterLink}
                 to={item.path}
+                data-testid={item.testId}
                 variant={location.pathname === item.path ? 'solid' : 'ghost'}
                 colorScheme={location.pathname === item.path ? 'brand' : 'gray'}
                 size="sm"
