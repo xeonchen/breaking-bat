@@ -1,2 +1,1 @@
-# Commitlint temporarily disabled due to module loading issue
-# npx --no-install commitlint --edit $1
+npx --no-install commitlint --edit $1

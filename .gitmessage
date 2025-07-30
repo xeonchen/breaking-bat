@@ -1,0 +1,33 @@
+# <type>[optional scope]: <description>
+#
+# [optional body]
+#
+# [optional footer(s)]
+
+# --- COMMIT TEMPLATE ---
+# types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
+# scopes: team-management, game-setup, live-scoring, data-persistence, ui, theme, 
+#         pwa, build, deps, docs, tests, domain, application, infrastructure, presentation
+#
+# Example: 
+# feat(team-management): add player roster management functionality
+#
+# Implement comprehensive player CRUD operations including:
+# - Add new players to team roster
+# - Edit existing player information  
+# - Remove players from roster
+# - Validate player data constraints
+#
+# Resolves: #123
+# 
+# 🤖 Generated with [Claude Code](https://claude.ai/code)
+# 
+# Co-Authored-By: Claude <noreply@anthropic.com>
+# --------------------
+# Remember:
+# - Use imperative mood in subject line
+# - Subject line should be 50 characters or less  
+# - Separate subject from body with blank line
+# - Body should explain what and why vs. how
+# - Wrap body at 72 characters
+# - Use footer for issue references

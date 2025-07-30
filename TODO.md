@@ -289,6 +289,14 @@
 - Performance regression testing
 - Documentation freshness
 
+### Commit Message Standards
+
+- Follow Conventional Commits specification
+- Format: `<type>[optional scope]: <description>`
+- Automated validation via commitlint + husky
+- Use git template: `.gitmessage` for guidance
+- Example: `feat(team-management): add player roster management`
+
 ---
 
 ## 🎯 Success Metrics
