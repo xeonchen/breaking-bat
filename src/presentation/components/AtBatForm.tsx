@@ -602,6 +602,15 @@ export function AtBatForm({
               >
                 Strikeout
               </Button>
+              <Button
+                data-testid="ground-out-button"
+                colorScheme="red"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() => handleAtBatComplete(BattingResult.groundOut())}
+              >
+                Ground Out
+              </Button>
             </HStack>
           </VStack>
         </Box>
