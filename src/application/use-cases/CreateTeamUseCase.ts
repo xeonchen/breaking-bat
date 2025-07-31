@@ -16,7 +16,7 @@ export class CreateTeamUseCase {
       // Validate command
       const validationResult = this.validateCommand(command);
       if (!validationResult.isSuccess) {
-        return validationResult;
+        return Result.failure(validationResult.error!);
       }
 
       // Check if team name already exists

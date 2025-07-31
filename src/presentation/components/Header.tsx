@@ -24,6 +24,8 @@ export function Header({ onMenuClick }: HeaderProps): JSX.Element {
   const navigationItems = [
     { label: 'Home', path: '/', testId: 'home-tab' },
     { label: 'Teams', path: '/teams', testId: 'teams-tab' },
+    { label: 'Seasons', path: '/seasons', testId: 'seasons-tab' },
+    { label: 'Game Types', path: '/game-types', testId: 'game-types-tab' },
     { label: 'Games', path: '/games', testId: 'games-tab' },
     { label: 'Stats', path: '/stats', testId: 'stats-tab' },
     { label: 'Settings', path: '/settings', testId: 'settings-tab' },

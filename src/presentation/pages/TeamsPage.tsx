@@ -40,7 +40,7 @@ import {
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { TeamManagement } from '@/presentation/components/TeamManagement';
 import { useTeamsStore } from '@/presentation/stores/teamsStore';
-import { Team } from '@/domain';
+import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
 
 export default function TeamsPage(): JSX.Element {
   const {
@@ -69,8 +69,8 @@ export default function TeamsPage(): JSX.Element {
   const [teamForm, setTeamForm] = useState({
     name: '',
   });
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [deletingTeam, setDeletingTeam] = useState<Team | null>(null);
+  const [editingTeam, setEditingTeam] = useState<PresentationTeam | null>(null);
+  const [deletingTeam, setDeletingTeam] = useState<PresentationTeam | null>(null);
 
   // Modal states
   const {
@@ -111,9 +111,9 @@ export default function TeamsPage(): JSX.Element {
 
       const matchesFilter =
         filterBy === 'all' ||
-        (filterBy === 'single-player' && team.playerIds.length === 1) ||
-        (filterBy === 'multiple-players' && team.playerIds.length > 1) ||
-        (filterBy === 'no-players' && team.playerIds.length === 0);
+        (filterBy === 'single-player' && team.players.length === 1) ||
+        (filterBy === 'multiple-players' && team.players.length > 1) ||
+        (filterBy === 'no-players' && team.players.length === 0);
 
       return matchesSearch && matchesFilter;
     });
@@ -124,7 +124,7 @@ export default function TeamsPage(): JSX.Element {
         case 'name':
           return a.name.localeCompare(b.name);
         case 'player-count':
-          return a.playerIds.length - b.playerIds.length;
+          return a.players.length - b.players.length;
         default:
           return 0;
       }
@@ -167,8 +167,8 @@ export default function TeamsPage(): JSX.Element {
       await updateTeam(editingTeam.id, {
         id: editingTeam.id,
         name: teamForm.name.trim(),
-        seasonIds: editingTeam.seasonIds,
-        playerIds: editingTeam.playerIds,
+        seasonIds: [], // Empty for now until seasons are implemented
+        playerIds: editingTeam.players.map(player => player.id),
       });
       setEditingTeam(null);
       setTeamForm({ name: '' });
@@ -197,7 +197,7 @@ export default function TeamsPage(): JSX.Element {
   }, [onCreateOpen]);
 
   const openEditModal = useCallback(
-    (team: Team) => {
+    (team: PresentationTeam) => {
       setEditingTeam(team);
       setTeamForm({ name: team.name });
       setValidationError('');
@@ -207,7 +207,7 @@ export default function TeamsPage(): JSX.Element {
   );
 
   const openDeleteModal = useCallback(
-    (team: Team) => {
+    (team: PresentationTeam) => {
       setDeletingTeam(team);
       onDeleteOpen();
     },
@@ -215,7 +215,7 @@ export default function TeamsPage(): JSX.Element {
   );
 
   const openTeamDetails = useCallback(
-    (team: Team) => {
+    (team: PresentationTeam) => {
       selectTeam(team);
       onDetailsOpen();
     },
@@ -228,7 +228,7 @@ export default function TeamsPage(): JSX.Element {
   }, [clearSelection, onDetailsClose]);
 
   const totalPlayers = teams.reduce(
-    (sum, team) => sum + team.playerIds.length,
+    (sum, team) => sum + team.players.length,
     0
   );
 
@@ -541,8 +541,8 @@ export default function TeamsPage(): JSX.Element {
                   updateTeam(selectedTeam.id, {
                     id: teamData.id,
                     name: teamData.name,
-                    seasonIds: teamData.seasonIds,
-                    playerIds: teamData.playerIds,
+                    seasonIds: [], // Empty for now until seasons are implemented
+                    playerIds: teamData.players.map(player => player.id),
                   })
                 }
                 isEditable={true}
@@ -562,7 +562,7 @@ export default function TeamsPage(): JSX.Element {
 }
 
 interface TeamCardProps {
-  team: Team;
+  team: PresentationTeam;
   isMobile?: boolean;
   onView: () => void;
   onEdit: () => void;
@@ -596,48 +596,62 @@ function TeamCard({
           <HStack justify="space-between">
             <Heading size="md">{team.name}</Heading>
             <Badge colorScheme="blue">
-              {team.playerIds.length}{' '}
-              {team.playerIds.length === 1 ? 'Player' : 'Players'}
+              {team.players.length}{' '}
+              {team.players.length === 1 ? 'Player' : 'Players'}
             </Badge>
           </HStack>
 
-          <HStack justify="space-between">
+          <VStack spacing={3} align="stretch">
+            <HStack justify="space-between">
+              <Button
+                data-testid={`view-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
+                leftIcon={<ViewIcon />}
+                size="sm"
+                colorScheme="blue"
+                variant="outline"
+                onClick={onView}
+                tabIndex={0}
+              >
+                View Details
+              </Button>
+
+              <HStack spacing={2}>
+                <Tooltip label="Edit Team">
+                  <IconButton
+                    data-testid={`edit-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    aria-label="Edit team"
+                    icon={<EditIcon />}
+                    size="sm"
+                    variant="ghost"
+                    onClick={onEdit}
+                  />
+                </Tooltip>
+                <Tooltip label="Delete Team">
+                  <IconButton
+                    data-testid={`delete-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    aria-label="Delete team"
+                    icon={<DeleteIcon />}
+                    size="sm"
+                    variant="ghost"
+                    colorScheme="red"
+                    onClick={onDelete}
+                  />
+                </Tooltip>
+              </HStack>
+            </HStack>
+
             <Button
-              data-testid={`view-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
-              leftIcon={<ViewIcon />}
+              data-testid="manage-roster-button"
+              leftIcon={<AddIcon />}
               size="sm"
-              colorScheme="blue"
-              variant="outline"
+              colorScheme="green"
+              variant="solid"
               onClick={onView}
               tabIndex={0}
             >
-              View Details
+              Manage Roster
             </Button>
-
-            <HStack spacing={2}>
-              <Tooltip label="Edit Team">
-                <IconButton
-                  data-testid={`edit-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  aria-label="Edit team"
-                  icon={<EditIcon />}
-                  size="sm"
-                  variant="ghost"
-                  onClick={onEdit}
-                />
-              </Tooltip>
-              <Tooltip label="Delete Team">
-                <IconButton
-                  data-testid={`delete-team-${team.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  aria-label="Delete team"
-                  icon={<DeleteIcon />}
-                  size="sm"
-                  variant="ghost"
-                  colorScheme="red"
-                  onClick={onDelete}
-                />
-              </Tooltip>
-            </HStack>
-          </HStack>
+          </VStack>
         </VStack>
       </CardBody>
     </Card>

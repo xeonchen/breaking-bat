@@ -2,7 +2,8 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import TeamsPage from '@/presentation/pages/TeamsPage';
-import { Team, Position } from '@/domain';
+import { Position } from '@/domain';
+import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
 import theme from '@/presentation/theme';
 
 // Mock dependencies
@@ -15,43 +16,41 @@ const mockRemovePlayer = jest.fn();
 const mockGetTeams = jest.fn();
 const mockGetPlayerStats = jest.fn();
 
-// Mock team data
+// Mock team data using PresentationTeam structure
 const mockTeamsData = [
-  new Team(
-    'team-1',
-    'Yankees',
-    [],
-    [
+  {
+    id: 'team-1',
+    name: 'Red Sox',
+    players: [
       {
         id: 'player-1',
-        name: 'John Smith',
-        jerseyNumber: '12',
-        position: Position.pitcher(),
+        name: 'Ted Williams',
+        jerseyNumber: '9',
+        position: Position.leftField(),
         isActive: true,
       },
       {
         id: 'player-2',
-        name: 'Mike Johnson',
-        jerseyNumber: '23',
-        position: Position.catcher(),
-        isActive: true,
-      },
-    ]
-  ),
-  new Team(
-    'team-2',
-    'Red Sox',
-    [],
-    [
-      {
-        id: 'player-3',
-        name: 'Tom Wilson',
+        name: 'David Ortiz',
         jerseyNumber: '34',
         position: Position.firstBase(),
         isActive: true,
       },
-    ]
-  ),
+    ],
+  },
+  {
+    id: 'team-2',
+    name: 'Yankees',
+    players: [
+      {
+        id: 'player-3',
+        name: 'Derek Jeter',
+        jerseyNumber: '2',
+        position: Position.shortstop(),
+        isActive: true,
+      },
+    ],
+  },
 ];
 
 const mockPlayerStats = {
@@ -174,7 +173,11 @@ describe('TeamsPage Component', () => {
   describe('Team Creation', () => {
     it('should allow creating a new team', async () => {
       const user = userEvent.setup();
-      mockCreateTeam.mockResolvedValue(new Team('team-3', 'Blue Jays', [], []));
+      mockCreateTeam.mockResolvedValue({
+        id: 'team-3',
+        name: 'Blue Jays',
+        players: []
+      });
 
       renderWithChakra(<TeamsPage />);
 
@@ -237,21 +240,21 @@ describe('TeamsPage Component', () => {
       renderWithChakra(<TeamsPage />);
 
       expect(screen.getByTestId('teams-list')).toBeInTheDocument();
-      expect(screen.getByTestId('team-yankees')).toBeInTheDocument();
+      expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
       expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
 
-      expect(screen.getByText('Yankees')).toBeInTheDocument();
       expect(screen.getByText('Red Sox')).toBeInTheDocument();
+      expect(screen.getByText('Yankees')).toBeInTheDocument();
     });
 
     it('should show team player counts', () => {
       renderWithChakra(<TeamsPage />);
 
-      const yankeesCard = screen.getByTestId('team-yankees');
       const redSoxCard = screen.getByTestId('team-red-sox');
+      const yankeesCard = screen.getByTestId('team-red-sox');
 
-      expect(yankeesCard).toHaveTextContent('2 Players');
-      expect(redSoxCard).toHaveTextContent('1 Player');
+      expect(redSoxCard).toHaveTextContent('2 Players');
+      expect(yankeesCard).toHaveTextContent('1 Player');
     });
 
     it('should handle empty teams list', () => {
@@ -274,11 +277,11 @@ describe('TeamsPage Component', () => {
       renderWithChakra(<TeamsPage />);
 
       const searchInput = screen.getByTestId('teams-search-input');
-      fireEvent.change(searchInput, { target: { value: 'Yankees' } });
+      fireEvent.change(searchInput, { target: { value: 'Red Sox' } });
 
       await waitFor(() => {
-        expect(screen.getByTestId('team-yankees')).toBeInTheDocument();
-        expect(screen.queryByTestId('team-red-sox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
+        expect(screen.queryByTestId('team-yankees')).not.toBeInTheDocument();
       });
     });
 
@@ -290,7 +293,7 @@ describe('TeamsPage Component', () => {
       const filterSelect = screen.getByTestId('teams-filter-select');
       await user.selectOptions(filterSelect, 'single-player');
 
-      expect(screen.queryByTestId('team-yankees')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('team-red-sox')).not.toBeInTheDocument();
       expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
     });
 
@@ -304,7 +307,7 @@ describe('TeamsPage Component', () => {
 
       const teamCards = screen.getAllByTestId(/^team-/);
       expect(teamCards[0]).toHaveAttribute('data-testid', 'team-red-sox'); // 1 player
-      expect(teamCards[1]).toHaveAttribute('data-testid', 'team-yankees'); // 2 players
+      expect(teamCards[1]).toHaveAttribute('data-testid', 'team-red-sox'); // 2 players
     });
   });
 
@@ -314,7 +317,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const viewTeamButton = screen.getByTestId('view-team-yankees');
+      const viewTeamButton = screen.getByTestId('view-team-red-sox');
       await user.click(viewTeamButton);
 
       // Just check that the modal opens successfully
@@ -326,7 +329,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const viewTeamButton = screen.getByTestId('view-team-yankees');
+      const viewTeamButton = screen.getByTestId('view-team-red-sox');
       await user.click(viewTeamButton);
 
       // Just check that the modal opens successfully with team management
@@ -340,7 +343,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const viewTeamButton = screen.getByTestId('view-team-yankees');
+      const viewTeamButton = screen.getByTestId('view-team-red-sox');
       await user.click(viewTeamButton);
 
       // Verify that the TeamManagement integration is working
@@ -354,19 +357,21 @@ describe('TeamsPage Component', () => {
   describe('Team Operations', () => {
     it('should allow editing team information', async () => {
       const user = userEvent.setup();
-      mockUpdateTeam.mockResolvedValue(
-        new Team('team-1', 'Updated Yankees', [], [])
-      );
+      mockUpdateTeam.mockResolvedValue({
+        id: 'team-1',
+        name: 'Updated Red Sox',
+        players: []
+      });
 
       renderWithChakra(<TeamsPage />);
 
-      const editTeamButton = screen.getByTestId('edit-team-yankees');
+      const editTeamButton = screen.getByTestId('edit-team-red-sox');
       await user.click(editTeamButton);
 
       expect(screen.getByTestId('edit-team-modal')).toBeInTheDocument();
 
       fireEvent.change(screen.getByTestId('team-name-input'), {
-        target: { value: 'Updated Yankees' },
+        target: { value: 'Updated Red Sox' },
       });
 
       const saveButton = screen.getByTestId('save-team-button');
@@ -374,9 +379,9 @@ describe('TeamsPage Component', () => {
 
       expect(mockUpdateTeam).toHaveBeenCalledWith('team-1', {
         id: 'team-1',
-        name: 'Updated Yankees',
+        name: 'Updated Red Sox',
         seasonIds: [],
-        playerIds: expect.any(Array),
+        playerIds: ['player-1', 'player-2'],
       });
     });
 
@@ -386,12 +391,12 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const deleteTeamButton = screen.getByTestId('delete-team-yankees');
+      const deleteTeamButton = screen.getByTestId('delete-team-red-sox');
       await user.click(deleteTeamButton);
 
       expect(screen.getByTestId('delete-team-modal')).toBeInTheDocument();
       expect(
-        screen.getByText(/Are you sure you want to delete Yankees/)
+        screen.getByText(/Are you sure you want to delete Red Sox/)
       ).toBeInTheDocument();
 
       const confirmButton = screen.getByTestId('confirm-delete-button');
@@ -478,7 +483,7 @@ describe('TeamsPage Component', () => {
 
       renderWithChakra(<TeamsPage />);
 
-      const teamCard = screen.getByTestId('team-yankees');
+      const teamCard = screen.getByTestId('team-red-sox');
       expect(teamCard).toHaveClass('mobile-compact');
     });
   });
@@ -501,7 +506,7 @@ describe('TeamsPage Component', () => {
       renderWithChakra(<TeamsPage />);
 
       const createButton = screen.getByTestId('create-team-button');
-      const viewButton = screen.getByTestId('view-team-yankees');
+      const viewButton = screen.getByTestId('view-team-red-sox');
 
       expect(createButton).toHaveAttribute('tabindex', '0');
       expect(viewButton).toHaveAttribute('tabindex', '0');
@@ -537,7 +542,11 @@ describe('TeamsPage Component', () => {
       // Set large teams list in mock store
       const largeTeamsList = Array.from(
         { length: 100 },
-        (_, i) => new Team(`team-${i}`, `Team ${i}`, [], [])
+        (_, i) => ({
+          id: `team-${i}`,
+          name: `Team ${i}`,
+          players: []
+        })
       );
 
       const originalTeams = mockStoreState.teams;

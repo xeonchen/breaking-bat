@@ -600,7 +600,6 @@ describe('TeamsStore', () => {
 
       it('should not update selectedTeam when adding player to different team', async () => {
         const selectedTeam = createMockPresentationTeam('team-1', 'Red Sox');
-        const otherTeam = createMockPresentationTeam('team-2', 'Yankees');
         const newPlayer = createMockPlayer('player-1', 'John Doe', '10');
         const updatedOtherTeam = createMockPresentationTeam('team-2', 'Yankees', [newPlayer]);
 

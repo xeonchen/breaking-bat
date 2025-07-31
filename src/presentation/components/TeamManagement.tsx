@@ -682,7 +682,7 @@ export function TeamManagement({
               Cancel
             </Button>
             <Button
-              data-testid="save-player-button"
+              data-testid="confirm-add-player"
               colorScheme="blue"
               onClick={handlePlayerAdd}
             >

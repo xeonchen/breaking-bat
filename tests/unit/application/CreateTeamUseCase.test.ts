@@ -40,7 +40,7 @@ describe('CreateTeamUseCase', () => {
   describe('execute', () => {
     it('should create a new team successfully', async () => {
       const command: CreateTeamCommand = {
-        name: 'Yankees',
+        name: 'Red Sox',
         seasonIds: ['season1'],
         playerIds: ['player1', 'player2'],
       };
@@ -52,28 +52,28 @@ describe('CreateTeamUseCase', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.name).toBe('Yankees');
+      expect(result.value!.name).toBe('Red Sox');
       expect(result.value!.seasonIds).toEqual(['season1']);
       expect(result.value!.playerIds).toEqual(['player1', 'player2']);
 
-      expect(mockTeamRepository.findByName).toHaveBeenCalledWith('Yankees');
+      expect(mockTeamRepository.findByName).toHaveBeenCalledWith('Red Sox');
       expect(mockTeamRepository.save).toHaveBeenCalled();
     });
 
     it('should fail when team name already exists', async () => {
       const command: CreateTeamCommand = {
-        name: 'Yankees',
+        name: 'Red Sox',
         seasonIds: ['season1'],
         playerIds: [],
       };
 
-      const existingTeam = new Team('existing', 'Yankees', [], []);
+      const existingTeam = new Team('existing', 'Red Sox', [], []);
       mockTeamRepository.findByName.mockResolvedValue(existingTeam);
 
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Team name Yankees already exists');
+      expect(result.error).toBe('Team name Red Sox already exists');
       expect(mockTeamRepository.save).not.toHaveBeenCalled();
     });
 
@@ -242,7 +242,7 @@ describe('CreateTeamUseCase', () => {
         playerIds: [],
       };
 
-      const existingTeam = new Team('existing', 'yankees', [], []);
+      const existingTeam = new Team('existing', 'red sox', [], []);
       mockTeamRepository.findByName.mockResolvedValue(existingTeam);
 
       const result = await useCase.execute(command);
@@ -255,19 +255,19 @@ describe('CreateTeamUseCase', () => {
   describe('business rules validation', () => {
     it('should enforce team name uniqueness across all seasons', async () => {
       const command: CreateTeamCommand = {
-        name: 'Yankees',
+        name: 'Red Sox',
         seasonIds: ['season2'],
         playerIds: [],
       };
 
       // Team exists in different season
-      const existingTeam = new Team('existing', 'Yankees', ['season1'], []);
+      const existingTeam = new Team('existing', 'Red Sox', ['season1'], []);
       mockTeamRepository.findByName.mockResolvedValue(existingTeam);
 
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Team name Yankees already exists');
+      expect(result.error).toBe('Team name Red Sox already exists');
     });
 
     it('should allow duplicate season IDs in seasonIds array', async () => {

@@ -5,8 +5,8 @@ import theme from '@/presentation/theme';
 
 // Mock game data for testing
 const mockGameData = {
-  homeTeam: 'Yankees',
-  awayTeam: 'Red Sox',
+  homeTeam: 'Red Sox',
+  awayTeam: 'Yankees',
   homeScore: 5,
   awayScore: 3,
   currentInning: 7,
@@ -152,7 +152,7 @@ describe('Scoreboard Component', () => {
 
       // Bottom of inning means home team is batting
       expect(screen.getByTestId('batting-indicator')).toHaveTextContent(
-        'Yankees Batting'
+        'Red Sox Batting'
       );
     });
 
