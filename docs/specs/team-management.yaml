@@ -24,11 +24,12 @@ inputs:
   - name: jersey_number
     type: number
     required: true
-    validation: range-1-99
-  - name: position
-    type: select
+    validation: range-0-999
+  - name: positions
+    type: multi-select
     required: false
-    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field]
+    default: [extra-player]
+    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field, short-fielder, extra-player]
 
 actions:
   - type: create
@@ -75,7 +76,7 @@ entities:
       - id: uuid
       - name: string
       - jersey_number: number
-      - position: string
+      - positions: array<string>
       - team_id: uuid
       - is_active: boolean
 
@@ -83,8 +84,9 @@ acceptance_criteria:
   - teams can be created with unique names
   - seasons organize games by time periods
   - game types categorize different kinds of matches
-  - players can be added to teams with jersey numbers
-  - player positions can be assigned and updated
+  - players can be added to teams with jersey numbers (0-999)
+  - players can have multiple positions assigned
+  - extra player (EP) is default position for new players
   - data persists locally between sessions
   - all operations work offline
 
@@ -96,9 +98,12 @@ validation_rules:
 
 business_rules:
   - maximum 25 players per team roster
-  - jersey numbers range from 1-99
+  - jersey numbers range from 0-999
   - seasons can span multiple calendar years
   - players can only belong to one team at a time
+  - slowpitch softball supports 10 defensive positions plus extra player (EP)
+  - EP is batting-only role, does not play defense
+  - short fielder is 10th defensive position in slowpitch softball
 
 meta:
   status: active

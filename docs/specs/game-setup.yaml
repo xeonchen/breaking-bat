@@ -43,7 +43,7 @@ inputs:
   - name: defensive_position
     type: select
     required: true
-    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field]
+    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field, short-fielder]
 
 actions:
   - type: create
@@ -98,7 +98,7 @@ acceptance_criteria:
   - games can be created with complete metadata
   - teams and games can be selected from same interface
   - new games can be created quickly when needed
-  - starting lineup must have 9 players minimum
+  - starting lineup must have 10 players minimum for slowpitch softball
   - batting order can be configured and reordered
   - defensive positions can be assigned to each player
   - substitute players can be designated
@@ -106,17 +106,18 @@ acceptance_criteria:
   - validation ensures all required positions are filled
 
 validation_rules:
-  - minimum 9 players in starting lineup
+  - minimum 10 players in starting lineup for slowpitch softball
   - maximum 15 players total per game
   - batting order numbers must be unique and sequential
-  - each defensive position can only be assigned once
+  - each defensive position can only be assigned once (10 positions + EP)
   - game date cannot be in the past
   - opponent name cannot be same as team name
 
 business_rules:
   - starting lineup determines initial batting order
   - substitutes cannot be in batting order initially  
-  - defensive positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF minimum
+  - defensive positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF, SF (short fielder) for slowpitch
+  - extra player (EP) bats but does not play defense
   - batting order starts at position 1
   - game setup must be completed before scoring can begin
 

@@ -43,7 +43,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
       name: player.name,
       jerseyNumber: player.jerseyNumber,
       teamId: player.teamId,
-      position: player.position?.value || null,
+      positions: player.positions.map((p) => p.value),
       isActive: player.isActive,
       statistics: player.statistics,
       createdAt: player.createdAt,
@@ -126,24 +126,24 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     excludePlayerId?: string
   ): Promise<boolean> {
     const existingPlayer = await this.findByJerseyNumber(teamId, jerseyNumber);
-    
+
     if (!existingPlayer) {
       return true;
     }
-    
+
     // If we're excluding a specific player (for updates), check if it's the same player
     return excludePlayerId ? existingPlayer.id === excludePlayerId : false;
   }
 
   async searchByName(query: string, teamId?: string): Promise<Player[]> {
     const lowerQuery = query.toLowerCase();
-    
+
     let queryBuilder = this.db.table('players');
-    
+
     if (teamId) {
       queryBuilder = queryBuilder.where('teamId').equals(teamId);
     }
-    
+
     const records = await queryBuilder
       .filter((record: any) => record.name.toLowerCase().includes(lowerQuery))
       .toArray();
@@ -183,7 +183,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     name: string;
     jerseyNumber: number;
     teamId: string;
-    position: string | null;
+    positions: string[];
     isActive: boolean;
     statistics: PlayerStatistics;
     createdAt: Date;
@@ -194,7 +194,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
       record.name,
       record.jerseyNumber,
       record.teamId,
-      record.position ? Position.fromValue(record.position) : null,
+      record.positions.map((p) => Position.fromValue(p)),
       record.isActive,
       record.statistics,
       record.createdAt,

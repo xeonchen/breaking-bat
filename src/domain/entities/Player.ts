@@ -24,7 +24,7 @@ export interface PlayerStatistics {
 export class Player extends BaseEntity {
   public readonly name: string;
   public readonly jerseyNumber: number;
-  public readonly position: Position | null;
+  public readonly positions: Position[];
   public readonly teamId: string;
   public readonly isActive: boolean;
   public readonly statistics: PlayerStatistics;
@@ -34,7 +34,7 @@ export class Player extends BaseEntity {
     name: string,
     jerseyNumber: number,
     teamId: string,
-    position: Position | null = null,
+    positions: Position[] = [Position.extraPlayer()],
     isActive: boolean = true,
     statistics: PlayerStatistics | null = null,
     createdAt?: Date,
@@ -46,13 +46,13 @@ export class Player extends BaseEntity {
       throw new Error('Player name cannot be empty');
     }
 
-    if (jerseyNumber < 1 || jerseyNumber > 99) {
-      throw new Error('Jersey number must be between 1 and 99');
+    if (jerseyNumber < 0 || jerseyNumber > 999) {
+      throw new Error('Jersey number must be between 0 and 999');
     }
 
     this.name = name.trim();
     this.jerseyNumber = jerseyNumber;
-    this.position = position;
+    this.positions = positions;
     this.teamId = teamId;
     this.isActive = isActive;
     this.statistics = statistics || Player.createEmptyStatistics();
@@ -81,20 +81,38 @@ export class Player extends BaseEntity {
   }
 
   /**
-   * Change player's position
+   * Update player's positions
    */
-  public changePosition(newPosition: Position | null): Player {
+  public updatePositions(newPositions: Position[]): Player {
     return new Player(
       this.id,
       this.name,
       this.jerseyNumber,
       this.teamId,
-      newPosition,
+      newPositions,
       this.isActive,
       this.statistics,
       this.createdAt,
       new Date()
     );
+  }
+
+  /**
+   * Add a position to the player
+   */
+  public addPosition(position: Position): Player {
+    if (this.positions.some((p) => p.equals(position))) {
+      return this; // Position already exists
+    }
+    return this.updatePositions([...this.positions, position]);
+  }
+
+  /**
+   * Remove a position from the player
+   */
+  public removePosition(position: Position): Player {
+    const filteredPositions = this.positions.filter((p) => !p.equals(position));
+    return this.updatePositions(filteredPositions);
   }
 
   /**
@@ -106,7 +124,7 @@ export class Player extends BaseEntity {
       this.name,
       this.jerseyNumber,
       this.teamId,
-      this.position,
+      this.positions,
       active,
       this.statistics,
       this.createdAt,
@@ -134,7 +152,7 @@ export class Player extends BaseEntity {
       this.name,
       this.jerseyNumber,
       this.teamId,
-      this.position,
+      this.positions,
       this.isActive,
       updatedStats,
       this.createdAt,
@@ -178,9 +196,21 @@ export class Player extends BaseEntity {
   /**
    * Check if player can play a specific position
    */
-  public canPlayPosition(_position: Position): boolean {
-    // In softball, players can generally play any position
-    // This could be extended with position-specific logic
-    return true;
+  public canPlayPosition(position: Position): boolean {
+    return this.positions.some((p) => p.equals(position));
+  }
+
+  /**
+   * Get all defensive positions (excluding EP)
+   */
+  public getDefensivePositions(): Position[] {
+    return this.positions.filter((p) => p.isDefensivePosition());
+  }
+
+  /**
+   * Check if player is designated as Extra Player
+   */
+  public isExtraPlayer(): boolean {
+    return this.positions.some((p) => p.equals(Position.extraPlayer()));
   }
 }

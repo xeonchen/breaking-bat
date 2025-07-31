@@ -97,15 +97,16 @@ export class SetupLineupUseCase {
 
     // Validate all required positions are covered
     const requiredPositions = new Set([
-      Position.PITCHER,
-      Position.CATCHER,
-      Position.FIRST_BASE,
-      Position.SECOND_BASE,
-      Position.THIRD_BASE,
-      Position.SHORTSTOP,
-      Position.LEFT_FIELD,
-      Position.CENTER_FIELD,
-      Position.RIGHT_FIELD,
+      Position.pitcher(),
+      Position.catcher(),
+      Position.firstBase(),
+      Position.secondBase(),
+      Position.thirdBase(),
+      Position.shortstop(),
+      Position.leftField(),
+      Position.centerField(),
+      Position.rightField(),
+      Position.shortFielder(),
     ]);
 
     if (

@@ -1,5 +1,5 @@
 /**
- * Value object representing a defensive position in softball
+ * Value object representing a defensive position in slowpitch softball
  */
 export class Position {
   private static readonly VALID_POSITIONS = [
@@ -12,6 +12,8 @@ export class Position {
     'left-field',
     'center-field',
     'right-field',
+    'short-fielder',
+    'extra-player',
   ] as const;
 
   public readonly value: string;
@@ -63,6 +65,48 @@ export class Position {
 
   public static rightField(): Position {
     return new Position('right-field');
+  }
+
+  public static shortFielder(): Position {
+    return new Position('short-fielder');
+  }
+
+  public static extraPlayer(): Position {
+    return new Position('extra-player');
+  }
+
+  /**
+   * Get all valid positions in conventional order
+   */
+  public static getAllPositions(): Position[] {
+    return Position.VALID_POSITIONS.map((pos) => new Position(pos));
+  }
+
+  /**
+   * Get conventional position number (1-10 for defensive positions, 11 for EP)
+   */
+  public getPositionNumber(): number {
+    const positionMap: Record<string, number> = {
+      pitcher: 1,
+      catcher: 2,
+      'first-base': 3,
+      'second-base': 4,
+      'third-base': 5,
+      shortstop: 6,
+      'left-field': 7,
+      'center-field': 8,
+      'right-field': 9,
+      'short-fielder': 10,
+      'extra-player': 11,
+    };
+    return positionMap[this.value] || 0;
+  }
+
+  /**
+   * Check if this is a defensive position (not EP)
+   */
+  public isDefensivePosition(): boolean {
+    return this.value !== 'extra-player';
   }
 
   /**

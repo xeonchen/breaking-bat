@@ -7,7 +7,7 @@ export interface PresentationPlayer {
   id: string;
   name: string;
   jerseyNumber: string; // String for form compatibility
-  position: Position;
+  positions: Position[];
   isActive: boolean;
 }
 

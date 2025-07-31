@@ -7,7 +7,7 @@ export interface AddPlayerCommand {
   teamId: string;
   name: string;
   jerseyNumber: number;
-  position: Position;
+  positions: Position[];
   isActive: boolean;
 }
 
@@ -37,7 +37,9 @@ export class AddPlayerUseCase {
       }
 
       // Check if jersey number is unique within the team
-      console.log(`🔍 Checking jersey number uniqueness: team=${command.teamId}, jersey=${command.jerseyNumber}`);
+      console.log(
+        `🔍 Checking jersey number uniqueness: team=${command.teamId}, jersey=${command.jerseyNumber}`
+      );
       const isJerseyUnique = await this.playerRepository.isJerseyNumberUnique(
         command.teamId,
         command.jerseyNumber
@@ -56,7 +58,7 @@ export class AddPlayerUseCase {
         command.name.trim(),
         command.jerseyNumber,
         command.teamId,
-        command.position,
+        command.positions,
         command.isActive
       );
 
@@ -89,8 +91,8 @@ export class AddPlayerUseCase {
       return Result.failure('Jersey number must be a valid integer');
     }
 
-    if (command.jerseyNumber < 1 || command.jerseyNumber > 99) {
-      return Result.failure('Jersey number must be between 1 and 99');
+    if (command.jerseyNumber < 0 || command.jerseyNumber > 999) {
+      return Result.failure('Jersey number must be between 0 and 999');
     }
 
     // Validate team ID
@@ -98,9 +100,9 @@ export class AddPlayerUseCase {
       return Result.failure('Team ID is required');
     }
 
-    // Validate position
-    if (!command.position) {
-      return Result.failure('Position is required');
+    // Validate positions
+    if (!command.positions || command.positions.length === 0) {
+      return Result.failure('At least one position is required');
     }
 
     return Result.success(undefined as void);

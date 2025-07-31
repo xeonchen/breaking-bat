@@ -6,7 +6,7 @@ export interface UpdatePlayerCommand {
   playerId: string;
   name: string;
   jerseyNumber: number;
-  position: Position;
+  positions: Position[];
   isActive: boolean;
 }
 
@@ -22,7 +22,9 @@ export class UpdatePlayerUseCase {
       }
 
       // Check if player exists
-      const existingPlayer = await this.playerRepository.findById(command.playerId);
+      const existingPlayer = await this.playerRepository.findById(
+        command.playerId
+      );
       if (!existingPlayer) {
         return Result.failure(`Player with id ${command.playerId} not found`);
       }
@@ -45,7 +47,7 @@ export class UpdatePlayerUseCase {
         command.name.trim(),
         command.jerseyNumber,
         existingPlayer.teamId, // Keep the same team
-        command.position,
+        command.positions,
         command.isActive,
         existingPlayer.statistics, // Keep existing statistics
         existingPlayer.createdAt,
@@ -81,13 +83,13 @@ export class UpdatePlayerUseCase {
       return Result.failure('Jersey number must be a valid integer');
     }
 
-    if (command.jerseyNumber < 1 || command.jerseyNumber > 99) {
-      return Result.failure('Jersey number must be between 1 and 99');
+    if (command.jerseyNumber < 0 || command.jerseyNumber > 999) {
+      return Result.failure('Jersey number must be between 0 and 999');
     }
 
-    // Validate position
-    if (!command.position) {
-      return Result.failure('Position is required');
+    // Validate positions
+    if (!command.positions || command.positions.length === 0) {
+      return Result.failure('At least one position is required');
     }
 
     return Result.success(undefined as void);

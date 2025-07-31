@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Breaking-Bat is a Progressive Web App (PWA) for recording slowpitch softball game statistics and scores. It follows **spec-driven development** with Clean Architecture principles, designed for complete offline operation with local data storage.
 
+### Slowpitch Softball Specifics
+
+This application is designed specifically for **slowpitch softball** with the following characteristics:
+
+- **10 defensive positions**: Pitcher (P), Catcher (C), First Base (1B), Second Base (2B), Third Base (3B), Shortstop (SS), Left Field (LF), Center Field (CF), Right Field (RF), Short Fielder (SF)
+- **Extra Player (EP)**: Batting-only role, does not play defense
+- **Jersey numbers**: Range from 0-999 (expanded from traditional 1-99)
+- **Multiple positions**: Players can be assigned multiple positions they are capable of playing
+- **Conventional position order**: Follows standard numbering 1-10 for defensive positions, 11 for EP
+
 ## Development Commands
 
 ### Core Development
@@ -125,7 +135,8 @@ This project follows the AI-assisted workflow:
 ```typescript
 // Domain entities (simplified)
 Team: { id, name, season, players[] }
-Player: { id, name, jerseyNumber, position }
+Player: { id, name, jerseyNumber, positions[], teamId, isActive }
+Position: { value, positionNumber, isDefensivePosition() }
 Game: { id, homeTeam, awayTeam, date, innings[] }
 AtBat: { playerId, result, baseRunners, rbis }
 Inning: { number, runs, atBats[] }

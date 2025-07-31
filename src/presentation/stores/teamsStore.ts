@@ -2,13 +2,16 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Team, Position } from '@/domain';
 import { CreateTeamCommand } from '@/application/use-cases/CreateTeamUseCase';
-import { PresentationTeam, PresentationPlayer } from '@/presentation/types/TeamWithPlayers';
+import {
+  PresentationTeam,
+  PresentationPlayer,
+} from '@/presentation/types/TeamWithPlayers';
 import { TeamHydrationService } from '@/presentation/services/TeamHydrationService';
 
 interface PlayerData {
   name: string;
   jerseyNumber: string;
-  position: Position;
+  positions: Position[];
   isActive: boolean;
 }
 
@@ -40,7 +43,10 @@ interface TeamsState {
   updateTeam: (teamId: string, teamData: TeamData) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
   addPlayer: (teamId: string, playerData: PlayerData) => Promise<void>;
-  updatePlayer: (playerId: string, playerData: PresentationPlayer) => Promise<void>;
+  updatePlayer: (
+    playerId: string,
+    playerData: PresentationPlayer
+  ) => Promise<void>;
   removePlayer: (teamId: string, playerId: string) => Promise<void>;
   getPlayerStats: () => Promise<void>;
   selectTeam: (team: PresentationTeam) => void;
@@ -88,14 +94,14 @@ export const initializeTeamsStore = (deps: {
     updatePlayerUseCase: !!deps.updatePlayerUseCase,
     removePlayerUseCase: !!deps.removePlayerUseCase,
   });
-  
+
   teamRepository = deps.teamRepository;
   teamHydrationService = deps.teamHydrationService;
   createTeamUseCase = deps.createTeamUseCase;
   addPlayerUseCase = deps.addPlayerUseCase;
   updatePlayerUseCase = deps.updatePlayerUseCase;
   removePlayerUseCase = deps.removePlayerUseCase;
-  
+
   console.log('✅ TeamsStore dependencies initialized successfully');
 };
 
@@ -125,12 +131,23 @@ export const useTeamsStore = create<TeamsState>()(
           try {
             console.log('🔍 Fetching domain teams from repository...');
             const domainTeams = await teamRepository.findAll();
-            console.log(`✅ Found ${domainTeams.length} domain teams:`, domainTeams.map((t: any) => ({ id: t.id, name: t.name })));
-            
+            console.log(
+              `✅ Found ${domainTeams.length} domain teams:`,
+              domainTeams.map((t: any) => ({ id: t.id, name: t.name }))
+            );
+
             console.log('💧 Hydrating teams with player data...');
-            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
-            console.log(`✅ Hydrated ${hydratedTeams.length} teams:`, hydratedTeams.map((t: any) => ({ id: t.id, name: t.name, playerCount: t.players.length })));
-            
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
+            console.log(
+              `✅ Hydrated ${hydratedTeams.length} teams:`,
+              hydratedTeams.map((t: any) => ({
+                id: t.id,
+                name: t.name,
+                playerCount: t.players.length,
+              }))
+            );
+
             set({ teams: hydratedTeams, loading: false });
             console.log('✅ Teams loaded successfully into store');
           } catch (error) {
@@ -149,7 +166,10 @@ export const useTeamsStore = create<TeamsState>()(
           try {
             console.log('🔧 Executing CreateTeamUseCase...');
             const result = await createTeamUseCase.execute(command);
-            console.log('📝 CreateTeamUseCase result:', { isSuccess: result.isSuccess, error: result.error });
+            console.log('📝 CreateTeamUseCase result:', {
+              isSuccess: result.isSuccess,
+              error: result.error,
+            });
 
             if (!result.isSuccess) {
               console.error('❌ Team creation failed:', result.error);
@@ -158,12 +178,13 @@ export const useTeamsStore = create<TeamsState>()(
             }
 
             console.log('✅ Team created successfully:', result.value);
-            
+
             // Refresh the entire teams list to get proper hydration
             console.log('🔄 Refreshing teams list to include new team...');
             const domainTeams = await teamRepository.findAll();
-            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
-            
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
+
             set({
               teams: hydratedTeams,
               loading: false,
@@ -236,7 +257,7 @@ export const useTeamsStore = create<TeamsState>()(
               teamId,
               name: playerData.name,
               jerseyNumber: parseInt(playerData.jerseyNumber, 10),
-              position: playerData.position,
+              positions: playerData.positions,
               isActive: playerData.isActive,
             });
 
@@ -247,16 +268,23 @@ export const useTeamsStore = create<TeamsState>()(
 
             // Refresh teams list to get updated data
             const domainTeams = await teamRepository.findAll();
-            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
-            
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
+
             // Update selectedTeam if it matches the affected team
             const currentSelectedTeam = get().selectedTeam;
             let updatedSelectedTeam = currentSelectedTeam;
             if (currentSelectedTeam && currentSelectedTeam.id === teamId) {
-              updatedSelectedTeam = hydratedTeams.find((t: PresentationTeam) => t.id === teamId) || currentSelectedTeam;
+              updatedSelectedTeam =
+                hydratedTeams.find((t: PresentationTeam) => t.id === teamId) ||
+                currentSelectedTeam;
             }
-            
-            set({ teams: hydratedTeams, selectedTeam: updatedSelectedTeam, loading: false });
+
+            set({
+              teams: hydratedTeams,
+              selectedTeam: updatedSelectedTeam,
+              loading: false,
+            });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -267,10 +295,16 @@ export const useTeamsStore = create<TeamsState>()(
           }
         },
 
-        updatePlayer: async (playerId: string, playerData: PresentationPlayer) => {
+        updatePlayer: async (
+          playerId: string,
+          playerData: PresentationPlayer
+        ) => {
           set({ loading: true, error: null });
           try {
-            const domainPlayerData = TeamHydrationService.convertPresentationPlayerToDomain(playerData);
+            const domainPlayerData =
+              TeamHydrationService.convertPresentationPlayerToDomain(
+                playerData
+              );
             const result = await updatePlayerUseCase.execute({
               playerId,
               ...domainPlayerData,
@@ -283,16 +317,27 @@ export const useTeamsStore = create<TeamsState>()(
 
             // Refresh teams list to get updated data
             const domainTeams = await teamRepository.findAll();
-            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
-            
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
+
             // Update selectedTeam if it contains the updated player
             const currentSelectedTeam = get().selectedTeam;
             let updatedSelectedTeam = currentSelectedTeam;
-            if (currentSelectedTeam && currentSelectedTeam.players.some(p => p.id === playerId)) {
-              updatedSelectedTeam = hydratedTeams.find((t: PresentationTeam) => t.id === currentSelectedTeam.id) || currentSelectedTeam;
+            if (
+              currentSelectedTeam &&
+              currentSelectedTeam.players.some((p) => p.id === playerId)
+            ) {
+              updatedSelectedTeam =
+                hydratedTeams.find(
+                  (t: PresentationTeam) => t.id === currentSelectedTeam.id
+                ) || currentSelectedTeam;
             }
-            
-            set({ teams: hydratedTeams, selectedTeam: updatedSelectedTeam, loading: false });
+
+            set({
+              teams: hydratedTeams,
+              selectedTeam: updatedSelectedTeam,
+              loading: false,
+            });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -318,16 +363,23 @@ export const useTeamsStore = create<TeamsState>()(
 
             // Refresh teams list to get updated data
             const domainTeams = await teamRepository.findAll();
-            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
-            
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
+
             // Update selectedTeam if it matches the affected team
             const currentSelectedTeam = get().selectedTeam;
             let updatedSelectedTeam = currentSelectedTeam;
             if (currentSelectedTeam && currentSelectedTeam.id === teamId) {
-              updatedSelectedTeam = hydratedTeams.find((t: PresentationTeam) => t.id === teamId) || currentSelectedTeam;
+              updatedSelectedTeam =
+                hydratedTeams.find((t: PresentationTeam) => t.id === teamId) ||
+                currentSelectedTeam;
             }
-            
-            set({ teams: hydratedTeams, selectedTeam: updatedSelectedTeam, loading: false });
+
+            set({
+              teams: hydratedTeams,
+              selectedTeam: updatedSelectedTeam,
+              loading: false,
+            });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';

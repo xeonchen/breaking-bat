@@ -42,7 +42,7 @@ interface Player {
   id: string;
   name: string;
   jerseyNumber: string;
-  position: Position;
+  positions: Position[];
   isActive: boolean;
 }
 
@@ -153,7 +153,7 @@ export function TeamManagement({
   const [playerForm, setPlayerForm] = useState({
     name: '',
     jerseyNumber: '',
-    position: 'pitcher',
+    position: 'pitcher', // Keep as single for form simplicity
     isActive: true,
   });
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
@@ -170,7 +170,8 @@ export function TeamManagement({
         searchTerm === '' ||
         player.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesPosition =
-        positionFilter === 'all' || player.position.value === positionFilter;
+        positionFilter === 'all' ||
+        player.positions.some((p) => p.value === positionFilter);
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'active' && player.isActive) ||
@@ -253,7 +254,9 @@ export function TeamManagement({
       const newPlayer = {
         name: playerForm.name,
         jerseyNumber: playerForm.jerseyNumber,
-        position: Position.fromValue(playerForm.position),
+        positions: playerForm.position
+          ? [Position.fromValue(playerForm.position)]
+          : [Position.extraPlayer()],
         isActive: playerForm.isActive,
       };
 
@@ -278,7 +281,9 @@ export function TeamManagement({
         id: editingPlayerId,
         name: playerForm.name,
         jerseyNumber: playerForm.jerseyNumber,
-        position: Position.fromValue(playerForm.position),
+        positions: playerForm.position
+          ? [Position.fromValue(playerForm.position)]
+          : [Position.extraPlayer()],
         isActive: playerForm.isActive,
       };
 
@@ -337,7 +342,7 @@ export function TeamManagement({
       setPlayerForm({
         name: player.name,
         jerseyNumber: player.jerseyNumber,
-        position: player.position.value,
+        position: player.positions[0]?.value || 'extra-player', // Use first position for form
         isActive: player.isActive,
       });
       onPlayerEditOpen();
@@ -862,7 +867,11 @@ function PlayerCard({
             <HStack>
               <Text fontWeight="bold">{player.name}</Text>
               <Text color="gray.500">#{player.jerseyNumber}</Text>
-              <Badge>{POSITION_ABBREVIATIONS[player.position.value]}</Badge>
+              {player.positions.map((pos) => (
+                <Badge key={pos.value} mr={1}>
+                  {POSITION_ABBREVIATIONS[pos.value]}
+                </Badge>
+              ))}
               {!player.isActive && (
                 <Badge colorScheme="red" variant="outline">
                   Inactive

@@ -1,4 +1,9 @@
-import { Team as DomainTeam, Player as DomainPlayer, PlayerRepository } from '@/domain';
+import {
+  Team as DomainTeam,
+  Player as DomainPlayer,
+  PlayerRepository,
+} from '@/domain';
+import { Position } from '@/domain/values';
 import { PresentationTeam, PresentationPlayer } from '../types/TeamWithPlayers';
 
 /**
@@ -12,8 +17,10 @@ export class TeamHydrationService {
    */
   async hydrateTeam(domainTeam: DomainTeam): Promise<PresentationTeam> {
     // Load all players for this team
-    const domainPlayers = await this.playerRepository.findByTeamId(domainTeam.id);
-    
+    const domainPlayers = await this.playerRepository.findByTeamId(
+      domainTeam.id
+    );
+
     // Convert domain players to presentation players
     const presentationPlayers: PresentationPlayer[] = domainPlayers.map(
       this.convertDomainPlayerToPresentation
@@ -39,12 +46,14 @@ export class TeamHydrationService {
   /**
    * Convert domain player to presentation player
    */
-  private convertDomainPlayerToPresentation(domainPlayer: DomainPlayer): PresentationPlayer {
+  private convertDomainPlayerToPresentation(
+    domainPlayer: DomainPlayer
+  ): PresentationPlayer {
     return {
       id: domainPlayer.id,
       name: domainPlayer.name,
       jerseyNumber: domainPlayer.jerseyNumber.toString(), // Convert to string for forms
-      position: domainPlayer.position!,
+      positions: domainPlayer.positions,
       isActive: domainPlayer.isActive,
     };
   }
@@ -52,16 +61,18 @@ export class TeamHydrationService {
   /**
    * Convert presentation player back to domain-compatible format for use cases
    */
-  static convertPresentationPlayerToDomain(presentationPlayer: PresentationPlayer): {
+  static convertPresentationPlayerToDomain(
+    presentationPlayer: PresentationPlayer
+  ): {
     name: string;
     jerseyNumber: number;
-    position: any;
+    positions: Position[];
     isActive: boolean;
   } {
     return {
       name: presentationPlayer.name,
       jerseyNumber: parseInt(presentationPlayer.jerseyNumber, 10),
-      position: presentationPlayer.position,
+      positions: presentationPlayer.positions,
       isActive: presentationPlayer.isActive,
     };
   }

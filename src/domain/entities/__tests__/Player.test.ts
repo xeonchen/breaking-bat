@@ -9,13 +9,14 @@ describe('Player', () => {
         'John Doe',
         23,
         'team1',
-        Position.firstBase(),
+        [Position.firstBase()],
         true
       );
 
       expect(player.name).toBe('John Doe');
       expect(player.jerseyNumber).toBe(23);
-      expect(player.position?.value).toBe('first-base');
+      expect(player.positions).toHaveLength(1);
+      expect(player.positions[0].value).toBe('first-base');
       expect(player.isActive).toBe(true);
     });
 
@@ -27,12 +28,22 @@ describe('Player', () => {
 
     it('should throw error for invalid jersey number', () => {
       expect(() => {
-        new Player('player1', 'John Doe', 0, 'team1');
-      }).toThrow('Jersey number must be between 1 and 99');
+        new Player('player1', 'John Doe', -1, 'team1');
+      }).toThrow('Jersey number must be between 0 and 999');
 
       expect(() => {
-        new Player('player1', 'John Doe', 100, 'team1');
-      }).toThrow('Jersey number must be between 1 and 99');
+        new Player('player1', 'John Doe', 1000, 'team1');
+      }).toThrow('Jersey number must be between 0 and 999');
+    });
+
+    it('should allow jersey number 0', () => {
+      const player = new Player('player1', 'John Doe', 0, 'team1');
+      expect(player.jerseyNumber).toBe(0);
+    });
+
+    it('should allow jersey number 999', () => {
+      const player = new Player('player1', 'John Doe', 999, 'team1');
+      expect(player.jerseyNumber).toBe(999);
     });
 
     it('should trim whitespace from name', () => {
@@ -59,7 +70,7 @@ describe('Player', () => {
         atBats: 10,
         hits: 3,
         runs: 2,
-        rbis: 1
+        rbis: 1,
       };
 
       const updatedPlayer = player.updateStatistics(newStats);
@@ -68,26 +79,85 @@ describe('Player', () => {
     });
   });
 
-  describe('position changes', () => {
-    it('should change position', () => {
-      const player = new Player('player1', 'John Doe', 23, 'team1', Position.firstBase());
-      const updated = player.changePosition(Position.pitcher());
+  describe('position management', () => {
+    it('should default to extra player position', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1');
+      expect(player.positions).toHaveLength(1);
+      expect(player.positions[0].value).toBe('extra-player');
+      expect(player.isExtraPlayer()).toBe(true);
+    });
 
-      expect(updated.position?.value).toBe('pitcher');
+    it('should update positions', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.firstBase(),
+      ]);
+      const updated = player.updatePositions([
+        Position.pitcher(),
+        Position.firstBase(),
+      ]);
+
+      expect(updated.positions).toHaveLength(2);
+      expect(updated.positions[0].value).toBe('pitcher');
+      expect(updated.positions[1].value).toBe('first-base');
       expect(updated.updatedAt).not.toBe(player.updatedAt);
     });
 
-    it('should handle null position', () => {
-      const player = new Player('player1', 'John Doe', 23, 'team1', Position.firstBase());
-      const updated = player.changePosition(null);
+    it('should add position', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.firstBase(),
+      ]);
+      const updated = player.addPosition(Position.pitcher());
 
-      expect(updated.position).toBe(null);
+      expect(updated.positions).toHaveLength(2);
+      expect(updated.canPlayPosition(Position.pitcher())).toBe(true);
+    });
+
+    it('should not add duplicate position', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.firstBase(),
+      ]);
+      const updated = player.addPosition(Position.firstBase());
+
+      expect(updated.positions).toHaveLength(1);
+      expect(updated).toBe(player); // Should return same instance
+    });
+
+    it('should remove position', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.firstBase(),
+        Position.pitcher(),
+      ]);
+      const updated = player.removePosition(Position.firstBase());
+
+      expect(updated.positions).toHaveLength(1);
+      expect(updated.positions[0].value).toBe('pitcher');
+    });
+
+    it('should get defensive positions only', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.firstBase(),
+        Position.extraPlayer(),
+        Position.pitcher(),
+      ]);
+
+      const defensivePositions = player.getDefensivePositions();
+      expect(defensivePositions).toHaveLength(2);
+      expect(defensivePositions.some((p) => p.value === 'extra-player')).toBe(
+        false
+      );
     });
   });
 
   describe('activation', () => {
     it('should activate/deactivate player', () => {
-      const player = new Player('player1', 'John Doe', 23, 'team1', null, true);
+      const player = new Player(
+        'player1',
+        'John Doe',
+        23,
+        'team1',
+        [Position.pitcher()],
+        true
+      );
       const deactivated = player.setActive(false);
 
       expect(deactivated.isActive).toBe(false);
@@ -102,16 +172,30 @@ describe('Player', () => {
     });
 
     it('should check position capability', () => {
-      const player = new Player('player1', 'John Doe', 23, 'team1');
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.pitcher(),
+        Position.firstBase(),
+      ]);
       expect(player.canPlayPosition(Position.pitcher())).toBe(true);
-      expect(player.canPlayPosition(Position.catcher())).toBe(true);
+      expect(player.canPlayPosition(Position.firstBase())).toBe(true);
+      expect(player.canPlayPosition(Position.catcher())).toBe(false);
+    });
+
+    it('should support new slowpitch positions', () => {
+      const player = new Player('player1', 'John Doe', 23, 'team1', [
+        Position.shortFielder(),
+        Position.extraPlayer(),
+      ]);
+
+      expect(player.canPlayPosition(Position.shortFielder())).toBe(true);
+      expect(player.isExtraPlayer()).toBe(true);
     });
   });
 
   describe('immutability', () => {
     it('should create new instance on updates', () => {
       const original = new Player('player1', 'John Doe', 23, 'team1');
-      const updated = original.changePosition(Position.pitcher());
+      const updated = original.updatePositions([Position.pitcher()]);
 
       expect(updated).not.toBe(original);
       expect(updated.id).toBe(original.id);
