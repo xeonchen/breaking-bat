@@ -912,4 +912,296 @@ describe('TeamManagement Component', () => {
       expect(onPlayerEdit).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('Team Prop Updates', () => {
+    it('should re-render when team prop changes', () => {
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Initially should show 3 players
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.getByText('Mike Johnson')).toBeInTheDocument();
+      expect(screen.getByText('Sarah Wilson')).toBeInTheDocument();
+
+      // Update team with new player
+      const newPlayer = {
+        id: 'player-4',
+        name: 'David Ortiz',
+        jerseyNumber: '34',
+        position: Position.firstBase(),
+        isActive: true,
+      };
+      const updatedTeam = {
+        ...mockTeam,
+        players: [...mockTeam.players, newPlayer],
+      };
+
+      rerender(
+        <TeamManagement
+          team={updatedTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should now show 4 players including the new one
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.getByText('Mike Johnson')).toBeInTheDocument();
+      expect(screen.getByText('Sarah Wilson')).toBeInTheDocument();
+      expect(screen.getByText('David Ortiz')).toBeInTheDocument();
+    });
+
+    it('should update player list when team.players changes', () => {
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      expect(screen.getAllByTestId(/^player-player-/)).toHaveLength(3);
+
+      // Remove a player from the team
+      const teamWithRemovedPlayer = {
+        ...mockTeam,
+        players: mockTeam.players.filter(p => p.id !== 'player-2'),
+      };
+
+      rerender(
+        <TeamManagement
+          team={teamWithRemovedPlayer}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should now show 2 players
+      expect(screen.getAllByTestId(/^player-player-/)).toHaveLength(2);
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.queryByText('Mike Johnson')).not.toBeInTheDocument();
+      expect(screen.getByText('Sarah Wilson')).toBeInTheDocument();
+    });
+
+    it('should update player details when team.players properties change', () => {
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.getByText('#12')).toBeInTheDocument();
+
+      // Update player name and jersey number
+      const teamWithUpdatedPlayer = {
+        ...mockTeam,
+        players: mockTeam.players.map(p => 
+          p.id === 'player-1' 
+            ? { ...p, name: 'Johnny Smith', jerseyNumber: '99' }
+            : p
+        ),
+      };
+
+      rerender(
+        <TeamManagement
+          team={teamWithUpdatedPlayer}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should show updated player details
+      expect(screen.queryByText('John Smith')).not.toBeInTheDocument();
+      expect(screen.getByText('Johnny Smith')).toBeInTheDocument();
+      expect(screen.queryByText('#12')).not.toBeInTheDocument();
+      expect(screen.getByText('#99')).toBeInTheDocument();
+    });
+
+    it('should maintain filtering and sorting with updated player data', () => {
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+          enableSearch={true}
+          enableFilters={true}
+          enableSorting={true}
+        />
+      );
+
+      // Apply search filter
+      const searchInput = screen.getByTestId('player-search-input');
+      fireEvent.change(searchInput, { target: { value: 'Smith' } });
+
+      // Should show only John Smith
+      expect(screen.getByTestId('player-player-1')).toBeInTheDocument();
+      expect(screen.queryByTestId('player-player-2')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('player-player-3')).not.toBeInTheDocument();
+
+      // Add a new player with "Smith" in the name
+      const newSmithPlayer = {
+        id: 'player-4',
+        name: 'Jane Smith',
+        jerseyNumber: '44',
+        position: Position.shortstop(),
+        isActive: true,
+      };
+      const updatedTeam = {
+        ...mockTeam,
+        players: [...mockTeam.players, newSmithPlayer],
+      };
+
+      rerender(
+        <TeamManagement
+          team={updatedTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+          enableSearch={true}
+          enableFilters={true}
+          enableSorting={true}
+        />
+      );
+
+      // Should now show both Smith players due to existing filter
+      expect(screen.getByTestId('player-player-1')).toBeInTheDocument();
+      expect(screen.queryByTestId('player-player-2')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('player-player-3')).not.toBeInTheDocument();
+      expect(screen.getByTestId('player-player-4')).toBeInTheDocument();
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    });
+
+    it('should handle empty team to populated team transition', () => {
+      const emptyTeam = { ...mockTeam, players: [] };
+      
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={emptyTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should show empty roster message
+      expect(screen.getByTestId('empty-roster-message')).toBeInTheDocument();
+      expect(screen.queryByTestId('team-roster')).not.toBeInTheDocument();
+
+      // Update to populated team
+      rerender(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should now show roster with players
+      expect(screen.queryByTestId('empty-roster-message')).not.toBeInTheDocument();
+      expect(screen.getByTestId('team-roster')).toBeInTheDocument();
+      expect(screen.getAllByTestId(/^player-player-/)).toHaveLength(3);
+    });
+
+    it('should handle populated team to empty team transition', () => {
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should show roster with players
+      expect(screen.getByTestId('team-roster')).toBeInTheDocument();
+      expect(screen.getAllByTestId(/^player-player-/)).toHaveLength(3);
+
+      // Update to empty team
+      const emptyTeam = { ...mockTeam, players: [] };
+      rerender(
+        <TeamManagement
+          team={emptyTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      // Should now show empty roster message
+      expect(screen.getByTestId('empty-roster-message')).toBeInTheDocument();
+      expect(screen.queryByTestId('team-roster')).not.toBeInTheDocument();
+    });
+
+    it('should update team name in header when team prop changes', () => {
+      const { rerender } = renderWithChakra(
+        <TeamManagement
+          team={mockTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('Yankees')).toBeInTheDocument();
+
+      // Update team name
+      const updatedTeam = { ...mockTeam, name: 'Red Sox' };
+      rerender(
+        <TeamManagement
+          team={updatedTeam}
+          playerStats={mockStats}
+          onPlayerAdd={jest.fn()}
+          onPlayerEdit={jest.fn()}
+          onPlayerRemove={jest.fn()}
+          onTeamEdit={jest.fn()}
+        />
+      );
+
+      expect(screen.queryByText('Yankees')).not.toBeInTheDocument();
+      expect(screen.getByText('Red Sox')).toBeInTheDocument();
+    });
+  });
 });

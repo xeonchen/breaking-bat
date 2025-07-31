@@ -12,10 +12,10 @@ export async function createTestDatabase(): Promise<void> {
 
   testDb = new Dexie(dbName);
 
-  // Define database schema matching the production schema
+  // Define database schema matching the production schema (latest version)
   testDb.version(1).stores({
     teams: '++id, name, *seasonIds, *playerIds',
-    players: '++id, name, jerseyNumber, teamId, position, isActive, statistics',
+    players: '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
     seasons: '++id, name, year, startDate, endDate, *teamIds',
     games:
       '++id, name, opponent, date, seasonId, gameTypeId, homeAway, teamId, status, lineupId, *inningIds, finalScore',
@@ -48,6 +48,29 @@ export function getTestDatabase(): Dexie {
     );
   }
   return testDb;
+}
+
+/**
+ * Create a fresh test database instance for integration tests
+ */
+export function createFreshTestDatabase(): Dexie {
+  const dbName = `test-breaking-bat-${Date.now()}-${Math.random()}`;
+  const freshDb = new Dexie(dbName);
+  
+  // Define database schema matching the production schema (latest version)
+  freshDb.version(1).stores({
+    teams: '++id, name, *seasonIds, *playerIds',
+    players: '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
+    seasons: '++id, name, year, startDate, endDate, *teamIds',
+    games:
+      '++id, name, opponent, date, seasonId, gameTypeId, homeAway, teamId, status, lineupId, *inningIds, finalScore',
+    innings:
+      '++id, gameId, number, teamAtBat, runsScored, *atBatIds, isComplete',
+    atBats:
+      '++id, gameId, inningId, batterId, battingPosition, result, rbis, *runsScored, baserunnersBefore, baserunnersAfter',
+  });
+  
+  return freshDb;
 }
 
 /**

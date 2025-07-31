@@ -94,11 +94,70 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
   async findActiveByTeamId(teamId: string): Promise<Player[]> {
     const records = await this.db
       .table('players')
-      .where(['teamId', 'isActive'])
-      .equals([teamId, true])
+      .where('teamId')
+      .equals(teamId)
+      .filter((record: any) => record.isActive === true)
       .toArray();
 
     return records.map((record) => this.recordToPlayer(record));
+  }
+
+  async findAll(): Promise<Player[]> {
+    const records = await this.db.table('players').toArray();
+    return records.map((record) => this.recordToPlayer(record));
+  }
+
+  async create(player: Player): Promise<Player> {
+    return await this.save(player);
+  }
+
+  async update(player: Player): Promise<Player> {
+    return await this.save(player);
+  }
+
+  async exists(id: string): Promise<boolean> {
+    const record = await this.db.table('players').get(id);
+    return record !== undefined;
+  }
+
+  async isJerseyNumberUnique(
+    teamId: string,
+    jerseyNumber: number,
+    excludePlayerId?: string
+  ): Promise<boolean> {
+    const existingPlayer = await this.findByJerseyNumber(teamId, jerseyNumber);
+    
+    if (!existingPlayer) {
+      return true;
+    }
+    
+    // If we're excluding a specific player (for updates), check if it's the same player
+    return excludePlayerId ? existingPlayer.id === excludePlayerId : false;
+  }
+
+  async searchByName(query: string, teamId?: string): Promise<Player[]> {
+    const lowerQuery = query.toLowerCase();
+    
+    let queryBuilder = this.db.table('players');
+    
+    if (teamId) {
+      queryBuilder = queryBuilder.where('teamId').equals(teamId);
+    }
+    
+    const records = await queryBuilder
+      .filter((record: any) => record.name.toLowerCase().includes(lowerQuery))
+      .toArray();
+
+    return records.map((record) => this.recordToPlayer(record));
+  }
+
+  async getPlayersWithStatistics(
+    teamId: string,
+    _seasonId?: string
+  ): Promise<Player[]> {
+    // For now, just return team players with their statistics
+    // In the future, this could filter by season-specific statistics
+    return await this.findByTeamId(teamId);
   }
 
   async delete(id: string): Promise<void> {
@@ -117,17 +176,6 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
 
     const updatedPlayer = player.updateStatistics(statistics);
     return await this.save(updatedPlayer);
-  }
-
-  async search(query: string): Promise<Player[]> {
-    const lowerQuery = query.toLowerCase();
-
-    const records = await this.db
-      .table('players')
-      .filter((record) => record.name.toLowerCase().includes(lowerQuery))
-      .toArray();
-
-    return records.map((record) => this.recordToPlayer(record));
   }
 
   private recordToPlayer(record: {

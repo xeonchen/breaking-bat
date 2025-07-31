@@ -1,11 +1,59 @@
+import { renderHook, act } from '@testing-library/react';
 import { Team, Position } from '@/domain';
 import { Result } from '@/application/common/Result';
+import { useTeamsStore, initializeTeamsStore } from '@/presentation/stores/teamsStore';
+import { PresentationTeam, PresentationPlayer } from '@/presentation/types/TeamWithPlayers';
 
-// Simple store test without complex mocking
-describe('TeamsStore', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+// Mock dependencies
+const mockTeamRepository = {
+  findAll: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
+  findById: jest.fn(),
+};
+
+const mockPlayerRepository = {
+  save: jest.fn(),
+  delete: jest.fn(),
+  findById: jest.fn(),
+};
+
+const mockTeamHydrationService = {
+  hydrateTeams: jest.fn(),
+  convertPresentationPlayerToDomain: jest.fn(),
+};
+
+const mockCreateTeamUseCase = {
+  execute: jest.fn(),
+};
+
+const mockAddPlayerUseCase = {
+  execute: jest.fn(),
+};
+
+const mockUpdatePlayerUseCase = {
+  execute: jest.fn(),
+};
+
+const mockRemovePlayerUseCase = {
+  execute: jest.fn(),
+};
+
+// Initialize store with mocks before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  initializeTeamsStore({
+    teamRepository: mockTeamRepository,
+    playerRepository: mockPlayerRepository,
+    teamHydrationService: mockTeamHydrationService,
+    createTeamUseCase: mockCreateTeamUseCase,
+    addPlayerUseCase: mockAddPlayerUseCase,
+    updatePlayerUseCase: mockUpdatePlayerUseCase,
+    removePlayerUseCase: mockRemovePlayerUseCase,
   });
+});
+
+describe('TeamsStore', () => {
 
   describe('Initial State', () => {
     it('should have correct initial state', () => {
@@ -494,6 +542,174 @@ describe('TeamsStore', () => {
 
       // Should handle all operations without race conditions
       expect(result.current.loading).toBe(false);
+    });
+  });
+
+  describe('SelectedTeam Updates', () => {
+    const createMockPresentationTeam = (id: string, name: string, players: PresentationPlayer[] = []): PresentationTeam => ({
+      id,
+      name,
+      players,
+      seasonIds: [],
+      playerIds: players.map(p => p.id),
+    });
+
+    const createMockPlayer = (id: string, name: string, jerseyNumber: string): PresentationPlayer => ({
+      id,
+      name,
+      jerseyNumber,
+      position: Position.pitcher(),
+      isActive: true,
+    });
+
+    describe('addPlayer with selectedTeam', () => {
+      it('should update selectedTeam when adding player to selected team', async () => {
+        const initialPlayer = createMockPlayer('player-1', 'John Doe', '10');
+        const newPlayer = createMockPlayer('player-2', 'Jane Smith', '12');
+        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [initialPlayer]);
+        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [initialPlayer, newPlayer]);
+
+        // Mock successful use case execution
+        mockAddPlayerUseCase.execute.mockResolvedValue(Result.success(newPlayer));
+        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
+
+        const { result } = renderHook(() => useTeamsStore());
+
+        // Set initial selected team
+        act(() => {
+          result.current.selectTeam(initialTeam);
+        });
+
+        expect(result.current.selectedTeam).toEqual(initialTeam);
+
+        // Add player to selected team
+        await act(async () => {
+          await result.current.addPlayer('team-1', {
+            name: 'Jane Smith',
+            jerseyNumber: '12',
+            position: Position.pitcher(),
+            isActive: true,
+          });
+        });
+
+        // selectedTeam should be updated with new player
+        expect(result.current.selectedTeam).toEqual(updatedTeam);
+        expect(result.current.selectedTeam?.players).toHaveLength(2);
+      });
+
+      it('should not update selectedTeam when adding player to different team', async () => {
+        const selectedTeam = createMockPresentationTeam('team-1', 'Red Sox');
+        const otherTeam = createMockPresentationTeam('team-2', 'Yankees');
+        const newPlayer = createMockPlayer('player-1', 'John Doe', '10');
+        const updatedOtherTeam = createMockPresentationTeam('team-2', 'Yankees', [newPlayer]);
+
+        mockAddPlayerUseCase.execute.mockResolvedValue(Result.success(newPlayer));
+        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([selectedTeam, updatedOtherTeam]);
+
+        const { result } = renderHook(() => useTeamsStore());
+
+        act(() => {
+          result.current.selectTeam(selectedTeam);
+        });
+
+        await act(async () => {
+          await result.current.addPlayer('team-2', {
+            name: 'John Doe',
+            jerseyNumber: '10',
+            position: Position.pitcher(),
+            isActive: true,
+          });
+        });
+
+        // selectedTeam should remain unchanged
+        expect(result.current.selectedTeam).toEqual(selectedTeam);
+      });
+    });
+
+    describe('removePlayer with selectedTeam', () => {
+      it('should update selectedTeam when removing player from selected team', async () => {
+        const player1 = createMockPlayer('player-1', 'John Doe', '10');
+        const player2 = createMockPlayer('player-2', 'Jane Smith', '12');
+        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [player1, player2]);
+        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [player2]);
+
+        mockRemovePlayerUseCase.execute.mockResolvedValue(Result.success(undefined));
+        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
+
+        const { result } = renderHook(() => useTeamsStore());
+
+        act(() => {
+          result.current.selectTeam(initialTeam);
+        });
+
+        await act(async () => {
+          await result.current.removePlayer('team-1', 'player-1');
+        });
+
+        expect(result.current.selectedTeam).toEqual(updatedTeam);
+        expect(result.current.selectedTeam?.players).toHaveLength(1);
+        expect(result.current.selectedTeam?.players[0].id).toBe('player-2');
+      });
+    });
+
+    describe('updatePlayer with selectedTeam', () => {
+      it('should update selectedTeam when updating player in selected team', async () => {
+        const initialPlayer = createMockPlayer('player-1', 'John Doe', '10');
+        const updatedPlayer = { ...initialPlayer, name: 'Johnny Doe' };
+        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [initialPlayer]);
+        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [updatedPlayer]);
+
+        mockUpdatePlayerUseCase.execute.mockResolvedValue(Result.success(updatedPlayer));
+        mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue({
+          name: 'Johnny Doe',
+          jerseyNumber: 10,
+          position: Position.pitcher(),
+          isActive: true,
+        });
+        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
+
+        const { result } = renderHook(() => useTeamsStore());
+
+        act(() => {
+          result.current.selectTeam(initialTeam);
+        });
+
+        await act(async () => {
+          await result.current.updatePlayer('player-1', updatedPlayer);
+        });
+
+        expect(result.current.selectedTeam).toEqual(updatedTeam);
+        expect(result.current.selectedTeam?.players[0].name).toBe('Johnny Doe');
+      });
+
+      it('should not update selectedTeam when updating player in different team', async () => {
+        const selectedTeamPlayer = createMockPlayer('player-1', 'John Doe', '10');
+        const otherTeamPlayer = createMockPlayer('player-2', 'Jane Smith', '12');
+        const selectedTeam = createMockPresentationTeam('team-1', 'Red Sox', [selectedTeamPlayer]);
+        const otherTeam = createMockPresentationTeam('team-2', 'Yankees', [otherTeamPlayer]);
+
+        mockUpdatePlayerUseCase.execute.mockResolvedValue(Result.success(otherTeamPlayer));
+        mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue({});
+        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([selectedTeam, otherTeam]);
+
+        const { result } = renderHook(() => useTeamsStore());
+
+        act(() => {
+          result.current.selectTeam(selectedTeam);
+        });
+
+        await act(async () => {
+          await result.current.updatePlayer('player-2', otherTeamPlayer);
+        });
+
+        // selectedTeam should remain unchanged since player-2 is not in selected team
+        expect(result.current.selectedTeam).toEqual(selectedTeam);
+      });
     });
   });
 });

@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { Team, Player, Position } from '@/domain';
+import { Team, Position } from '@/domain';
 import { CreateTeamCommand } from '@/application/use-cases/CreateTeamUseCase';
-import { v4 as uuidv4 } from 'uuid';
+import { PresentationTeam, PresentationPlayer } from '@/presentation/types/TeamWithPlayers';
+import { TeamHydrationService } from '@/presentation/services/TeamHydrationService';
 
 interface PlayerData {
   name: string;
@@ -27,8 +28,8 @@ interface PlayerStats {
 
 interface TeamsState {
   // State
-  teams: Team[];
-  selectedTeam: Team | null;
+  teams: PresentationTeam[];
+  selectedTeam: PresentationTeam | null;
   loading: boolean;
   error: string | null;
   playerStats: Record<string, PlayerStats>;
@@ -39,10 +40,10 @@ interface TeamsState {
   updateTeam: (teamId: string, teamData: TeamData) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
   addPlayer: (teamId: string, playerData: PlayerData) => Promise<void>;
-  updatePlayer: (playerId: string, playerData: Player) => Promise<void>;
+  updatePlayer: (playerId: string, playerData: PresentationPlayer) => Promise<void>;
   removePlayer: (teamId: string, playerId: string) => Promise<void>;
   getPlayerStats: () => Promise<void>;
-  selectTeam: (team: Team) => void;
+  selectTeam: (team: PresentationTeam) => void;
   clearSelection: () => void;
   clearError: () => void;
 }
@@ -51,9 +52,15 @@ interface TeamsState {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let teamRepository: any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let playerRepository: any;
+let teamHydrationService: any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let createTeamUseCase: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let addPlayerUseCase: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let updatePlayerUseCase: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let removePlayerUseCase: any;
 
 // Initialize function for dependency injection
 export const initializeTeamsStore = (deps: {
@@ -62,11 +69,34 @@ export const initializeTeamsStore = (deps: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   playerRepository: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  teamHydrationService: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createTeamUseCase: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addPlayerUseCase: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updatePlayerUseCase: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removePlayerUseCase: any;
 }): void => {
+  console.log('🔧 Initializing TeamsStore with dependencies:', {
+    teamRepository: !!deps.teamRepository,
+    playerRepository: !!deps.playerRepository,
+    teamHydrationService: !!deps.teamHydrationService,
+    createTeamUseCase: !!deps.createTeamUseCase,
+    addPlayerUseCase: !!deps.addPlayerUseCase,
+    updatePlayerUseCase: !!deps.updatePlayerUseCase,
+    removePlayerUseCase: !!deps.removePlayerUseCase,
+  });
+  
   teamRepository = deps.teamRepository;
-  playerRepository = deps.playerRepository;
+  teamHydrationService = deps.teamHydrationService;
   createTeamUseCase = deps.createTeamUseCase;
+  addPlayerUseCase = deps.addPlayerUseCase;
+  updatePlayerUseCase = deps.updatePlayerUseCase;
+  removePlayerUseCase = deps.removePlayerUseCase;
+  
+  console.log('✅ TeamsStore dependencies initialized successfully');
 };
 
 // Mock stats repository for now
@@ -90,11 +120,21 @@ export const useTeamsStore = create<TeamsState>()(
 
         // Actions
         getTeams: async () => {
+          console.log('📋 Getting teams...');
           set({ loading: true, error: null });
           try {
-            const teams = await teamRepository.findAll();
-            set({ teams, loading: false });
-          } catch {
+            console.log('🔍 Fetching domain teams from repository...');
+            const domainTeams = await teamRepository.findAll();
+            console.log(`✅ Found ${domainTeams.length} domain teams:`, domainTeams.map((t: any) => ({ id: t.id, name: t.name })));
+            
+            console.log('💧 Hydrating teams with player data...');
+            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
+            console.log(`✅ Hydrated ${hydratedTeams.length} teams:`, hydratedTeams.map((t: any) => ({ id: t.id, name: t.name, playerCount: t.players.length })));
+            
+            set({ teams: hydratedTeams, loading: false });
+            console.log('✅ Teams loaded successfully into store');
+          } catch (error) {
+            console.error('❌ Failed to load teams:', error);
             set({
               loading: false,
               error: 'Failed to load teams',
@@ -104,23 +144,35 @@ export const useTeamsStore = create<TeamsState>()(
         },
 
         createTeam: async (command: CreateTeamCommand) => {
+          console.log('🏗️ Creating team:', command);
           set({ loading: true, error: null });
           try {
+            console.log('🔧 Executing CreateTeamUseCase...');
             const result = await createTeamUseCase.execute(command);
+            console.log('📝 CreateTeamUseCase result:', { isSuccess: result.isSuccess, error: result.error });
 
             if (!result.isSuccess) {
+              console.error('❌ Team creation failed:', result.error);
               set({ loading: false, error: result.error });
               return;
             }
 
-            const currentTeams = get().teams;
+            console.log('✅ Team created successfully:', result.value);
+            
+            // Refresh the entire teams list to get proper hydration
+            console.log('🔄 Refreshing teams list to include new team...');
+            const domainTeams = await teamRepository.findAll();
+            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
+            
             set({
-              teams: [...currentTeams, result.value],
+              teams: hydratedTeams,
               loading: false,
             });
+            console.log('✅ Team created and teams list refreshed');
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Team creation error:', error);
             set({
               loading: false,
               error: `Failed to create team: ${message}`,
@@ -180,30 +232,31 @@ export const useTeamsStore = create<TeamsState>()(
         addPlayer: async (teamId: string, playerData: PlayerData) => {
           set({ loading: true, error: null });
           try {
-            // Create and save the player
-            const playerId = uuidv4();
-            const player: Player = {
-              id: playerId,
+            const result = await addPlayerUseCase.execute({
+              teamId,
               name: playerData.name,
-              jerseyNumber: playerData.jerseyNumber,
+              jerseyNumber: parseInt(playerData.jerseyNumber, 10),
               position: playerData.position,
               isActive: playerData.isActive,
-            };
+            });
 
-            await playerRepository.save(player);
+            if (!result.isSuccess) {
+              set({ loading: false, error: result.error });
+              return;
+            }
 
-            // Add player to team
-            const updatedTeam = await teamRepository.addPlayer(
-              teamId,
-              playerId
-            );
-
-            const currentTeams = get().teams;
-            const updatedTeams = currentTeams.map((team) =>
-              team.id === teamId ? updatedTeam : team
-            );
-
-            set({ teams: updatedTeams, loading: false });
+            // Refresh teams list to get updated data
+            const domainTeams = await teamRepository.findAll();
+            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
+            
+            // Update selectedTeam if it matches the affected team
+            const currentSelectedTeam = get().selectedTeam;
+            let updatedSelectedTeam = currentSelectedTeam;
+            if (currentSelectedTeam && currentSelectedTeam.id === teamId) {
+              updatedSelectedTeam = hydratedTeams.find((t: PresentationTeam) => t.id === teamId) || currentSelectedTeam;
+            }
+            
+            set({ teams: hydratedTeams, selectedTeam: updatedSelectedTeam, loading: false });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -214,11 +267,32 @@ export const useTeamsStore = create<TeamsState>()(
           }
         },
 
-        updatePlayer: async (playerId: string, playerData: Player) => {
+        updatePlayer: async (playerId: string, playerData: PresentationPlayer) => {
           set({ loading: true, error: null });
           try {
-            await playerRepository.save(playerData);
-            set({ loading: false });
+            const domainPlayerData = TeamHydrationService.convertPresentationPlayerToDomain(playerData);
+            const result = await updatePlayerUseCase.execute({
+              playerId,
+              ...domainPlayerData,
+            });
+
+            if (!result.isSuccess) {
+              set({ loading: false, error: result.error });
+              return;
+            }
+
+            // Refresh teams list to get updated data
+            const domainTeams = await teamRepository.findAll();
+            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
+            
+            // Update selectedTeam if it contains the updated player
+            const currentSelectedTeam = get().selectedTeam;
+            let updatedSelectedTeam = currentSelectedTeam;
+            if (currentSelectedTeam && currentSelectedTeam.players.some(p => p.id === playerId)) {
+              updatedSelectedTeam = hydratedTeams.find((t: PresentationTeam) => t.id === currentSelectedTeam.id) || currentSelectedTeam;
+            }
+            
+            set({ teams: hydratedTeams, selectedTeam: updatedSelectedTeam, loading: false });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -232,21 +306,28 @@ export const useTeamsStore = create<TeamsState>()(
         removePlayer: async (teamId: string, playerId: string) => {
           set({ loading: true, error: null });
           try {
-            // Remove player from team
-            const updatedTeam = await teamRepository.removePlayer(
+            const result = await removePlayerUseCase.execute({
               teamId,
-              playerId
-            );
+              playerId,
+            });
 
-            // Delete the player
-            await playerRepository.delete(playerId);
+            if (!result.isSuccess) {
+              set({ loading: false, error: result.error });
+              return;
+            }
 
-            const currentTeams = get().teams;
-            const updatedTeams = currentTeams.map((team) =>
-              team.id === teamId ? updatedTeam : team
-            );
-
-            set({ teams: updatedTeams, loading: false });
+            // Refresh teams list to get updated data
+            const domainTeams = await teamRepository.findAll();
+            const hydratedTeams = await teamHydrationService.hydrateTeams(domainTeams);
+            
+            // Update selectedTeam if it matches the affected team
+            const currentSelectedTeam = get().selectedTeam;
+            let updatedSelectedTeam = currentSelectedTeam;
+            if (currentSelectedTeam && currentSelectedTeam.id === teamId) {
+              updatedSelectedTeam = hydratedTeams.find((t: PresentationTeam) => t.id === teamId) || currentSelectedTeam;
+            }
+            
+            set({ teams: hydratedTeams, selectedTeam: updatedSelectedTeam, loading: false });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -272,7 +353,7 @@ export const useTeamsStore = create<TeamsState>()(
           }
         },
 
-        selectTeam: (team: Team) => {
+        selectTeam: (team: PresentationTeam) => {
           set({ selectedTeam: team });
         },
 

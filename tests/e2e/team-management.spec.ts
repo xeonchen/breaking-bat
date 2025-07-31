@@ -22,13 +22,13 @@ test.describe('Team Management User Story', () => {
       page.locator('[data-testid="create-team-modal"]')
     ).toBeVisible();
 
-    await page.fill('[data-testid="team-name-input"]', 'Yankees');
+    await page.fill('[data-testid="team-name-input"]', 'Red Sox');
     await page.click('[data-testid="confirm-create-team"]');
 
     // Verify team was created
-    await expect(page.locator('[data-testid="team-yankees"]')).toBeVisible();
-    await expect(page.locator('[data-testid="team-yankees"]')).toContainText(
-      'Yankees'
+    await expect(page.locator('[data-testid="team-red-sox"]')).toBeVisible();
+    await expect(page.locator('[data-testid="team-red-sox"]')).toContainText(
+      'Red Sox'
     );
 
     // Test: Create seasons to organize games by time periods
@@ -64,42 +64,42 @@ test.describe('Team Management User Story', () => {
 
     // Test: Manage player rosters for each team
     await page.click('[data-testid="teams-tab"]');
-    await page.click('[data-testid="team-yankees"]');
+    await page.click('[data-testid="team-red-sox"]');
     await page.click('[data-testid="manage-roster-button"]');
 
     // Add first player
     await page.click('[data-testid="add-player-button"]');
-    await page.fill('[data-testid="player-name-input"]', 'Derek Jeter');
-    await page.fill('[data-testid="player-jersey-input"]', '2');
+    await page.fill('[data-testid="player-name-input"]', 'Ted Williams');
+    await page.fill('[data-testid="player-jersey-input"]', '9');
     await page.selectOption(
       '[data-testid="player-position-select"]',
-      'shortstop'
+      'left-field'
     );
     await page.click('[data-testid="confirm-add-player"]');
 
     // Add second player
     await page.click('[data-testid="add-player-button"]');
-    await page.fill('[data-testid="player-name-input"]', 'Babe Ruth');
-    await page.fill('[data-testid="player-jersey-input"]', '3');
+    await page.fill('[data-testid="player-name-input"]', 'David Ortiz');
+    await page.fill('[data-testid="player-jersey-input"]', '34');
     await page.selectOption(
       '[data-testid="player-position-select"]',
-      'right-field'
+      'first-base'
     );
     await page.click('[data-testid="confirm-add-player"]');
 
     // Verify players are added to roster
     await expect(
-      page.locator('[data-testid="player-derek-jeter"]')
+      page.locator('[data-testid="player-ted-williams"]')
     ).toBeVisible();
     await expect(
-      page.locator('[data-testid="player-derek-jeter"]')
-    ).toContainText('#2 Derek Jeter');
+      page.locator('[data-testid="player-ted-williams"]')
+    ).toContainText('#9 Ted Williams');
     await expect(
-      page.locator('[data-testid="player-babe-ruth"]')
+      page.locator('[data-testid="player-david-ortiz"]')
     ).toBeVisible();
     await expect(
-      page.locator('[data-testid="player-babe-ruth"]')
-    ).toContainText('#3 Babe Ruth');
+      page.locator('[data-testid="player-david-ortiz"]')
+    ).toContainText('#34 David Ortiz');
 
     // Test: Set up starting lineup and substitutes before games
     await page.click('[data-testid="setup-lineup-button"]');
@@ -142,15 +142,15 @@ test.describe('Team Management User Story', () => {
 
     // Verify data persists after reload
     await page.click('[data-testid="teams-tab"]');
-    await expect(page.locator('[data-testid="team-yankees"]')).toBeVisible();
+    await expect(page.locator('[data-testid="team-red-sox"]')).toBeVisible();
 
-    await page.click('[data-testid="team-yankees"]');
+    await page.click('[data-testid="team-red-sox"]');
     await page.click('[data-testid="manage-roster-button"]');
     await expect(
-      page.locator('[data-testid="player-derek-jeter"]')
+      page.locator('[data-testid="player-ted-williams"]')
     ).toBeVisible();
     await expect(
-      page.locator('[data-testid="player-babe-ruth"]')
+      page.locator('[data-testid="player-david-ortiz"]')
     ).toBeVisible();
 
     // Test offline operation (PWA requirement)
@@ -160,7 +160,7 @@ test.describe('Team Management User Story', () => {
     // Should still work offline
     await expect(page.locator('[data-testid="teams-tab"]')).toBeVisible();
     await page.click('[data-testid="teams-tab"]');
-    await expect(page.locator('[data-testid="team-yankees"]')).toBeVisible();
+    await expect(page.locator('[data-testid="team-red-sox"]')).toBeVisible();
   });
 
   test('Edge cases and validation', async ({ page }) => {
