@@ -61,29 +61,32 @@ breaking-bat/
 - ✅ **Phase 7**: Application Layer (Use Cases)
 - ✅ **Phase 8**: Presentation Layer (React UI)
 - ✅ **Phase 9**: PWA Features & Service Workers
-- ⏳ **Phase 10**: E2E Testing Alignment & Polish
+- ⏳ **Phase 10**: Testing Completion & Quality Assurance **[CURRENT]**
 
-### Current Implementation Status
+### Current Status
 
-**✅ Fully Implemented & Functional:**
+**Application Status**: All core functionality implemented and working
+**Testing Status**: Critical gaps identified - see [TODO.md](TODO.md) for detailed testing roadmap
+**Next Phase**: UI/UX refinement (blocked pending test completion)
+
+### Implementation Status
+
+**✅ Core Features Complete:**
 
 - Team Management (Teams, Players, Rosters)
-- Season Management (CRUD operations)
-- Game Type Management (CRUD operations)
-- Game Creation & Management
-- Live Scoring Interface
+- Season Management & Game Type Management
+- Game Creation & Live Scoring Interface
 - PWA Features (Offline, Installable)
 - IndexedDB Data Persistence
-- Clean Architecture Pattern
+- Clean Architecture Implementation
 
-**⏳ Partially Implemented:**
+**⏳ In Progress:**
 
-- Data Export/Import (Settings page stub)
+- Comprehensive test coverage (see [TODO.md](TODO.md))
+- Data Export/Import functionality
 - Game Statistics Aggregation
-- Comprehensive E2E Test Coverage
 
-**🎯 Ready for Use:**
-The application is functionally complete for basic softball game management and scoring. Core features work end-to-end with offline storage.
+**📋 For detailed task status and testing roadmap, see [TODO.md](TODO.md)**
 
 ### Available Pages & Features
 
@@ -140,23 +143,13 @@ npm run commit       # Interactive commit with conventional format
 
 ### Commit Guidelines
 
-This project uses [Conventional Commits](https://conventionalcommits.org/) for consistent commit messages:
+This project uses [Conventional Commits](https://conventionalcommits.org/):
 
 ```bash
-npm run commit  # Use interactive commit tool
-# or manually:
-git commit -m "feat(live-scoring): add batting result recording"
+npm run commit  # Interactive commit tool
 ```
 
-**Commit Types:**
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code formatting
-- `refactor`: Code refactoring
-- `test`: Adding or fixing tests
-- `chore`: Maintenance tasks
+For detailed commit standards and development workflow, see [CLAUDE.md](CLAUDE.md).
 
 ## 📄 License
 
