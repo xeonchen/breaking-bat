@@ -1,5 +1,10 @@
 import '@testing-library/jest-dom';
 
+// Polyfill TextEncoder/TextDecoder for Node.js test environment
+import { TextEncoder, TextDecoder } from 'util';
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder as any;
+
 // Mock IndexedDB for testing (will be properly implemented with domain layer)
 const mockIndexedDB = {
   open: () => ({

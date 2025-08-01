@@ -49,19 +49,17 @@ interface BaserunnerAdvancement {
   third?: 'home' | 'out' | 'stay';
 }
 
-interface AtBatResult {
-  batterId: string;
-  result: BattingResult;
-  finalCount: Count;
-  pitchSequence?: string[];
-  baserunnerAdvancement?: BaserunnerAdvancement;
-}
-
 interface AtBatFormProps {
   currentBatter: CurrentBatter | null;
   baserunners: Baserunners;
   currentCount: Count;
-  onAtBatComplete: (result: AtBatResult) => void;
+  onAtBatComplete: (result: {
+    batterId: string;
+    result: BattingResult;
+    finalCount: { balls: number; strikes: number };
+    pitchSequence?: string[];
+    baserunnerAdvancement?: Record<string, string>;
+  }) => void;
   showBaserunnerOptions?: boolean;
   showPitchHistory?: boolean;
   enablePitchTypes?: boolean;
@@ -126,7 +124,7 @@ export function AtBatForm({
     (result: BattingResult, finalCount?: Count) => {
       if (!currentBatter) return;
 
-      const atBatResult: AtBatResult = {
+      const atBatResult = {
         batterId: currentBatter.playerId,
         result,
         finalCount: finalCount || count,
@@ -145,7 +143,7 @@ export function AtBatForm({
           }
           return `${typeAbbrev}${pitchTypeAbbrev}`;
         }),
-        baserunnerAdvancement,
+        baserunnerAdvancement: baserunnerAdvancement as Record<string, string>,
       };
 
       // Show baserunner options for hits if enabled
@@ -254,7 +252,7 @@ export function AtBatForm({
   const handleConfirmAdvancement = (): void => {
     if (!pendingResult || !currentBatter) return;
 
-    const atBatResult: AtBatResult = {
+    const atBatResult = {
       batterId: currentBatter.playerId,
       result: pendingResult,
       finalCount: count,
@@ -273,7 +271,7 @@ export function AtBatForm({
         }
         return `${typeAbbrev}${pitchTypeAbbrev}`;
       }),
-      baserunnerAdvancement,
+      baserunnerAdvancement: baserunnerAdvancement as Record<string, string>,
     };
 
     try {

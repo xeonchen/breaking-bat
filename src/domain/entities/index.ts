@@ -6,3 +6,6 @@ export * from './Game';
 export * from './GameType';
 export * from './Inning';
 export * from './AtBat';
+
+// Re-export types
+export * from '../types/AtBatResult';

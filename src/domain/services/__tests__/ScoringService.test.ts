@@ -18,7 +18,12 @@ describe('ScoringService', () => {
         'batter'
       );
 
-      expect(result.runsScored).toEqual(['player1', 'player2', 'player3', 'batter']);
+      expect(result.runsScored).toEqual([
+        'player1',
+        'player2',
+        'player3',
+        'batter',
+      ]);
       expect(result.newState.isEmpty()).toBe(true);
       expect(result.battingAdvancement).toBe(4);
     });
@@ -76,8 +81,7 @@ describe('ScoringService', () => {
         BattingResult.homeRun(),
         before,
         after,
-        runsScored,
-        'batter'
+        runsScored
       );
 
       expect(rbis).toBe(4);
@@ -91,8 +95,7 @@ describe('ScoringService', () => {
         BattingResult.walk(),
         before,
         after,
-        [],
-        'batter'
+        []
       );
 
       expect(rbis).toBe(0);
@@ -107,8 +110,7 @@ describe('ScoringService', () => {
         BattingResult.sacrificeFly(),
         before,
         after,
-        runsScored,
-        'batter'
+        runsScored
       );
 
       expect(rbis).toBe(1);
@@ -123,8 +125,7 @@ describe('ScoringService', () => {
         BattingResult.error(),
         before,
         after,
-        runsScored,
-        'batter'
+        runsScored
       );
 
       expect(rbis).toBe(0);
@@ -139,7 +140,7 @@ describe('ScoringService', () => {
 
     it('should calculate on-base percentage', () => {
       const obp = scoringService.calculateOnBasePercentage(3, 2, 0, 10, 0);
-      expect(obp).toBe(5/12); // (3 hits + 2 walks) / (10 at-bats + 2 walks)
+      expect(obp).toBe(5 / 12); // (3 hits + 2 walks) / (10 at-bats + 2 walks)
     });
 
     it('should calculate slugging percentage', () => {

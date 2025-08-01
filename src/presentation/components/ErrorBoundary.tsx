@@ -9,7 +9,6 @@ import {
   VStack,
   Text,
   Code,
-  useColorModeValue,
 } from '@chakra-ui/react';
 
 interface Props {
@@ -57,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
           alignItems="center"
           justifyContent="center"
           p={4}
-          bg={useColorModeValue('gray.50', 'gray.900')}
+          bg="gray.50"
         >
           <VStack spacing={6} maxW="lg" w="full">
             <Alert
@@ -75,8 +74,8 @@ export class ErrorBoundary extends Component<Props, State> {
                 Something went wrong!
               </AlertTitle>
               <AlertDescription maxWidth="sm">
-                The application encountered an unexpected error. This has been logged
-                and our team has been notified.
+                The application encountered an unexpected error. This has been
+                logged and our team has been notified.
               </AlertDescription>
             </Alert>
 
@@ -102,7 +101,7 @@ export class ErrorBoundary extends Component<Props, State> {
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <Box
                 w="full"
-                bg={useColorModeValue('red.50', 'red.900')}
+                bg="red.50"
                 p={4}
                 borderRadius="md"
                 borderLeft="4px solid"
@@ -116,7 +115,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   whiteSpace="pre-wrap"
                   fontSize="xs"
                   p={2}
-                  bg={useColorModeValue('white', 'gray.800')}
+                  bg="white"
                   borderRadius="sm"
                   overflow="auto"
                   maxH="200px"

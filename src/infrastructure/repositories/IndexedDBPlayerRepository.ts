@@ -138,7 +138,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
   async searchByName(query: string, teamId?: string): Promise<Player[]> {
     const lowerQuery = query.toLowerCase();
 
-    let queryBuilder = this.db.table('players');
+    let queryBuilder = (this.db as any).players;
 
     if (teamId) {
       queryBuilder = queryBuilder.where('teamId').equals(teamId);
@@ -148,7 +148,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
       .filter((record: any) => record.name.toLowerCase().includes(lowerQuery))
       .toArray();
 
-    return records.map((record) => this.recordToPlayer(record));
+    return records.map((record: any) => this.recordToPlayer(record));
   }
 
   async getPlayersWithStatistics(

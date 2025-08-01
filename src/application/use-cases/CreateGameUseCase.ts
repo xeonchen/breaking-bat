@@ -1,4 +1,4 @@
-import { Game, GameRepository, GameStatus } from '@/domain';
+import { Game, GameRepository, GameStatus, HomeAway } from '@/domain';
 import { Result } from '../common/Result';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,9 +9,7 @@ export interface CreateGameCommand {
   gameTypeId: string;
   opponent: string;
   date: Date;
-  time: string;
-  location: string;
-  isHomeGame: boolean;
+  homeAway: HomeAway;
 }
 
 export class CreateGameUseCase {
@@ -22,7 +20,9 @@ export class CreateGameUseCase {
       // Validate command
       const validationResult = this.validateCommand(command);
       if (!validationResult.isSuccess) {
-        return validationResult;
+        return Result.failure<Game>(
+          validationResult.error || 'Validation failed'
+        );
       }
 
       // Create new game
@@ -32,19 +32,16 @@ export class CreateGameUseCase {
       const game = new Game(
         gameId,
         command.name.trim(),
-        command.teamId,
-        command.seasonId,
-        command.gameTypeId,
         command.opponent.trim(),
         command.date,
-        command.time,
-        command.location.trim(),
-        command.isHomeGame,
-        GameStatus.SETUP,
-        0, // ourScore
-        0, // opponentScore
-        1, // currentInning
-        true, // isTopInning - visitors bat first
+        command.seasonId,
+        command.gameTypeId,
+        command.homeAway,
+        command.teamId,
+        'setup' as GameStatus,
+        null, // lineupId
+        [], // inningIds
+        null, // finalScore
         now, // createdAt
         now // updatedAt
       );
@@ -102,15 +99,9 @@ export class CreateGameUseCase {
       return Result.failure('Game date cannot be in the past');
     }
 
-    // Validate time format (HH:MM)
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeRegex.test(command.time)) {
-      return Result.failure('Time must be in HH:MM format');
-    }
-
-    // Validate location (optional but has max length)
-    if (command.location && command.location.length > 200) {
-      return Result.failure('Location cannot exceed 200 characters');
+    // Validate home/away
+    if (!['home', 'away'].includes(command.homeAway)) {
+      return Result.failure('Home/Away must be either "home" or "away"');
     }
 
     return Result.success(undefined as void);

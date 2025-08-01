@@ -2,7 +2,7 @@ import {
   AtBatRepository,
   GameRepository,
   AtBat,
-  AtBatResult,
+  BattingResult,
   BaserunnerState,
 } from '@/domain';
 import { Result } from '../common/Result';
@@ -13,7 +13,7 @@ export interface RecordAtBatCommand {
   batterId: string;
   inning: number;
   isTopInning: boolean;
-  result: AtBatResult;
+  result: BattingResult;
   description: string;
   rbi: number;
   baserunnersBefore: BaserunnerState;
@@ -48,15 +48,17 @@ export class RecordAtBatUseCase {
       const atBat = new AtBat(
         atBatId,
         command.gameId,
+        'inning-' +
+          command.inning +
+          '-' +
+          (command.isTopInning ? 'top' : 'bottom'),
         command.batterId,
-        command.inning,
-        command.isTopInning,
+        1, // battingPosition - needs to be calculated properly
         command.result,
-        command.description,
         command.rbi,
+        command.runsScored,
         command.baserunnersBefore,
         command.baserunnersAfter,
-        command.runsScored,
         timestamp
       );
 
@@ -116,8 +118,7 @@ export class RecordAtBatUseCase {
   private validateBusinessRules(command: RecordAtBatCommand): Result<AtBat> {
     // Strikeouts and groundouts cannot have RBIs (simplified rule)
     if (
-      (command.result === AtBatResult.STRIKEOUT ||
-        command.result === AtBatResult.GROUNDOUT) &&
+      (command.result.value === 'SO' || command.result.value === 'GO') &&
       command.rbi > 0
     ) {
       return Result.failure('Strikeouts and groundouts cannot have RBIs');
@@ -133,9 +134,9 @@ export class RecordAtBatUseCase {
 
     // Validate baserunner state consistency
     const beforeRunners = [
-      command.baserunnersBefore.first,
-      command.baserunnersBefore.second,
-      command.baserunnersBefore.third,
+      command.baserunnersBefore.firstBase,
+      command.baserunnersBefore.secondBase,
+      command.baserunnersBefore.thirdBase,
     ].filter((runner) => runner !== null);
 
     // Check for duplicate baserunners before

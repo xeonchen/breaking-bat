@@ -81,7 +81,7 @@ export default function ScoringPage(): JSX.Element {
   // Handle at-bat completion
   const handleAtBatComplete = useCallback(
     async (atBatResult: {
-      batterId?: string;
+      batterId: string;
       result: BattingResult;
       finalCount: { balls: number; strikes: number };
       pitchSequence?: string[];

@@ -15,8 +15,10 @@ export async function createTestDatabase(): Promise<void> {
   // Define database schema matching the production schema (latest version)
   testDb.version(1).stores({
     teams: '++id, name, *seasonIds, *playerIds',
-    players: '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
+    players:
+      '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
     seasons: '++id, name, year, startDate, endDate, *teamIds',
+    gameTypes: '++id, name, description',
     games:
       '++id, name, opponent, date, seasonId, gameTypeId, homeAway, teamId, status, lineupId, *inningIds, finalScore',
     innings:
@@ -56,12 +58,14 @@ export function getTestDatabase(): Dexie {
 export function createFreshTestDatabase(): Dexie {
   const dbName = `test-breaking-bat-${Date.now()}-${Math.random()}`;
   const freshDb = new Dexie(dbName);
-  
+
   // Define database schema matching the production schema (latest version)
   freshDb.version(1).stores({
     teams: '++id, name, *seasonIds, *playerIds',
-    players: '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
+    players:
+      '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
     seasons: '++id, name, year, startDate, endDate, *teamIds',
+    gameTypes: '++id, name, description',
     games:
       '++id, name, opponent, date, seasonId, gameTypeId, homeAway, teamId, status, lineupId, *inningIds, finalScore',
     innings:
@@ -69,7 +73,7 @@ export function createFreshTestDatabase(): Dexie {
     atBats:
       '++id, gameId, inningId, batterId, battingPosition, result, rbis, *runsScored, baserunnersBefore, baserunnersAfter',
   });
-  
+
   return freshDb;
 }
 
