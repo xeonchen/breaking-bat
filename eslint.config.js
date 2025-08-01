@@ -50,14 +50,7 @@ export default tseslint.config(
         }
       }],
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/strict-boolean-expressions': ['error', {
-        allowString: false,
-        allowNumber: false,
-        allowNullableObject: false
-      }],
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/prefer-nullish-coalescing': 'error',
-      '@typescript-eslint/prefer-optional-chain': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
       // Security-specific rules

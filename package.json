@@ -29,10 +29,10 @@
     "audit": "npm-audit-ci",
     "audit:dev": "npm-audit-ci --config ./audit-ci.json",
     "security:check": "npm run audit && npm run lint:security",
-    "lint:security": "eslint . --ext ts,tsx --config eslint.config.js --no-eslintrc",
+    "lint:security": "eslint . --ext ts,tsx",
     "licenses:check": "license-checker --summary",
     "licenses:detailed": "license-checker --csv --out licenses.csv",
-    "deps:check": "ncu --target minor",
+    "deps:check": "npm outdated",
     "deps:update": "ncu -u --target minor",
     "bundle:analyze": "npm run build && npx vite-bundle-analyzer dist"
   },
