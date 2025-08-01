@@ -145,11 +145,16 @@
 - [x] **data-persistence-error-recovery**: Storage error recovery (1 test)
 - [x] **data-persistence-mobile-tests**: Mobile data persistence (1 test)
 
-#### Enhance game-setup E2E Tests
+#### Enhance game-setup E2E Tests ✅ COMPLETED
 
-- [ ] **game-setup-lineup-tests**: Complete lineup configuration workflow (3-4 tests)
-- [ ] **game-setup-position-tests**: Player position assignment validation (2 tests)
-- [ ] **game-setup-substitute-tests**: Substitute player management (1-2 tests)
+- [x] **game-setup-workflow-tests**: Complete game creation workflow (1 test)
+- [x] **game-setup-lineup-interface**: Lineup configuration interface handling (1 test)
+- [x] **game-setup-position-assignment**: Defensive position assignment interface (1 test)
+- [x] **game-setup-batting-order**: Starting lineup batting order support (1 test)
+- [x] **game-setup-substitute-management**: Substitute player management (1 test)
+- [x] **game-setup-lineup-validation**: Lineup completeness validation (1 test)
+- [x] **game-setup-mobile-interface**: Mobile game setup interface (1 test)
+- [x] **game-setup-end-to-end**: Complete game setup workflow (1 test)
 
 **Success Criteria**: 100% user story E2E coverage, all tests passing across browsers
 
