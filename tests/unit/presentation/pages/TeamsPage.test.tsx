@@ -3,7 +3,6 @@ import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import TeamsPage from '@/presentation/pages/TeamsPage';
 import { Position } from '@/domain';
-import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
 import theme from '@/presentation/theme';
 
 // Mock dependencies
@@ -176,7 +175,7 @@ describe('TeamsPage Component', () => {
       mockCreateTeam.mockResolvedValue({
         id: 'team-3',
         name: 'Blue Jays',
-        players: []
+        players: [],
       });
 
       renderWithChakra(<TeamsPage />);
@@ -360,7 +359,7 @@ describe('TeamsPage Component', () => {
       mockUpdateTeam.mockResolvedValue({
         id: 'team-1',
         name: 'Updated Red Sox',
-        players: []
+        players: [],
       });
 
       renderWithChakra(<TeamsPage />);
@@ -540,14 +539,11 @@ describe('TeamsPage Component', () => {
 
     it('should handle large numbers of teams efficiently', () => {
       // Set large teams list in mock store
-      const largeTeamsList = Array.from(
-        { length: 100 },
-        (_, i) => ({
-          id: `team-${i}`,
-          name: `Team ${i}`,
-          players: []
-        })
-      );
+      const largeTeamsList = Array.from({ length: 100 }, (_, i) => ({
+        id: `team-${i}`,
+        name: `Team ${i}`,
+        players: [],
+      }));
 
       const originalTeams = mockStoreState.teams;
       mockStoreState.teams = largeTeamsList;

@@ -319,15 +319,91 @@ When completing any development phase, ensure:
    - ESLint checks are applied
    - Commit message is validated
 
-4. **Phase Completion**
+4. **Phase Completion Process**
+
+   Before completing any development phase, Claude Code should follow this comprehensive checklist:
+
+   **Code Quality Verification:**
+   - [ ] Run `npm run type-check` - all TypeScript compilation passes
+   - [ ] Run `npm run test` - all tests pass with adequate coverage
+   - [ ] Run `npm run lint` - all linting issues resolved
+   - [ ] Run `npm run build` - production build succeeds without warnings
+   - [ ] No console.log statements in production code
+   - [ ] All TODOs addressed or documented in TODO.md
+   - [ ] Code is properly formatted with Prettier
+
+   **Testing Completeness:**
+   - [ ] New features have corresponding unit tests
+   - [ ] Integration tests added for new workflows
+   - [ ] E2E tests cover critical user paths
+   - [ ] Test coverage meets minimum requirements (80%)
+   - [ ] All tests are deterministic and don't rely on external services
+
+   **Documentation Updates:**
+   - [ ] README.md development status reflects completed phase
+   - [ ] TODO.md updated with current task status
+   - [ ] User stories updated if requirements changed
+   - [ ] API contracts updated if interfaces changed
+   - [ ] Added JSDoc comments for new functions/classes
+   - [ ] Updated architectural diagrams if needed
+
+   **Architecture Compliance:**
+   - [ ] Clean Architecture principles maintained
+   - [ ] Domain layer doesn't depend on external frameworks
+   - [ ] Application layer orchestrates use cases correctly
+   - [ ] Infrastructure layer implements repository contracts
+   - [ ] Presentation layer only handles UI concerns
+   - [ ] Dependency inversion principle followed
+   - [ ] SOLID principles implemented correctly
+
+   **Feature Verification:**
+   - [ ] Feature works as described in user stories
+   - [ ] Responsive design works on mobile/tablet/desktop
+   - [ ] Offline functionality works (PWA requirement)
+   - [ ] Error handling is comprehensive
+   - [ ] Loading states provide good UX
+
+   **Performance & Build:**
+   - [ ] Development server starts without errors (`npm run dev`)
+   - [ ] Production build completes successfully (`npm run build`)
+   - [ ] PWA service worker generates correctly
+   - [ ] No performance regressions introduced
+   - [ ] Components are properly memoized where needed
+   - [ ] Bundle sizes are reasonable
+
+   **Commit Standards:**
+   - [ ] Use conventional commit format with proper scope
+   - [ ] Commit message clearly describes what was implemented
+   - [ ] Reference related user stories or specs
+   - [ ] Include breaking change notes if applicable
+
+   **Phase Sign-off:**
+   - [ ] All checklist items completed
+   - [ ] Documentation review completed
+   - [ ] Ready for next phase
+
+   **Final Commit Example:**
 
    ```bash
-   # Update documentation
-   npm run commit  # "docs: update phase X completion status"
+   npm run commit
 
-   # Merge to main
-   git checkout main
-   git merge feat/feature-name
+   # Format: <type>(<scope>): <description>
+   # Types: feat | fix | docs | style | refactor | test | chore
+   # Scopes: team-management | game-setup | live-scoring | data-persistence |
+   #         ui | theme | pwa | domain | application | infrastructure | presentation
+
+   # Example:
+   # feat(tests): complete jest infrastructure and unit test foundation
+   #
+   # - Fix Jest configuration to modern ts-jest format
+   # - Resolve domain object mocking issues in component tests
+   # - Implement at-bat completion flow with baserunner advancement
+   # - Add updateScore functionality to ScoringPage component
+   # - Achieve 30/39 ScoringPage tests passing (77% pass rate)
+   #
+   # Jest foundation now solid for E2E test implementation phase.
    ```
+
+   Only proceed to next phase after all checklist items are verified.
 
 This project demonstrates structured, spec-driven development with AI assistance, emphasizing maintainability, testability, and user experience in offline-first applications.
