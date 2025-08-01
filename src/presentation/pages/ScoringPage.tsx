@@ -41,6 +41,7 @@ export default function ScoringPage(): JSX.Element {
     error,
     getCurrentGame,
     recordAtBat,
+    updateScore,
     advanceInning,
     getTeams,
     getLineup,
@@ -91,6 +92,7 @@ export default function ScoringPage(): JSX.Element {
         const result = await recordAtBat(atBatResult);
 
         if (result.runsScored && result.runsScored > 0) {
+          await updateScore(result.runsScored);
           setScoreUpdateAnnouncement(
             `${result.runsScored} run${result.runsScored > 1 ? 's' : ''} scored!`
           );
@@ -119,7 +121,7 @@ export default function ScoringPage(): JSX.Element {
         });
       }
     },
-    [recordAtBat, updateCount, advanceInning, toast]
+    [recordAtBat, updateScore, updateCount, advanceInning, toast]
   );
 
   // Handle game controls

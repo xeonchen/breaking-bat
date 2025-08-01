@@ -330,6 +330,15 @@ describe('ScoringPage Component', () => {
       const singleButton = screen.getByTestId('single-button');
       await user.click(singleButton);
 
+      // Wait for baserunner advancement modal to appear
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      // Confirm the baserunner advancement
+      const confirmButton = screen.getByTestId('confirm-advancement');
+      await user.click(confirmButton);
+
       await waitFor(() => {
         expect(mockRecordAtBat).toHaveBeenCalledWith(
           expect.objectContaining({
