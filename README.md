@@ -13,6 +13,16 @@ Breaking-Bat enables scorekeepers to:
 - 🔄 Export/import game data for backup and analysis
 - 🌐 Work completely offline without internet connection
 
+### ⚾ Slowpitch Softball Specifics
+
+This application is designed specifically for **slowpitch softball** with the following characteristics:
+
+- **10 defensive positions**: Pitcher (P), Catcher (C), First Base (1B), Second Base (2B), Third Base (3B), Shortstop (SS), Left Field (LF), Center Field (CF), Right Field (RF), Short Fielder (SF)
+- **Extra Player (EP)**: Batting-only role, does not play defense
+- **Jersey numbers**: Range from 0-999 (expanded from traditional 1-99)
+- **Multiple positions**: Players can be assigned multiple positions they are capable of playing
+- **Conventional position order**: Follows standard numbering 1-10 for defensive positions, 11 for EP
+
 ## 🏗️ Architecture
 
 This project follows **spec-driven development** with Clean Architecture principles:
