@@ -667,10 +667,22 @@ describe('ScoringPage Component', () => {
     });
 
     it('should handle large game datasets efficiently', () => {
-      const largeGameData = {
-        ...mockGame,
-        inningIds: Array.from({ length: 15 }, (_, i) => `inning-${i + 1}`),
-      };
+      const largeGameData = new Game(
+        mockGame.id,
+        mockGame.name,
+        mockGame.opponent,
+        mockGame.date,
+        mockGame.seasonId,
+        mockGame.gameTypeId,
+        mockGame.homeAway,
+        mockGame.teamId,
+        mockGame.status,
+        mockGame.lineupId,
+        Array.from({ length: 15 }, (_, i) => `inning-${i + 1}`),
+        mockGame.finalScore,
+        mockGame.createdAt,
+        mockGame.updatedAt
+      );
 
       const originalGame = mockGameStoreState.currentGame;
       mockGameStoreState.currentGame = largeGameData;

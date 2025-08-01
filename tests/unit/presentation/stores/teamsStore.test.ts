@@ -1,8 +1,14 @@
 import { renderHook, act } from '@testing-library/react';
 import { Team, Position } from '@/domain';
 import { Result } from '@/application/common/Result';
-import { useTeamsStore, initializeTeamsStore } from '@/presentation/stores/teamsStore';
-import { PresentationTeam, PresentationPlayer } from '@/presentation/types/TeamWithPlayers';
+import {
+  useTeamsStore,
+  initializeTeamsStore,
+} from '@/presentation/stores/teamsStore';
+import {
+  PresentationTeam,
+  PresentationPlayer,
+} from '@/presentation/types/TeamWithPlayers';
 
 // Mock dependencies
 const mockTeamRepository = {
@@ -10,6 +16,8 @@ const mockTeamRepository = {
   save: jest.fn(),
   delete: jest.fn(),
   findById: jest.fn(),
+  addPlayer: jest.fn(),
+  removePlayer: jest.fn(),
 };
 
 const mockPlayerRepository = {
@@ -39,6 +47,10 @@ const mockRemovePlayerUseCase = {
   execute: jest.fn(),
 };
 
+const mockStatsRepository = {
+  getPlayerStats: jest.fn(),
+};
+
 // Initialize store with mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
@@ -54,7 +66,6 @@ beforeEach(() => {
 });
 
 describe('TeamsStore', () => {
-
   describe('Initial State', () => {
     it('should have correct initial state', () => {
       const { result } = renderHook(() => useTeamsStore());
@@ -130,7 +141,9 @@ describe('TeamsStore', () => {
       const mockCreateInstance = {
         execute: jest.fn().mockResolvedValue(Result.success(newTeam)),
       };
-      mockCreateTeamUseCase.mockImplementation(() => mockCreateInstance);
+      mockCreateTeamUseCase.execute.mockResolvedValue(
+        Result.failure('Team name is required')
+      );
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -152,12 +165,9 @@ describe('TeamsStore', () => {
     });
 
     it('should handle team creation validation errors', async () => {
-      const mockCreateInstance = {
-        execute: jest
-          .fn()
-          .mockResolvedValue(Result.failure('Team name is required')),
-      };
-      mockCreateTeamUseCase.mockImplementation(() => mockCreateInstance);
+      mockCreateTeamUseCase.execute.mockResolvedValue(
+        Result.failure('Team name is required')
+      );
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -174,10 +184,9 @@ describe('TeamsStore', () => {
     });
 
     it('should handle team creation errors', async () => {
-      const mockCreateInstance = {
-        execute: jest.fn().mockRejectedValue(new Error('Database error')),
-      };
-      mockCreateTeamUseCase.mockImplementation(() => mockCreateInstance);
+      mockCreateTeamUseCase.execute.mockRejectedValue(
+        new Error('Database error')
+      );
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -546,15 +555,23 @@ describe('TeamsStore', () => {
   });
 
   describe('SelectedTeam Updates', () => {
-    const createMockPresentationTeam = (id: string, name: string, players: PresentationPlayer[] = []): PresentationTeam => ({
+    const createMockPresentationTeam = (
+      id: string,
+      name: string,
+      players: PresentationPlayer[] = []
+    ): PresentationTeam => ({
       id,
       name,
       players,
       seasonIds: [],
-      playerIds: players.map(p => p.id),
+      playerIds: players.map((p) => p.id),
     });
 
-    const createMockPlayer = (id: string, name: string, jerseyNumber: string): PresentationPlayer => ({
+    const createMockPlayer = (
+      id: string,
+      name: string,
+      jerseyNumber: string
+    ): PresentationPlayer => ({
       id,
       name,
       jerseyNumber,
@@ -566,11 +583,18 @@ describe('TeamsStore', () => {
       it('should update selectedTeam when adding player to selected team', async () => {
         const initialPlayer = createMockPlayer('player-1', 'John Doe', '10');
         const newPlayer = createMockPlayer('player-2', 'Jane Smith', '12');
-        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [initialPlayer]);
-        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [initialPlayer, newPlayer]);
+        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          initialPlayer,
+        ]);
+        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          initialPlayer,
+          newPlayer,
+        ]);
 
         // Mock successful use case execution
-        mockAddPlayerUseCase.execute.mockResolvedValue(Result.success(newPlayer));
+        mockAddPlayerUseCase.execute.mockResolvedValue(
+          Result.success(newPlayer)
+        );
         mockTeamRepository.findAll.mockResolvedValue([]);
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
 
@@ -601,11 +625,20 @@ describe('TeamsStore', () => {
       it('should not update selectedTeam when adding player to different team', async () => {
         const selectedTeam = createMockPresentationTeam('team-1', 'Red Sox');
         const newPlayer = createMockPlayer('player-1', 'John Doe', '10');
-        const updatedOtherTeam = createMockPresentationTeam('team-2', 'Yankees', [newPlayer]);
+        const updatedOtherTeam = createMockPresentationTeam(
+          'team-2',
+          'Yankees',
+          [newPlayer]
+        );
 
-        mockAddPlayerUseCase.execute.mockResolvedValue(Result.success(newPlayer));
+        mockAddPlayerUseCase.execute.mockResolvedValue(
+          Result.success(newPlayer)
+        );
         mockTeamRepository.findAll.mockResolvedValue([]);
-        mockTeamHydrationService.hydrateTeams.mockResolvedValue([selectedTeam, updatedOtherTeam]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([
+          selectedTeam,
+          updatedOtherTeam,
+        ]);
 
         const { result } = renderHook(() => useTeamsStore());
 
@@ -631,10 +664,17 @@ describe('TeamsStore', () => {
       it('should update selectedTeam when removing player from selected team', async () => {
         const player1 = createMockPlayer('player-1', 'John Doe', '10');
         const player2 = createMockPlayer('player-2', 'Jane Smith', '12');
-        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [player1, player2]);
-        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [player2]);
+        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          player1,
+          player2,
+        ]);
+        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          player2,
+        ]);
 
-        mockRemovePlayerUseCase.execute.mockResolvedValue(Result.success(undefined));
+        mockRemovePlayerUseCase.execute.mockResolvedValue(
+          Result.success(undefined)
+        );
         mockTeamRepository.findAll.mockResolvedValue([]);
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
 
@@ -658,16 +698,24 @@ describe('TeamsStore', () => {
       it('should update selectedTeam when updating player in selected team', async () => {
         const initialPlayer = createMockPlayer('player-1', 'John Doe', '10');
         const updatedPlayer = { ...initialPlayer, name: 'Johnny Doe' };
-        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [initialPlayer]);
-        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [updatedPlayer]);
+        const initialTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          initialPlayer,
+        ]);
+        const updatedTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          updatedPlayer,
+        ]);
 
-        mockUpdatePlayerUseCase.execute.mockResolvedValue(Result.success(updatedPlayer));
-        mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue({
-          name: 'Johnny Doe',
-          jerseyNumber: 10,
-          position: Position.pitcher(),
-          isActive: true,
-        });
+        mockUpdatePlayerUseCase.execute.mockResolvedValue(
+          Result.success(updatedPlayer)
+        );
+        mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue(
+          {
+            name: 'Johnny Doe',
+            jerseyNumber: 10,
+            position: Position.pitcher(),
+            isActive: true,
+          }
+        );
         mockTeamRepository.findAll.mockResolvedValue([]);
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
 
@@ -686,15 +734,34 @@ describe('TeamsStore', () => {
       });
 
       it('should not update selectedTeam when updating player in different team', async () => {
-        const selectedTeamPlayer = createMockPlayer('player-1', 'John Doe', '10');
-        const otherTeamPlayer = createMockPlayer('player-2', 'Jane Smith', '12');
-        const selectedTeam = createMockPresentationTeam('team-1', 'Red Sox', [selectedTeamPlayer]);
-        const otherTeam = createMockPresentationTeam('team-2', 'Yankees', [otherTeamPlayer]);
+        const selectedTeamPlayer = createMockPlayer(
+          'player-1',
+          'John Doe',
+          '10'
+        );
+        const otherTeamPlayer = createMockPlayer(
+          'player-2',
+          'Jane Smith',
+          '12'
+        );
+        const selectedTeam = createMockPresentationTeam('team-1', 'Red Sox', [
+          selectedTeamPlayer,
+        ]);
+        const otherTeam = createMockPresentationTeam('team-2', 'Yankees', [
+          otherTeamPlayer,
+        ]);
 
-        mockUpdatePlayerUseCase.execute.mockResolvedValue(Result.success(otherTeamPlayer));
-        mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue({});
+        mockUpdatePlayerUseCase.execute.mockResolvedValue(
+          Result.success(otherTeamPlayer)
+        );
+        mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue(
+          {}
+        );
         mockTeamRepository.findAll.mockResolvedValue([]);
-        mockTeamHydrationService.hydrateTeams.mockResolvedValue([selectedTeam, otherTeam]);
+        mockTeamHydrationService.hydrateTeams.mockResolvedValue([
+          selectedTeam,
+          otherTeam,
+        ]);
 
         const { result } = renderHook(() => useTeamsStore());
 

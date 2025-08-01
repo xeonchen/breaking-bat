@@ -304,13 +304,22 @@ When completing any development phase, ensure:
    npm run commit  # Use conventional commits
    ```
 
-2. **Pre-commit Checks**
+2. **Commit Often Best Practice**
+
+   Claude Code should commit progress frequently during development sessions:
+   - Commit after fixing configuration issues
+   - Commit after resolving test failures
+   - Commit after implementing complete features
+   - Commit before starting major refactoring
+   - Use descriptive commit messages following conventional format
+
+3. **Pre-commit Checks**
    - Husky automatically runs lint-staged
    - Code is formatted with Prettier
    - ESLint checks are applied
    - Commit message is validated
 
-3. **Phase Completion**
+4. **Phase Completion**
 
    ```bash
    # Update documentation
