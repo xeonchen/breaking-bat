@@ -19,19 +19,19 @@ describe('Player Management Integration Tests', () => {
     // Create fresh test database with proper schema
     db = createFreshTestDatabase();
     await db.open();
-    
+
     playerRepository = new IndexedDBPlayerRepository(db);
     teamRepository = new IndexedDBTeamRepository(db);
     addPlayerUseCase = new AddPlayerUseCase(playerRepository, teamRepository);
     createTeamUseCase = new CreateTeamUseCase(teamRepository);
-    
+
     // Create a test team first
     const teamResult = await createTeamUseCase.execute({
       name: 'Test Red Sox',
       seasonIds: [],
-      playerIds: []
+      playerIds: [],
     });
-    
+
     expect(teamResult.isSuccess).toBe(true);
     testTeamId = teamResult.value!.id;
   }, 15000);
@@ -50,7 +50,7 @@ describe('Player Management Integration Tests', () => {
         name: 'Ted Williams',
         jerseyNumber: 9,
         position: Position.leftField(),
-        isActive: true
+        isActive: true,
       });
 
       expect(result.isSuccess).toBe(true);
@@ -65,7 +65,7 @@ describe('Player Management Integration Tests', () => {
         name: 'Ted Williams',
         jerseyNumber: 9,
         position: Position.leftField(),
-        isActive: true
+        isActive: true,
       });
       expect(firstResult.isSuccess).toBe(true);
 
@@ -75,7 +75,7 @@ describe('Player Management Integration Tests', () => {
         name: 'David Ortiz',
         jerseyNumber: 9, // Same jersey number
         position: Position.firstBase(),
-        isActive: true
+        isActive: true,
       });
 
       expect(secondResult.isSuccess).toBe(false);
@@ -86,7 +86,10 @@ describe('Player Management Integration Tests', () => {
   describe('Jersey Number Uniqueness', () => {
     it('should correctly check jersey number uniqueness', async () => {
       // Should be unique initially
-      const isUnique1 = await playerRepository.isJerseyNumberUnique(testTeamId, 9);
+      const isUnique1 = await playerRepository.isJerseyNumberUnique(
+        testTeamId,
+        9
+      );
       expect(isUnique1).toBe(true);
 
       // Add a player
@@ -95,15 +98,21 @@ describe('Player Management Integration Tests', () => {
         name: 'Ted Williams',
         jerseyNumber: 9,
         position: Position.leftField(),
-        isActive: true
+        isActive: true,
       });
 
       // Should not be unique anymore
-      const isUnique2 = await playerRepository.isJerseyNumberUnique(testTeamId, 9);
+      const isUnique2 = await playerRepository.isJerseyNumberUnique(
+        testTeamId,
+        9
+      );
       expect(isUnique2).toBe(false);
 
       // Different jersey number should still be unique
-      const isUnique3 = await playerRepository.isJerseyNumberUnique(testTeamId, 34);
+      const isUnique3 = await playerRepository.isJerseyNumberUnique(
+        testTeamId,
+        34
+      );
       expect(isUnique3).toBe(true);
     }, 10000);
   });

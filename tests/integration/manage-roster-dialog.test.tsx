@@ -13,7 +13,7 @@ import { TeamHydrationService } from '@/presentation/services/TeamHydrationServi
 import { initializeTeamsStore } from '@/presentation/stores/teamsStore';
 import TeamsPage from '@/presentation/pages/TeamsPage';
 import { createFreshTestDatabase } from '../test-helpers/database';
-import { Team, Position } from '@/domain';
+import { Position } from '@/domain';
 import theme from '@/presentation/theme';
 import Dexie from 'dexie';
 
@@ -36,12 +36,21 @@ describe('Manage Roster Dialog Integration Tests', () => {
     // Initialize repositories and services
     teamRepository = new IndexedDBTeamRepository(db);
     playerRepository = new IndexedDBPlayerRepository(db);
-    teamHydrationService = new TeamHydrationService(teamRepository, playerRepository);
-    
+    teamHydrationService = new TeamHydrationService(
+      teamRepository,
+      playerRepository
+    );
+
     // Initialize use cases
     addPlayerUseCase = new AddPlayerUseCase(playerRepository, teamRepository);
-    updatePlayerUseCase = new UpdatePlayerUseCase(playerRepository, teamRepository);
-    removePlayerUseCase = new RemovePlayerUseCase(playerRepository, teamRepository);
+    updatePlayerUseCase = new UpdatePlayerUseCase(
+      playerRepository,
+      teamRepository
+    );
+    removePlayerUseCase = new RemovePlayerUseCase(
+      playerRepository,
+      teamRepository
+    );
     createTeamUseCase = new CreateTeamUseCase(teamRepository);
 
     // Initialize the store with real dependencies
@@ -72,7 +81,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
     }
   }, 10000);
 
-  const renderTeamsPage = () => {
+  const renderTeamsPage = (): any => {
     return render(
       <ChakraProvider theme={theme}>
         <TeamsPage />
@@ -158,14 +167,18 @@ describe('Manage Roster Dialog Integration Tests', () => {
 
       // Wait for player to be added and dialog to close
       await waitFor(() => {
-        expect(screen.queryByTestId('player-add-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('player-add-modal')
+        ).not.toBeInTheDocument();
       });
 
       // Verify player appears in the roster immediately
       await waitFor(() => {
         expect(screen.getByText('David Ortiz')).toBeInTheDocument();
         expect(screen.getByText('#34')).toBeInTheDocument();
-        expect(screen.queryByTestId('empty-roster-message')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('empty-roster-message')
+        ).not.toBeInTheDocument();
       });
     }, 25000);
 
@@ -215,7 +228,9 @@ describe('Manage Roster Dialog Integration Tests', () => {
 
       // Wait for removal modal to close
       await waitFor(() => {
-        expect(screen.queryByTestId('remove-player-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('remove-player-modal')
+        ).not.toBeInTheDocument();
       });
 
       // Verify player is removed from roster immediately
@@ -276,7 +291,9 @@ describe('Manage Roster Dialog Integration Tests', () => {
 
       // Wait for edit modal to close
       await waitFor(() => {
-        expect(screen.queryByTestId('player-edit-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('player-edit-modal')
+        ).not.toBeInTheDocument();
       });
 
       // Verify player name is updated immediately
@@ -317,7 +334,9 @@ describe('Manage Roster Dialog Integration Tests', () => {
       await user.click(screen.getByTestId('confirm-add-player'));
 
       await waitFor(() => {
-        expect(screen.queryByTestId('player-add-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('player-add-modal')
+        ).not.toBeInTheDocument();
         expect(screen.getByText('Player 1')).toBeInTheDocument();
       });
 
@@ -331,7 +350,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
 
       const nameInput = screen.getByTestId('player-name-input');
       const jerseyInput = screen.getByTestId('player-jersey-input');
-      
+
       await user.clear(nameInput);
       await user.clear(jerseyInput);
       await user.type(nameInput, 'Player 2');
@@ -339,7 +358,9 @@ describe('Manage Roster Dialog Integration Tests', () => {
       await user.click(screen.getByTestId('confirm-add-player'));
 
       await waitFor(() => {
-        expect(screen.queryByTestId('player-add-modal')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('player-add-modal')
+        ).not.toBeInTheDocument();
       });
 
       // Verify both players are shown

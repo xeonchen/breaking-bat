@@ -21,7 +21,7 @@ jest.mock('@/presentation/stores/teamsStore');
 // Mock react-router-dom navigation
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', async () => {
-  const actual = await jest.importActual('react-router-dom');
+  const actual = await import('react-router-dom');
   return {
     ...actual,
     useNavigate: () => mockNavigate,
