@@ -45,7 +45,8 @@ describe('Simple Player Creation Test', () => {
 
     console.log('Team creation result:', teamResult);
     expect(teamResult.isSuccess).toBe(true);
-    testTeamId = teamResult.value!.id;
+    expect(teamResult.value).toBeDefined();
+    testTeamId = teamResult.value.id;
     console.log('✅ Test team created with ID:', testTeamId);
   });
 
@@ -65,15 +66,16 @@ describe('Simple Player Creation Test', () => {
       teamId: testTeamId,
       name: 'Ted Williams',
       jerseyNumber: 9,
-      position: Position.leftField(),
+      positions: [Position.leftField()],
       isActive: true,
     });
 
     console.log('Player creation result:', result);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.name).toBe('Ted Williams');
-    expect(result.value!.jerseyNumber).toBe(9);
+    expect(result.value).toBeDefined();
+    expect(result.value.name).toBe('Ted Williams');
+    expect(result.value.jerseyNumber).toBe(9);
 
     console.log('✅ Player created successfully');
   });
@@ -86,7 +88,7 @@ describe('Simple Player Creation Test', () => {
       teamId: testTeamId,
       name: 'David Ortiz',
       jerseyNumber: 9, // Same jersey number
-      position: Position.firstBase(),
+      positions: [Position.firstBase()],
       isActive: true,
     });
 

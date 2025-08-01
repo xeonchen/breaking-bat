@@ -1,31 +1,21 @@
 import '@testing-library/jest-dom';
+import React from 'react';
+
+// Make React available globally for Jest environment
+global.React = React;
 
 // Polyfill TextEncoder/TextDecoder for Node.js test environment
 import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder as any;
+global.TextEncoder = TextEncoder as unknown as typeof globalThis.TextEncoder;
+global.TextDecoder = TextDecoder as unknown as typeof globalThis.TextDecoder;
 
-// Mock IndexedDB for testing (will be properly implemented with domain layer)
-const mockIndexedDB = {
-  open: () => ({
-    onsuccess: null,
-    onerror: null,
-    result: {
-      createObjectStore: () => ({}),
-      transaction: () => ({
-        objectStore: () => ({
-          add: () => ({ onsuccess: null }),
-          put: () => ({ onsuccess: null }),
-          get: () => ({ onsuccess: null }),
-          delete: () => ({ onsuccess: null }),
-        }),
-      }),
-    },
-  }),
-};
+// Polyfill structuredClone for Node.js test environment (required by Chakra UI v3)
+if (!global.structuredClone) {
+  global.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
+}
 
-// Setup fake-indexeddb properly
-global.indexedDB = mockIndexedDB as any;
+// Setup fake-indexeddb for proper IndexedDB testing
+import 'fake-indexeddb/auto';
 
 // Mock window.matchMedia for Chakra UI
 Object.defineProperty(window, 'matchMedia', {
@@ -44,7 +34,7 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  public observe(): void {}
+  public unobserve(): void {}
+  public disconnect(): void {}
 };

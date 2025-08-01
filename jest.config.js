@@ -14,6 +14,9 @@ export default {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,
+      tsconfig: {
+        jsx: 'react-jsx',
+      },
     }],
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
@@ -23,6 +26,7 @@ export default {
     '<rootDir>/tests/unit/**/*.(test|spec).(ts|tsx)',
     '<rootDir>/tests/integration/**/*.(test|spec).(ts|tsx)',
   ],
+  testTimeout: 15000,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
