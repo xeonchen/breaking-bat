@@ -17,6 +17,7 @@ export function BottomNavigation(): JSX.Element {
   const navigationItems = [
     { label: 'Home', path: '/', icon: '🏠', testId: 'home-tab' },
     { label: 'Teams', path: '/teams', icon: '👥', testId: 'teams-tab' },
+    { label: 'Seasons', path: '/seasons', icon: '📅', testId: 'seasons-tab' },
     { label: 'Game', path: '/games', icon: '⚾', testId: 'games-tab' },
     { label: 'Stats', path: '/stats', icon: '📊', testId: 'stats-tab' },
   ];

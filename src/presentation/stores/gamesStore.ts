@@ -12,6 +12,18 @@ interface CreateGameCommand {
   homeAway: 'home' | 'away';
 }
 
+interface CreateSeasonCommand {
+  name: string;
+  year: number;
+  startDate: Date;
+  endDate: Date;
+}
+
+interface CreateGameTypeCommand {
+  name: string;
+  description?: string;
+}
+
 interface GamesState {
   // State
   games: Game[];
@@ -32,6 +44,12 @@ interface GamesState {
   createGame: (command: CreateGameCommand) => Promise<Game>;
   updateGame: (game: Game) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
+  createSeason: (command: CreateSeasonCommand) => Promise<Season>;
+  updateSeason: (season: Season) => Promise<void>;
+  deleteSeason: (seasonId: string) => Promise<void>;
+  createGameType: (command: CreateGameTypeCommand) => Promise<GameType>;
+  updateGameType: (gameType: GameType) => Promise<void>;
+  deleteGameType: (gameTypeId: string) => Promise<void>;
   selectGame: (game: Game) => void;
   clearSelection: () => void;
   clearError: () => void;
@@ -361,6 +379,198 @@ export const useGamesStore = create<GamesState>()(
             (game: Game) => game.teamId === teamId
           );
           set({ games: filteredGames });
+        },
+
+        createSeason: async (command: CreateSeasonCommand) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('🆕 Creating season:', command.name);
+
+            // Create new season entity
+            const seasonId = crypto.randomUUID();
+            const newSeason = new Season(
+              seasonId,
+              command.name,
+              command.year,
+              command.startDate,
+              command.endDate
+            );
+
+            // Save to repository
+            const savedSeason = await seasonRepository?.save(newSeason);
+
+            // Add new season to current list
+            const currentSeasons = get().seasons;
+            set({
+              seasons: [savedSeason, ...currentSeasons],
+              loading: false,
+            });
+
+            console.log('✅ Season created successfully:', savedSeason.id);
+            return savedSeason;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to create season:', message);
+            set({
+              loading: false,
+              error: `Failed to create season: ${message}`,
+            });
+            throw error;
+          }
+        },
+
+        updateSeason: async (season: Season) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('📝 Updating season:', season.id);
+            const updatedSeason = await seasonRepository?.save(season);
+
+            // Update season in current list
+            const currentSeasons = get().seasons;
+            const updatedSeasons = currentSeasons.map((s: Season) =>
+              s.id === season.id ? updatedSeason : s
+            );
+
+            set({
+              seasons: updatedSeasons,
+              loading: false,
+            });
+
+            console.log('✅ Season updated successfully');
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to update season:', message);
+            set({
+              loading: false,
+              error: `Failed to update season: ${message}`,
+            });
+          }
+        },
+
+        deleteSeason: async (seasonId: string) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('🗑️ Deleting season:', seasonId);
+            await seasonRepository?.delete(seasonId);
+
+            // Remove season from current list
+            const currentSeasons = get().seasons;
+            const filteredSeasons = currentSeasons.filter(
+              (s: Season) => s.id !== seasonId
+            );
+
+            set({
+              seasons: filteredSeasons,
+              loading: false,
+            });
+
+            console.log('✅ Season deleted successfully');
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to delete season:', message);
+            set({
+              loading: false,
+              error: `Failed to delete season: ${message}`,
+            });
+          }
+        },
+
+        createGameType: async (command: CreateGameTypeCommand) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('🆕 Creating game type:', command.name);
+
+            // Create new game type entity
+            const gameTypeId = crypto.randomUUID();
+            const newGameType = new GameType(
+              gameTypeId,
+              command.name,
+              command.description || ''
+            );
+
+            // Save to repository
+            const savedGameType = await gameTypeRepository?.save(newGameType);
+
+            // Add new game type to current list
+            const currentGameTypes = get().gameTypes;
+            set({
+              gameTypes: [savedGameType, ...currentGameTypes],
+              loading: false,
+            });
+
+            console.log('✅ Game type created successfully:', savedGameType.id);
+            return savedGameType;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to create game type:', message);
+            set({
+              loading: false,
+              error: `Failed to create game type: ${message}`,
+            });
+            throw error;
+          }
+        },
+
+        updateGameType: async (gameType: GameType) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('📝 Updating game type:', gameType.id);
+            const updatedGameType = await gameTypeRepository?.save(gameType);
+
+            // Update game type in current list
+            const currentGameTypes = get().gameTypes;
+            const updatedGameTypes = currentGameTypes.map((gt: GameType) =>
+              gt.id === gameType.id ? updatedGameType : gt
+            );
+
+            set({
+              gameTypes: updatedGameTypes,
+              loading: false,
+            });
+
+            console.log('✅ Game type updated successfully');
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to update game type:', message);
+            set({
+              loading: false,
+              error: `Failed to update game type: ${message}`,
+            });
+          }
+        },
+
+        deleteGameType: async (gameTypeId: string) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('🗑️ Deleting game type:', gameTypeId);
+            await gameTypeRepository?.delete(gameTypeId);
+
+            // Remove game type from current list
+            const currentGameTypes = get().gameTypes;
+            const filteredGameTypes = currentGameTypes.filter(
+              (gt: GameType) => gt.id !== gameTypeId
+            );
+
+            set({
+              gameTypes: filteredGameTypes,
+              loading: false,
+            });
+
+            console.log('✅ Game type deleted successfully');
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to delete game type:', message);
+            set({
+              loading: false,
+              error: `Failed to delete game type: ${message}`,
+            });
+          }
         },
       }),
       {

@@ -227,6 +227,7 @@ export default function GamePage(): JSX.Element {
             colorScheme="blue"
             onClick={onOpen}
             aria-label="Create new game"
+            data-testid="create-game-button"
           >
             Create Game
           </Button>
@@ -358,6 +359,7 @@ export default function GamePage(): JSX.Element {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   aria-label="Game name"
+                  data-testid="game-name-input"
                 />
                 {formErrors.name && (
                   <Text color="red.500" fontSize="sm">
@@ -374,6 +376,7 @@ export default function GamePage(): JSX.Element {
                     setFormData({ ...formData, opponent: e.target.value })
                   }
                   aria-label="Opponent"
+                  data-testid="opponent-input"
                 />
                 {formErrors.opponent && (
                   <Text color="red.500" fontSize="sm">
@@ -391,6 +394,7 @@ export default function GamePage(): JSX.Element {
                     setFormData({ ...formData, date: e.target.value })
                   }
                   aria-label="Date"
+                  data-testid="game-date-input"
                 />
                 {formErrors.date && (
                   <Text color="red.500" fontSize="sm">
@@ -407,6 +411,7 @@ export default function GamePage(): JSX.Element {
                     setFormData({ ...formData, teamId: e.target.value })
                   }
                   aria-label="Team"
+                  data-testid="team-select"
                 >
                   <option value="">Select a team</option>
                   {teams.map((team) => (
@@ -430,6 +435,7 @@ export default function GamePage(): JSX.Element {
                     setFormData({ ...formData, seasonId: e.target.value })
                   }
                   aria-label="Season"
+                  data-testid="season-select"
                 >
                   <option value="">Select a season</option>
                   {seasons.map((season) => (
@@ -453,6 +459,7 @@ export default function GamePage(): JSX.Element {
                     setFormData({ ...formData, gameTypeId: e.target.value })
                   }
                   aria-label="Game type"
+                  data-testid="game-type-select"
                 >
                   <option value="">Select a game type</option>
                   {gameTypes.map((gameType) => (
@@ -495,6 +502,7 @@ export default function GamePage(): JSX.Element {
               colorScheme="blue"
               onClick={handleCreateGame}
               isLoading={loading}
+              data-testid="confirm-create-game"
             >
               Create
             </Button>
