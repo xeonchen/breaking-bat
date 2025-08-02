@@ -13,7 +13,7 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-export function Layout({ children }: LayoutProps): JSX.Element {
+export function Layout({ children }: LayoutProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const bg = useColorModeValue('gray.50', 'gray.900');
 

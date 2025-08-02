@@ -28,7 +28,7 @@ import { AtBatForm } from '@/presentation/components/AtBatForm';
 import { useGameStore } from '@/presentation/stores/gameStore';
 import { BattingResult } from '@/domain';
 
-export default function ScoringPage(): JSX.Element {
+export default function ScoringPage() {
   const {
     currentGame,
     teams,

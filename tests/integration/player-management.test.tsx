@@ -49,7 +49,7 @@ describe('Player Management Integration Tests', () => {
         teamId: testTeamId,
         name: 'Ted Williams',
         jerseyNumber: 9,
-        position: Position.leftField(),
+        positions: [Position.leftField()],
         isActive: true,
       });
 
@@ -64,7 +64,7 @@ describe('Player Management Integration Tests', () => {
         teamId: testTeamId,
         name: 'Ted Williams',
         jerseyNumber: 9,
-        position: Position.leftField(),
+        positions: [Position.leftField()],
         isActive: true,
       });
       expect(firstResult.isSuccess).toBe(true);
@@ -74,12 +74,12 @@ describe('Player Management Integration Tests', () => {
         teamId: testTeamId,
         name: 'David Ortiz',
         jerseyNumber: 9, // Same jersey number
-        position: Position.firstBase(),
+        positions: [Position.firstBase()],
         isActive: true,
       });
 
       expect(secondResult.isSuccess).toBe(false);
-      expect(secondResult.error).toContain('Jersey number 9 is already in use');
+      expect(secondResult.error).toContain('Jersey number 9 is already in use for this team');
     }, 10000);
   });
 
@@ -97,7 +97,7 @@ describe('Player Management Integration Tests', () => {
         teamId: testTeamId,
         name: 'Ted Williams',
         jerseyNumber: 9,
-        position: Position.leftField(),
+        positions: [Position.leftField()],
         isActive: true,
       });
 

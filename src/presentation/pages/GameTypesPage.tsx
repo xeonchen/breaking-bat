@@ -30,7 +30,7 @@ import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
 import { GameType } from '@/domain';
 
-export default function GameTypesPage(): JSX.Element {
+export default function GameTypesPage() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);

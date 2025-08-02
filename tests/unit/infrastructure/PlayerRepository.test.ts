@@ -19,7 +19,7 @@ describe('PlayerRepository', () => {
       'John Doe',
       23,
       'team1',
-      Position.firstBase(),
+      [Position.firstBase()],
       true
     );
   });
@@ -40,10 +40,10 @@ describe('PlayerRepository', () => {
     it('should update an existing player', async () => {
       await repository.save(testPlayer);
 
-      const updatedPlayer = testPlayer.changePosition(Position.pitcher());
+      const updatedPlayer = testPlayer.updatePositions([Position.pitcher()]);
       const savedPlayer = await repository.save(updatedPlayer);
 
-      expect(savedPlayer.position?.value).toBe('pitcher');
+      expect(savedPlayer.positions[0].value).toBe('pitcher');
       expect(savedPlayer.updatedAt).not.toBe(testPlayer.updatedAt);
     });
 
@@ -55,7 +55,7 @@ describe('PlayerRepository', () => {
         'Jane Doe',
         23, // Same jersey number
         'team1', // Same team
-        Position.catcher()
+        [Position.catcher()]
       );
 
       await expect(repository.save(duplicatePlayer)).rejects.toThrow(
@@ -83,8 +83,8 @@ describe('PlayerRepository', () => {
 
   describe('findByTeamId', () => {
     it('should find all players for a team', async () => {
-      const player2 = new Player('player2', 'Jane Doe', 24, 'team1');
-      const player3 = new Player('player3', 'Bob Smith', 25, 'team2');
+      const player2 = new Player('player2', 'Jane Doe', 24, 'team1', [Position.extraPlayer()]);
+      const player3 = new Player('player3', 'Bob Smith', 25, 'team2', [Position.extraPlayer()]);
 
       await repository.save(testPlayer);
       await repository.save(player2);
@@ -138,7 +138,7 @@ describe('PlayerRepository', () => {
         'Jane Doe',
         24,
         'team1',
-        null,
+        [Position.extraPlayer()],
         false
       );
 
@@ -199,14 +199,14 @@ describe('PlayerRepository', () => {
 
   describe('search', () => {
     it('should search players by name', async () => {
-      const player2 = new Player('player2', 'Jane Doe', 24, 'team1');
-      const player3 = new Player('player3', 'John Smith', 25, 'team1');
+      const player2 = new Player('player2', 'Jane Doe', 24, 'team1', [Position.extraPlayer()]);
+      const player3 = new Player('player3', 'John Smith', 25, 'team1', [Position.extraPlayer()]);
 
       await repository.save(testPlayer);
       await repository.save(player2);
       await repository.save(player3);
 
-      const results = await repository.search('John');
+      const results = await repository.searchByName('John');
 
       expect(results).toHaveLength(2);
       expect(results.map((p) => p.name)).toContain('John Doe');
@@ -216,7 +216,7 @@ describe('PlayerRepository', () => {
     it('should return empty array when no matches found', async () => {
       await repository.save(testPlayer);
 
-      const results = await repository.search('Nonexistent');
+      const results = await repository.searchByName('Nonexistent');
 
       expect(results).toEqual([]);
     });

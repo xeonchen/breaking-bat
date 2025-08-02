@@ -42,7 +42,7 @@ import { TeamManagement } from '@/presentation/components/TeamManagement';
 import { useTeamsStore } from '@/presentation/stores/teamsStore';
 import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
 
-export default function TeamsPage(): JSX.Element {
+export default function TeamsPage() {
   const {
     teams,
     selectedTeam,
@@ -575,7 +575,7 @@ function TeamCard({
   onView,
   onEdit,
   onDelete,
-}: TeamCardProps): JSX.Element {
+}: TeamCardProps) {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 

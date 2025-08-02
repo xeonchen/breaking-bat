@@ -91,7 +91,7 @@ export function AtBatForm({
   enablePitchTypes = false,
   enableUndo = false,
   isMobile = false,
-}: AtBatFormProps): JSX.Element {
+}: AtBatFormProps) {
   const [count, setCount] = useState<Count>(initialCount);
   const [pitchHistory, setPitchHistory] = useState<Pitch[]>([]);
   const [selectedPitchType, setSelectedPitchType] =

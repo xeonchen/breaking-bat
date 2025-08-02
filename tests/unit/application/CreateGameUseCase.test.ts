@@ -345,16 +345,17 @@ describe('CreateGameUseCase', () => {
     });
 
     it('should handle repository save failure', async () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
       const command: CreateGameCommand = {
         name: 'Test Game',
         teamId: 'team1',
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
-        isHomeGame: true,
+        date: tomorrow,
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockRejectedValue(new Error('Database error'));

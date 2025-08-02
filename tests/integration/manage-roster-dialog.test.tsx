@@ -37,7 +37,6 @@ describe('Manage Roster Dialog Integration Tests', () => {
     teamRepository = new IndexedDBTeamRepository(db);
     playerRepository = new IndexedDBPlayerRepository(db);
     teamHydrationService = new TeamHydrationService(
-      teamRepository,
       playerRepository
     );
 
@@ -96,7 +95,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Ted Williams',
         jerseyNumber: 9,
-        position: Position.leftField(),
+        positions: [Position.leftField()],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
@@ -190,7 +189,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Mookie Betts',
         jerseyNumber: 50,
-        position: Position.rightField(),
+        positions: [Position.rightField()],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
@@ -248,7 +247,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Carl Yastrzemski',
         jerseyNumber: 8,
-        position: Position.leftField(),
+        positions: [Position.leftField()],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);

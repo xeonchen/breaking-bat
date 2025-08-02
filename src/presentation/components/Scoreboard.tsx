@@ -63,7 +63,7 @@ export function Scoreboard({
   isMobile = false,
   animateChanges = false,
   onScoreChange,
-}: ScoreboardProps): JSX.Element {
+}: ScoreboardProps) {
   const { isOpen, onToggle } = useDisclosure();
   const [prevHomeScore, setPrevHomeScore] = useState(homeScore);
   const [prevAwayScore, setPrevAwayScore] = useState(awayScore);
@@ -95,7 +95,7 @@ export function Scoreboard({
     score: number;
     isWinning: boolean;
     testId: string;
-  }): JSX.Element => (
+  }) => (
     <MotionBox
       data-testid={testId}
       fontSize={{ base: '3xl', md: '4xl' }}
@@ -117,7 +117,7 @@ export function Scoreboard({
     team: string;
     isWinning: boolean;
     testId: string;
-  }): JSX.Element => (
+  }) => (
     <Text
       data-testid={testId}
       fontSize={{ base: 'lg', md: 'xl' }}
@@ -282,7 +282,7 @@ function InningScoresTable({
   homeScore,
   awayScore,
   isCompact,
-}: InningScoresTableProps): JSX.Element {
+}: InningScoresTableProps) {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 
   return (

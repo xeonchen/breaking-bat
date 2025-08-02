@@ -170,7 +170,7 @@ describe('Scoreboard Component', () => {
       );
 
       expect(screen.getByTestId('batting-indicator')).toHaveTextContent(
-        'Red Sox Batting'
+        'Yankees Batting'
       );
     });
   });

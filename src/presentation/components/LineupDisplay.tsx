@@ -103,7 +103,7 @@ export function LineupDisplay({
   onLineupChange,
   onSubstitution,
   onValidationError,
-}: LineupDisplayProps): JSX.Element {
+}: LineupDisplayProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [selectedSubstitute, setSelectedSubstitute] =
     useState<SubstitutePlayer | null>(null);

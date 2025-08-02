@@ -53,33 +53,38 @@ describe('SetupLineupUseCase', () => {
   describe('execute', () => {
     it('should setup lineup successfully with 9 players', async () => {
       const lineupPositions: LineupPosition[] = [
-        { battingOrder: 1, playerId: 'player1', position: Position.PITCHER },
-        { battingOrder: 2, playerId: 'player2', position: Position.CATCHER },
-        { battingOrder: 3, playerId: 'player3', position: Position.FIRST_BASE },
+        { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
+        { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
+        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
         {
           battingOrder: 4,
           playerId: 'player4',
-          position: Position.SECOND_BASE,
+          position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.THIRD_BASE },
-        { battingOrder: 6, playerId: 'player6', position: Position.SHORTSTOP },
-        { battingOrder: 7, playerId: 'player7', position: Position.LEFT_FIELD },
+        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
+        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
+        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
         {
           battingOrder: 8,
           playerId: 'player8',
-          position: Position.CENTER_FIELD,
+          position: Position.centerField(),
         },
         {
           battingOrder: 9,
           playerId: 'player9',
-          position: Position.RIGHT_FIELD,
+          position: Position.rightField(),
+        },
+        {
+          battingOrder: 10,
+          playerId: 'player10',
+          position: Position.shortFielder(),
         },
       ];
 
       const command: SetupLineupCommand = {
         gameId: 'game1',
         lineupPositions,
-        substitutes: ['player10', 'player11'],
+        substitutes: ['player11', 'player12'],
       };
 
       const mockGame = {
@@ -93,7 +98,7 @@ describe('SetupLineupUseCase', () => {
       mockGameRepository.save.mockImplementation(async (game) => game);
 
       // Mock players exist
-      for (let i = 1; i <= 11; i++) {
+      for (let i = 1; i <= 12; i++) {
         mockPlayerRepository.findById.mockResolvedValueOnce({
           id: `player${i}`,
           name: `Player ${i}`,
@@ -101,6 +106,10 @@ describe('SetupLineupUseCase', () => {
       }
 
       const result = await useCase.execute(command);
+
+      if (!result.isSuccess) {
+        console.log('Setup failed with error:', result.error);
+      }
 
       expect(result.isSuccess).toBe(true);
       expect(mockGameRepository.findById).toHaveBeenCalledWith('game1');

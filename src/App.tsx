@@ -4,7 +4,7 @@ import theme from '@/presentation/theme';
 import { AppRoutes } from '@/presentation/routes';
 import { Providers } from '@/presentation/providers';
 
-function App(): JSX.Element {
+function App() {
   return (
     <>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />

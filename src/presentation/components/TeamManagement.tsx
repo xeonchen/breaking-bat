@@ -113,7 +113,7 @@ export function TeamManagement({
   enableFilters = false,
   enableSorting = false,
   enableBulkOperations = false,
-}: TeamManagementProps): JSX.Element {
+}: TeamManagementProps) {
   const [showStats, setShowStats] = useState(initialShowStats);
   const [searchTerm, setSearchTerm] = useState('');
   const [positionFilter, setPositionFilter] = useState('all');
@@ -825,7 +825,7 @@ function PlayerCard({
   onToggleStatus,
   onSelect,
   enableBulkOperations,
-}: PlayerCardProps): JSX.Element {
+}: PlayerCardProps) {
   const cardBg = useColorModeValue('gray.50', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 

@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-export function BottomNavigation(): JSX.Element {
+export function BottomNavigation() {
   const bg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const location = useLocation();

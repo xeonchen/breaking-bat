@@ -37,7 +37,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
 import { Game, GameStatus } from '@/domain';
 
-export default function GamePage(): JSX.Element {
+export default function GamePage() {
   const navigate = useNavigate();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();

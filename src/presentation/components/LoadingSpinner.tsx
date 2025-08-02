@@ -16,7 +16,7 @@ export function LoadingSpinner({
   message = 'Loading...', 
   size = 'lg',
   fullScreen = false 
-}: LoadingSpinnerProps): JSX.Element {
+}: LoadingSpinnerProps) {
   const bg = useColorModeValue('white', 'gray.800');
   const color = useColorModeValue('gray.600', 'gray.300');
 

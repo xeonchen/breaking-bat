@@ -5,8 +5,8 @@ import {
 import {
   AtBatRepository,
   GameRepository,
-  AtBatResult,
 } from '@/domain';
+import { BattingResult } from '@/domain/values/BattingResult';
 import {
   createTestDatabase,
   clearTestDatabase,
@@ -60,7 +60,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single to center field',
         rbi: 1,
         baserunnersBefore: {
@@ -91,7 +91,7 @@ describe('RecordAtBatUseCase', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.result).toBe(AtBatResult.SINGLE);
+      expect(result.value!.result).toEqual(BattingResult.single());
       expect(result.value!.rbi).toBe(1);
       expect(result.value!.runsScored).toEqual(['player2']);
 
@@ -105,7 +105,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 3,
         isTopInning: false,
-        result: AtBatResult.HOME_RUN,
+        result: BattingResult.homeRun(),
         description: 'Grand slam home run',
         rbi: 4,
         baserunnersBefore: {
@@ -135,7 +135,7 @@ describe('RecordAtBatUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.result).toBe(AtBatResult.HOME_RUN);
+      expect(result.value!.result).toEqual(BattingResult.homeRun());
       expect(result.value!.rbi).toBe(4);
       expect(result.value!.runsScored).toHaveLength(4);
       expect((mockGame as any).ourScore).toBe(6); // 2 + 4 RBIs
@@ -147,7 +147,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 2,
         isTopInning: true,
-        result: AtBatResult.STRIKEOUT,
+        result: BattingResult.strikeout(),
         description: 'Swinging strikeout',
         rbi: 0,
         baserunnersBefore: {
@@ -177,7 +177,7 @@ describe('RecordAtBatUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.result).toBe(AtBatResult.STRIKEOUT);
+      expect(result.value!.result).toEqual(BattingResult.strikeout());
       expect(result.value!.rbi).toBe(0);
       expect(result.value!.runsScored).toHaveLength(0);
       expect((mockGame as any).ourScore).toBe(1); // No change
@@ -189,7 +189,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -211,7 +211,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: '',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -231,7 +231,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 0,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -251,7 +251,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: -1,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -271,7 +271,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 2,
         baserunnersBefore: { first: null, second: null, third: 'player2' },
@@ -293,7 +293,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: longDescription,
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -313,7 +313,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: '',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -338,7 +338,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -362,7 +362,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -394,7 +394,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.SINGLE,
+        result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
         baserunnersBefore: { first: null, second: null, third: null },
@@ -423,7 +423,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.HOME_RUN,
+        result: BattingResult.homeRun(),
         description: 'Home run',
         rbi: 2,
         baserunnersBefore: {
@@ -458,7 +458,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.STRIKEOUT,
+        result: BattingResult.strikeout(),
         description: 'Strikeout',
         rbi: 1, // Invalid - strikeouts can't have RBIs
         baserunnersBefore: { first: null, second: null, third: null },
@@ -478,7 +478,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.GROUNDOUT,
+        result: BattingResult.groundOut(),
         description: 'Groundout',
         rbi: 1, // Invalid - groundouts can't have RBIs (unless sacrifice)
         baserunnersBefore: { first: null, second: null, third: null },
@@ -498,7 +498,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.HOME_RUN,
+        result: BattingResult.homeRun(),
         description: 'Home run',
         rbi: 5, // Invalid - max 4 RBIs (bases loaded grand slam)
         baserunnersBefore: {
@@ -522,7 +522,7 @@ describe('RecordAtBatUseCase', () => {
         batterId: 'player1',
         inning: 1,
         isTopInning: true,
-        result: AtBatResult.TRIPLE,
+        result: BattingResult.triple(),
         description: 'Triple',
         rbi: 2,
         baserunnersBefore: {

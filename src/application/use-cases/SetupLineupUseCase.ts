@@ -21,7 +21,7 @@ export class SetupLineupUseCase {
 
   async execute(command: SetupLineupCommand): Promise<Result<void>> {
     try {
-      // Validate command
+      // Validate command structure first
       const validationResult = await this.validateCommand(command);
       if (!validationResult.isSuccess) {
         return validationResult;
@@ -65,18 +65,18 @@ export class SetupLineupUseCase {
     command: SetupLineupCommand
   ): Promise<Result<void>> {
     // Validate lineup size
-    if (command.lineupPositions.length !== 9) {
-      return Result.failure('Lineup must have exactly 9 players');
+    if (command.lineupPositions.length !== 10) {
+      return Result.failure('Lineup must have exactly 10 players');
     }
 
-    // Validate batting orders are 1-9
+    // Validate batting orders are 1-10
     const battingOrders = command.lineupPositions
       .map((lp) => lp.battingOrder)
       .sort();
-    const expectedOrders = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const expectedOrders = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     if (!this.arraysEqual(battingOrders, expectedOrders)) {
-      return Result.failure('Batting orders must be exactly 1 through 9');
+      return Result.failure('Batting orders must be exactly 1 through 10');
     }
 
     // Validate no duplicate players in lineup

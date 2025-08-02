@@ -26,7 +26,7 @@ describe('AtBatRepository', () => {
       'batter1',
       1,
       BattingResult.double(),
-      2,
+      1,
       ['player3'],
       baserunnersBefore,
       baserunnersAfter
@@ -44,7 +44,7 @@ describe('AtBatRepository', () => {
       expect(savedAtBat.id).toBe(testAtBat.id);
       expect(savedAtBat.batterId).toBe('batter1');
       expect(savedAtBat.result.value).toBe('2B');
-      expect(savedAtBat.rbis).toBe(2);
+      expect(savedAtBat.rbis).toBe(1);
       expect(savedAtBat.runsScored).toEqual(['player3']);
     });
 
@@ -53,14 +53,14 @@ describe('AtBatRepository', () => {
 
       const correctedAtBat = testAtBat.updateResult(
         BattingResult.triple(),
-        3,
+        2,
         ['player3', 'player1'],
         new BaserunnerState('batter', null, null)
       );
       const savedAtBat = await repository.save(correctedAtBat);
 
       expect(savedAtBat.result.value).toBe('3B');
-      expect(savedAtBat.rbis).toBe(3);
+      expect(savedAtBat.rbis).toBe(2);
       expect(savedAtBat.runsScored).toEqual(['player3', 'player1']);
       expect(savedAtBat.updatedAt).not.toBe(testAtBat.updatedAt);
     });
@@ -273,8 +273,8 @@ describe('AtBatRepository', () => {
         1,
         BattingResult.homeRun(),
         4,
-        ['batter1'],
-        BaserunnerState.empty(),
+        ['player1', 'player2', 'player3', 'batter1'],
+        new BaserunnerState('player1', 'player2', 'player3'),
         BaserunnerState.empty()
       );
       const strikeout = new AtBat(
@@ -300,7 +300,7 @@ describe('AtBatRepository', () => {
       expect(stats.hits).toBe(2);
       expect(stats.doubles).toBe(1);
       expect(stats.homeRuns).toBe(1);
-      expect(stats.rbis).toBe(6);
+      expect(stats.rbis).toBe(5);
       expect(stats.strikeouts).toBe(1);
       expect(stats.battingAverage).toBeCloseTo(0.667);
     });
@@ -350,7 +350,7 @@ describe('AtBatRepository', () => {
       expect(stats.totalAtBats).toBe(2); // walks don't count as at-bats
       expect(stats.totalHits).toBe(2);
       expect(stats.totalRuns).toBe(2);
-      expect(stats.totalRBIs).toBe(3);
+      expect(stats.totalRBIs).toBe(2);
       expect(stats.teamBattingAverage).toBe(1.0); // 2 hits / 2 at-bats
     });
 
@@ -417,13 +417,13 @@ describe('AtBatRepository', () => {
         new BaserunnerState('batter2', null, null)
       );
 
-      await repository.save(testAtBat); // 2 RBIs
+      await repository.save(testAtBat); // 1 RBI
       await repository.save(walk); // 0 RBIs
 
       const rbiAtBats = await repository.findWithRBIs('game1');
 
       expect(rbiAtBats).toHaveLength(1);
-      expect(rbiAtBats[0].rbis).toBe(2);
+      expect(rbiAtBats[0].rbis).toBe(1);
     });
   });
 });

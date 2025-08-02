@@ -383,15 +383,16 @@ When completing any development phase, ensure:
    #         ui | theme | pwa | domain | application | infrastructure | presentation
 
    # Example:
-   # feat(tests): complete jest infrastructure and unit test foundation
+   # feat(tests): implement comprehensive test infrastructure fixes and achieve 80.5% pass rate
    #
-   # - Fix Jest configuration to modern ts-jest format
-   # - Resolve domain object mocking issues in component tests
-   # - Implement at-bat completion flow with baserunner advancement
-   # - Add updateScore functionality to ScoringPage component
-   # - Achieve 30/39 ScoringPage tests passing (77% pass rate)
+   # - Fix TypeScript JSX namespace issues by removing incompatible JSX.Element return types
+   # - Resolve AtBat repository RBI validation logic and compound index queries  
+   # - Update Game repository date filtering with manual approach vs problematic Dexie between()
+   # - Align all Zustand store mocks with actual implementation patterns
+   # - Fix Scoreboard component team display logic and CSS custom property assertions
+   # - Achieve 397/493 tests passing (80.5% pass rate) with 18/26 test suites passing
    #
-   # Jest foundation now solid for E2E test implementation phase.
+   # Major testing infrastructure improvements completed - Ready for final cleanup phase.
    ```
 
    Only proceed to next phase after all checklist items are verified.

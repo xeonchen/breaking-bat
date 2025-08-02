@@ -19,7 +19,7 @@ interface NavigationDrawerProps {
 export function NavigationDrawer({
   isOpen,
   onClose,
-}: NavigationDrawerProps): JSX.Element {
+}: NavigationDrawerProps) {
   const location = useLocation();
 
   const navigationItems = [

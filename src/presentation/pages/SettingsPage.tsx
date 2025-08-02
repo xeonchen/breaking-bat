@@ -1,7 +1,7 @@
 import { Box, Button, Heading, Text, VStack } from '@chakra-ui/react';
 import { DownloadIcon } from '@chakra-ui/icons';
 
-export default function SettingsPage(): JSX.Element {
+export default function SettingsPage() {
   const handleExportData = () => {
     console.log('🔄 Export data clicked');
     // TODO: Implement actual data export functionality

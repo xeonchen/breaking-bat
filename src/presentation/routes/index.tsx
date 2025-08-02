@@ -13,7 +13,7 @@ const ScoringPage = lazy(() => import('@/presentation/pages/ScoringPage'));
 const StatsPage = lazy(() => import('@/presentation/pages/StatsPage'));
 const SettingsPage = lazy(() => import('@/presentation/pages/SettingsPage'));
 
-export function AppRoutes(): JSX.Element {
+export function AppRoutes() {
   return (
     <Layout>
       <Routes>

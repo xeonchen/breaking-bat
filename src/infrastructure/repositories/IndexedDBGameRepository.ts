@@ -90,8 +90,10 @@ export class IndexedDBGameRepository implements GameRepository {
   async findByDateRange(startDate: Date, endDate: Date): Promise<Game[]> {
     const records = await this.db
       .table('games')
-      .where('date')
-      .between(startDate, endDate, true, true)
+      .filter((record: any) => {
+        const gameDate = new Date(record.date);
+        return gameDate >= startDate && gameDate <= endDate;
+      })
       .toArray();
 
     return records.map((record) => this.recordToGame(record));

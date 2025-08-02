@@ -7,7 +7,7 @@ interface ProvidersProps {
   children: ReactNode;
 }
 
-export function Providers({ children }: ProvidersProps): JSX.Element {
+export function Providers({ children }: ProvidersProps) {
   return (
     <ErrorBoundary>
       <DependencyProvider>

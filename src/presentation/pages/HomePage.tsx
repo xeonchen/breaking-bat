@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 
-export default function HomePage(): JSX.Element {
+export default function HomePage() {
   const cardBg = useColorModeValue('white', 'gray.700');
 
   return (

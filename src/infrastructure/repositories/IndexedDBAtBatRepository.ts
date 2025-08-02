@@ -89,8 +89,9 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
   ): Promise<AtBat[]> {
     const records = await this.db
       .table('atBats')
-      .where(['gameId', 'battingPosition'])
-      .equals([gameId, position])
+      .where('gameId')
+      .equals(gameId)
+      .and((record: any) => record.battingPosition === position)
       .toArray();
 
     return records.map((record) => this.recordToAtBat(record));

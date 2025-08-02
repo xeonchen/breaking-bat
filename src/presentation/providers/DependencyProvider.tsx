@@ -19,7 +19,7 @@ interface DependencyProviderProps {
 
 export function DependencyProvider({
   children,
-}: DependencyProviderProps): JSX.Element {
+}: DependencyProviderProps) {
   useEffect(() => {
     // Initialize repositories
     const teamRepository = new IndexedDBTeamRepository();

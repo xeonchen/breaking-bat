@@ -30,7 +30,7 @@ import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
 import { Season } from '@/domain';
 
-export default function SeasonsPage(): JSX.Element {
+export default function SeasonsPage() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);

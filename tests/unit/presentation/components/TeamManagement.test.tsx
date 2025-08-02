@@ -14,21 +14,21 @@ const mockTeam = {
       id: 'player-1',
       name: 'John Smith',
       jerseyNumber: '12',
-      position: Position.pitcher(),
+      positions: [Position.pitcher()],
       isActive: true,
     },
     {
       id: 'player-2',
       name: 'Mike Johnson',
       jerseyNumber: '23',
-      position: Position.catcher(),
+      positions: [Position.catcher()],
       isActive: true,
     },
     {
       id: 'player-3',
       name: 'Sarah Wilson',
       jerseyNumber: '34',
-      position: Position.firstBase(),
+      positions: [Position.firstBase()],
       isActive: false, // Injured/inactive
     },
   ],
@@ -399,7 +399,7 @@ describe('TeamManagement Component', () => {
         id: 'player-1',
         name: 'Johnny Smith',
         jerseyNumber: '12',
-        position: expect.objectContaining({ value: 'pitcher' }),
+        positions: expect.arrayContaining([expect.objectContaining({ value: 'pitcher' })]),
         isActive: true,
       });
     });

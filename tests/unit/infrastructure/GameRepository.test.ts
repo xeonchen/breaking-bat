@@ -167,7 +167,18 @@ describe('GameRepository', () => {
 
   describe('findByStatus', () => {
     it('should find games by status', async () => {
-      const inProgressGame = testGame.start('lineup1');
+      // Create a separate game for in-progress status to avoid ID conflicts
+      const inProgressGame = new Game(
+        'game-in-progress',
+        'In Progress Game',
+        'Pirates',
+        new Date('2024-03-02'),
+        'season1',
+        'regular',
+        'home',
+        'team1',
+        'in_progress'
+      );
       const completedGame = new Game(
         'game2',
         'Completed Game',
@@ -222,8 +233,8 @@ describe('GameRepository', () => {
       await repository.save(game3); // 2024-05-15
 
       const aprilGames = await repository.findByDateRange(
-        new Date('2024-04-01'),
-        new Date('2024-04-30')
+        new Date('2024-04-01T00:00:00.000Z'),
+        new Date('2024-04-30T23:59:59.999Z')
       );
 
       expect(aprilGames).toHaveLength(1);
@@ -244,8 +255,28 @@ describe('GameRepository', () => {
 
   describe('findActiveGames', () => {
     it('should find only active games (in_progress)', async () => {
-      const inProgressGame = testGame.start('lineup1');
-      const suspendedGame = inProgressGame.suspend();
+      const inProgressGame = new Game(
+        'game-in-progress',
+        'In Progress Game',
+        'Pirates',
+        new Date('2024-03-02'),
+        'season1',
+        'regular',
+        'home',
+        'team1',
+        'in_progress'
+      );
+      const suspendedGame = new Game(
+        'game-suspended',
+        'Suspended Game',
+        'Cardinals',
+        new Date('2024-03-03'),
+        'season1',
+        'regular',
+        'away',
+        'team1',
+        'suspended'
+      );
       const completedGame = new Game(
         'game2',
         'Completed Game',

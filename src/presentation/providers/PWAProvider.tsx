@@ -6,7 +6,7 @@ interface PWAProviderProps {
 }
 
 // Simple PWA registration - will be enhanced with actual service worker later
-export function PWAProvider({ children }: PWAProviderProps): JSX.Element {
+export function PWAProvider({ children }: PWAProviderProps) {
   const toast = useToast();
 
   useEffect(() => {
