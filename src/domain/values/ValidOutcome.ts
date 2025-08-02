@@ -91,6 +91,26 @@ export class ValidOutcome {
     );
   }
 
+  /**
+   * Creates an error-based advancement outcome
+   */
+  public static error(
+    afterState: BaserunnerState,
+    rbis: number,
+    outs: number,
+    runsScored: readonly string[],
+    description: string
+  ): ValidOutcome {
+    return new ValidOutcome(
+      afterState,
+      rbis,
+      outs,
+      runsScored,
+      description,
+      OutcomeLikelihood.ERROR
+    );
+  }
+
   public equals(other: ValidOutcome): boolean {
     return (
       this.afterState.equals(other.afterState) &&
@@ -107,6 +127,7 @@ export class ValidOutcome {
 
   public toString(): string {
     const rbiText = this.rbis === 1 ? '1 RBI' : `${this.rbis} RBIs`;
+
     const outText =
       this.outs === 0 ? '' : `, ${this.outs} out${this.outs > 1 ? 's' : ''}`;
     return `${this.description} (${rbiText}${outText})`;

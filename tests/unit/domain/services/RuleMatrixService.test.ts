@@ -58,33 +58,43 @@ describe('RuleMatrixService', () => {
     it('should handle single with empty bases', () => {
       const outcomes = ruleMatrix.getValidOutcomes(emptyBases, HitType.SINGLE);
 
-      expect(outcomes).toHaveLength(1);
-      expect(outcomes[0].afterState.firstBase).toBe('batter');
-      expect(outcomes[0].afterState.secondBase).toBeNull();
-      expect(outcomes[0].afterState.thirdBase).toBeNull();
-      expect(outcomes[0].rbis).toBe(0);
-      expect(outcomes[0].outs).toBe(0);
-      expect(outcomes[0].runsScored).toEqual([]);
+      expect(outcomes.length).toBeGreaterThanOrEqual(1);
+
+      // Find standard outcome
+      const standardOutcome = outcomes.find((o) => o.likelihood === 'standard');
+      expect(standardOutcome).toBeDefined();
+      expect(standardOutcome?.afterState.firstBase).toBe('batter');
+      expect(standardOutcome?.afterState.secondBase).toBeNull();
+      expect(standardOutcome?.afterState.thirdBase).toBeNull();
+      expect(standardOutcome?.rbis).toBe(0);
+      expect(standardOutcome?.outs).toBe(0);
+      expect(standardOutcome?.runsScored).toEqual([]);
     });
 
     it('should handle double with empty bases', () => {
       const outcomes = ruleMatrix.getValidOutcomes(emptyBases, HitType.DOUBLE);
 
-      expect(outcomes).toHaveLength(1);
-      expect(outcomes[0].afterState.firstBase).toBeNull();
-      expect(outcomes[0].afterState.secondBase).toBe('batter');
-      expect(outcomes[0].afterState.thirdBase).toBeNull();
-      expect(outcomes[0].rbis).toBe(0);
-      expect(outcomes[0].outs).toBe(0);
+      expect(outcomes.length).toBeGreaterThanOrEqual(1);
+
+      // Find standard outcome
+      const standardOutcome = outcomes.find((o) => o.likelihood === 'standard');
+      expect(standardOutcome).toBeDefined();
+      expect(standardOutcome?.afterState.firstBase).toBeNull();
+      expect(standardOutcome?.afterState.secondBase).toBe('batter');
+      expect(standardOutcome?.afterState.thirdBase).toBeNull();
+      expect(standardOutcome?.rbis).toBe(0);
+      expect(standardOutcome?.outs).toBe(0);
     });
 
     it('should handle triple with empty bases', () => {
       const outcomes = ruleMatrix.getValidOutcomes(emptyBases, HitType.TRIPLE);
 
       expect(outcomes).toHaveLength(1);
-      expect(outcomes[0].afterState.isEmpty()).toBe(true);
-      expect(outcomes[0].rbis).toBe(1);
-      expect(outcomes[0].runsScored).toEqual(['batter']);
+      expect(outcomes[0].afterState.firstBase).toBeNull();
+      expect(outcomes[0].afterState.secondBase).toBeNull();
+      expect(outcomes[0].afterState.thirdBase).toBe('batter');
+      expect(outcomes[0].rbis).toBe(0);
+      expect(outcomes[0].runsScored).toEqual([]);
     });
 
     it('should handle home run with empty bases', () => {
@@ -168,10 +178,14 @@ describe('RuleMatrixService', () => {
         HitType.DOUBLE
       );
 
-      expect(outcomes).toHaveLength(1);
-      expect(outcomes[0].afterState.secondBase).toBe('batter');
-      expect(outcomes[0].rbis).toBe(1);
-      expect(outcomes[0].runsScored).toEqual(['runner1']);
+      expect(outcomes.length).toBeGreaterThanOrEqual(1);
+
+      // Find standard outcome
+      const standardOutcome = outcomes.find((o) => o.likelihood === 'standard');
+      expect(standardOutcome).toBeDefined();
+      expect(standardOutcome?.afterState.secondBase).toBe('batter');
+      expect(standardOutcome?.rbis).toBe(1);
+      expect(standardOutcome?.runsScored).toEqual(['runner1']);
     });
 
     it('should handle walk with runner on first - forced advancement', () => {
@@ -214,7 +228,7 @@ describe('RuleMatrixService', () => {
 
     it('should reject invalid base advancement', () => {
       const before = BaserunnerState.empty();
-      const after = new BaserunnerState(null, 'batter', null); // Wrong - single should go to first
+      const after = new BaserunnerState(null, null, 'batter'); // Wrong - single cannot put batter on third
 
       const result = ruleMatrix.validateTransition(
         before,
@@ -247,7 +261,7 @@ describe('RuleMatrixService', () => {
 
     it('should provide suggested corrections for violations', () => {
       const before = BaserunnerState.empty();
-      const after = new BaserunnerState(null, 'batter', null); // Wrong base
+      const after = new BaserunnerState(null, null, 'batter'); // Wrong - single cannot put batter on third
 
       const result = ruleMatrix.validateTransition(
         before,
