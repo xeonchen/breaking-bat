@@ -27,7 +27,7 @@ export class RecordAtBatUseCase {
     private gameRepository: GameRepository
   ) {}
 
-  async execute(command: RecordAtBatCommand): Promise<Result<AtBat>> {
+  public async execute(command: RecordAtBatCommand): Promise<Result<AtBat>> {
     try {
       // Validate command
       const validationResult = this.validateCommand(command);
@@ -55,6 +55,7 @@ export class RecordAtBatUseCase {
         command.batterId,
         1, // battingPosition - needs to be calculated properly
         command.result,
+        command.description,
         command.rbi,
         command.runsScored,
         command.baserunnersBefore,
@@ -63,7 +64,7 @@ export class RecordAtBatUseCase {
       );
 
       // Update game score
-      (game as any).ourScore += command.rbi;
+      (game as { ourScore: number }).ourScore += command.rbi;
 
       // Save at-bat and game
       const savedAtBat = await this.atBatRepository.save(atBat);
@@ -96,23 +97,23 @@ export class RecordAtBatUseCase {
       return Result.failure('Maximum RBI per at-bat is 4');
     }
 
-    // Validate RBI matches runs scored
-    if (command.rbi !== command.runsScored.length) {
-      return Result.failure('RBI count must match the number of runs scored');
-    }
-
     // Validate description length
     if (command.description && command.description.length > 500) {
       return Result.failure('Description cannot exceed 500 characters');
     }
 
-    // Business rule validations
+    // Business rule validations (before RBI validation to catch strikeout/groundout cases)
     const businessRuleResult = this.validateBusinessRules(command);
     if (!businessRuleResult.isSuccess) {
       return businessRuleResult;
     }
 
-    return Result.success(undefined as any);
+    // Validate RBI matches runs scored
+    if (command.rbi !== command.runsScored.length) {
+      return Result.failure('RBI count must match the number of runs scored');
+    }
+
+    return Result.success(null as unknown as AtBat);
   }
 
   private validateBusinessRules(command: RecordAtBatCommand): Result<AtBat> {
@@ -147,6 +148,6 @@ export class RecordAtBatUseCase {
       );
     }
 
-    return Result.success(undefined as any);
+    return Result.success(null as unknown as AtBat);
   }
 }

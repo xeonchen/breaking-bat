@@ -376,6 +376,40 @@ Target State:
 - **Complete API documentation** with usage examples
 - **Flexible enable/disable** functionality for all validation rules
 
+## 🔄 Recent Development Work & Pending Tasks
+
+### ✅ Recently Completed (Post Rule Engine Framework)
+
+- **Fix RuleMatrixService tests to use new BattingResult API** - Updated legacy tests to work with new parameter-based system
+- **Add double play support** - Enhanced BaseAdvancementCalculator and RuleEngine to handle DP scenarios
+- **Update TODO.md documentation** - Synchronized rule engine framework completion status
+
+### 📋 Pending Implementation Tasks
+
+#### Architecture & Code Quality
+- **Evaluate HitType vs BattingResult.VALID_RESULTS redundancy** - Consider centralized configuration for hit types
+- **Fix RecordAtBatUseCase tests** - Address test failures affected by rule matrix integration
+- **Update existing domain entities** - Integrate remaining entities with rule matrix system
+
+#### Rule Engine Enhancements  
+- **Enhance running error variations** - Cover more base configurations and hit types beyond current 1B scenario
+- **Add comprehensive running error scenarios** - Caught stealing, overrunning bases, multiple error types
+- **Create validation framework with user choice** - Allow users to select from multiple valid outcomes
+- **Replace complex scenario tables** - Simplify with parameter-based documentation
+
+#### Player Statistics & Tracking
+- **Add player-level running error tracking** - Extend AtBat entity and RecordAtBatUseCase to track which players made running errors
+- **Implement player statistics service** - Service for accumulating and querying running errors per player across games
+
+#### Base Configuration Coverage
+- **Implement remaining 6 base configurations** - second_only, third_only, first_second, first_third, second_third, loaded
+- **Add comprehensive tests** - Test coverage for all remaining base configurations
+- **Document advanced scenarios** - Aggressive advancement, errors as future enhancement TODOs
+
+#### UI/UX Enhancements
+- **Enhance AtBatForm UI** - Show only valid hit types and outcomes based on current game state
+- **Create settings page integration** - UI for rule configuration and enable/disable toggles
+
 ---
 
 _**Critical Status**: This TODO represents a comprehensive testing audit that identified significant gaps in E2E coverage for core user stories. The Jest configuration issues are blocking all unit test verification. Both issues must be resolved before proceeding to UI/UX refinement to ensure a stable, well-tested foundation._

@@ -10,6 +10,7 @@ export class AtBat extends BaseEntity {
   public readonly batterId: string;
   public readonly battingPosition: number;
   public readonly result: BattingResult;
+  public readonly description: string;
   public readonly rbis: number;
   public readonly runsScored: string[]; // player IDs who scored
   public readonly baserunnersBefore: BaserunnerState;
@@ -22,6 +23,7 @@ export class AtBat extends BaseEntity {
     batterId: string,
     battingPosition: number,
     result: BattingResult,
+    description: string,
     rbis: number,
     runsScored: string[],
     baserunnersBefore: BaserunnerState,
@@ -49,6 +51,7 @@ export class AtBat extends BaseEntity {
     this.batterId = batterId;
     this.battingPosition = battingPosition;
     this.result = result;
+    this.description = description;
     this.rbis = rbis;
     this.runsScored = [...runsScored];
     this.baserunnersBefore = baserunnersBefore;
@@ -116,6 +119,7 @@ export class AtBat extends BaseEntity {
    */
   public updateResult(
     newResult: BattingResult,
+    newDescription: string,
     newRbis: number,
     newRunsScored: string[],
     newBaserunnersAfter: BaserunnerState
@@ -127,6 +131,7 @@ export class AtBat extends BaseEntity {
       this.batterId,
       this.battingPosition,
       newResult,
+      newDescription,
       newRbis,
       newRunsScored,
       this.baserunnersBefore,

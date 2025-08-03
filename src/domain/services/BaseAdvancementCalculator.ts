@@ -283,9 +283,9 @@ export class BaseAdvancementCalculator {
     // Other runners may or may not advance depending on the play
     
     // For simplicity, assume batter + lead runner are out, others stay
-    let newFirst = null;
-    let newSecond = beforeState.secondBase;
-    let newThird = beforeState.thirdBase;
+    const newFirst = null;
+    const newSecond = beforeState.secondBase;
+    const newThird = beforeState.thirdBase;
     
     // If runner on first, they're typically the second out
     if (beforeState.firstBase) {
