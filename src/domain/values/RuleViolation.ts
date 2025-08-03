@@ -71,4 +71,18 @@ export class ValidationResult {
   public hasViolationType(type: ViolationType): boolean {
     return this.violations.some((v) => v.type === type);
   }
+
+  /**
+   * Get the first violation (for convenience when expecting single violations)
+   */
+  public get violation(): RuleViolation | undefined {
+    return this.violations[0];
+  }
+
+  /**
+   * Get suggested outcomes (alias for suggestedCorrections)
+   */
+  public get suggestedOutcomes(): readonly ValidOutcome[] {
+    return this.suggestedCorrections;
+  }
 }

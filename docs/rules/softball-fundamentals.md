@@ -20,10 +20,18 @@ This document provides the essential slow-pitch softball rules that form the fou
   9. Right Field (RF)
   10. **Short Fielder (SF)** - Extra outfielder
 
+Players can change their fielding positions during the game, typically there's no specific constraints.
+
 ### Batting Order
 
-- **Extra Player (EP)** - Bats but doesn't play defense (similar concept to DH but with different rules)
+typically 10~11 in the lineup (10 defensive position + an optional EP player), sometimes (especially in unofficial games) there might be more than 1 EP.
+- **Extra Player (EP)** - Bats but doesn't play defense. Depending on different rules, it is possible that an EP might switch position with another fielder (e.g. EP <-> 3B)
 - **Jersey numbers** can range 0-999 (expanded from traditional 1-99)
+
+Players cannot change their batting order once the game starts.
+
+a player switch with a bench will be removed from the lineup, and this player can't switch back to the game unless the player is starting players (who plays from the beginning of the game). A starting player can only return to the game once and the batting order must be the same as his starting order.
+
 
 ## Base Running Fundamentals
 
@@ -65,8 +73,7 @@ Runners **may** advance when:
 **Double (2B)**
 
 - Batter reaches second base safely
-- All runners advance at least two bases
-- Runners typically score from second or third
+- Runners from second or third typically score or maybe on of them stays on 3B
 
 **Triple (3B)**
 
@@ -84,6 +91,7 @@ Runners **may** advance when:
 **Walk (BB)**
 
 - Batter receives four balls
+- **Common Taiwanese Rule**: At-bat starts at 1-strike/1-ball count, batter needs 3 additional balls to walk
 - Advances to first base
 - Forces runners only if necessary
 
@@ -97,7 +105,7 @@ Runners **may** advance when:
 
 **Strikeout (SO)**
 
-- **Taiwan Rule**: At-bat starts at 1-strike/1-ball count, batter needs 2 additional strikes to strike out
+- **Common Taiwanese Rule**: At-bat starts at 1-strike/1-ball count, batter needs 2 additional strikes to strike out
 - Foul balls count as strikes (2 foul balls = strikeout)
 - No runners advance (wild pitch/passed ball scenarios don't occur in slow-pitch)
 
@@ -117,7 +125,8 @@ Runners **may** advance when:
 
 **Sacrifice Fly (SF)**
 
-- Fly ball caught for out BUT runner scores by advancing
+- only happen when 0 out or 1 out
+- Fly ball caught for out BUT runner(s) scores by advancing with no fielding error
 - Does NOT count as at-bat for batter
 - RBI credited to batter
 - Most commonly with runner on third, but runner on second can also advance and score
@@ -204,7 +213,7 @@ A runner is "forced" when they must advance because:
 - Risk being thrown out for greater reward
 - Examples:
   - Runner on first attempts home on double
-  - Batter attempts to stretch single into double
+  - Runner on second attempts home on single
 
 ### Defensive Errors During Plays
 
@@ -212,6 +221,13 @@ A runner is "forced" when they must advance because:
 - Examples:
   - Single + throwing error = runners advance extra base
   - Double + dropped ball = all runners score
+
+### Runners Errors During Plays
+
+- Error during normal play cause extra out(s)
+- Examples:
+  - Batter hits a single, but caught out at 2nd base
+  - Batter hits a double, but the 2nd base runner outs at home plate.
 
 ### Complex Double Plays
 

@@ -17,7 +17,7 @@ describe('AtBatRepository', () => {
     repository = new IndexedDBAtBatRepository();
 
     baserunnersBefore = new BaserunnerState('player1', null, 'player3');
-    baserunnersAfter = new BaserunnerState('batter', 'player1', null);
+    baserunnersAfter = new BaserunnerState(null, 'batter', 'player1');
 
     testAtBat = new AtBat(
       'atbat1',
@@ -341,7 +341,7 @@ describe('AtBatRepository', () => {
         new BaserunnerState('batter3', null, null)
       );
 
-      await repository.save(testAtBat); // double, 2 RBIs, 1 run scored
+      await repository.save(testAtBat); // double, 1 RBI, 1 run scored
       await repository.save(single); // single, 1 RBI, 1 run scored
       await repository.save(walk); // walk, 0 RBIs, 0 runs scored
 

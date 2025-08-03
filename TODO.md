@@ -301,6 +301,76 @@ Target State:
 
 ---
 
+## 🔧 Rule Engine Framework Development (Current Implementation)
+
+### Current Focus: Configurable Validation Rules Framework
+
+**Status**: ✅ **IN PROGRESS** - Building minimal framework with 3 critical rules  
+**Goal**: Create flexible rule validation system that can be enabled/disabled  
+**Approach**: Framework-first with minimal implementation to validate concept
+
+### Immediate Implementation (Phase 1)
+
+#### Framework Infrastructure ✅ ACTIVE
+- [ ] **ValidationRule interface**: Core rule abstraction with enable/disable support
+- [ ] **ConfigurableRuleEngine service**: Rule registration and validation orchestration  
+- [ ] **Integration layer**: Combine with existing parameter-based validation system
+- [ ] **Rule categories**: Critical rules (always important) vs configurable rules
+
+#### Critical Validation Rules (Minimal Set)
+- [ ] **"no-runner-passing"**: Trailing runner cannot pass lead runner (fundamental game rule)
+- [ ] **"rbi-validation"**: RBIs ≤ runs scored (mathematical consistency check)
+- [ ] **"max-outs-validation"**: ≤ 3 outs per at-bat (basic game rule enforcement)
+
+#### Framework Testing
+- [ ] **Framework tests**: Rule registration, enable/disable, validation orchestration
+- [ ] **Integration tests**: Framework + existing parameter-based system
+- [ ] **Rule implementation tests**: Each critical rule individually tested
+
+### Future Enhancements (Documented for Later)
+
+#### Configurable Validation Rules (Planned)
+- [ ] **League-specific rules**: Error vs hit attribution, running error validation
+- [ ] **Optional enhancement rules**: Statistical analysis, anomaly detection
+- [ ] **Settings page integration**: UI for rule enable/disable toggles
+- [ ] **Rule presets**: "Official League", "Casual Play", "Taiwan League", "Custom"
+
+#### Advanced Features (Future Vision)
+- [ ] **AI-powered suggestions**: Intelligent recommendations for complex scenarios
+- [ ] **Complex scenario detection**: Multi-parameter validation scenarios
+- [ ] **Statistical reporting**: Rule violation patterns and trends
+- [ ] **Import/export configurations**: Share rule settings between leagues
+
+#### Architecture Expansion (Design Phase)
+- [ ] **Rule dependency system**: Rules that depend on other rules being enabled
+- [ ] **Rule conflict resolution**: Handle contradictory rule combinations
+- [ ] **Performance optimization**: Caching and efficient rule evaluation
+- [ ] **Rule versioning**: Track rule changes over time for league consistency
+
+### Technical Integration Points
+
+#### Current System Compatibility
+- ✅ **Parameter-based validation**: Existing 3-parameter system (aggressive/error/running-error)
+- ✅ **RuleMatrixService**: Current outcome generation and validation
+- ✅ **ValidOutcome system**: Established validation result framework
+
+#### Framework Design Principles
+- **Non-breaking**: Framework integrates with existing system without disruption
+- **Minimal start**: 3 critical rules to validate framework concept
+- **Extensible**: Easy to add new rules and categories later
+- **Configurable**: Rules can be enabled/disabled per league/user preference
+- **Testable**: Clear validation that framework works correctly
+
+### Success Criteria for Phase 1
+
+- [ ] Framework supports individual rule enable/disable
+- [ ] 3 critical rules implemented and fully tested
+- [ ] Integration with RuleMatrixService maintains existing functionality
+- [ ] All existing tests continue passing
+- [ ] Documentation explains framework purpose and extensibility
+
+---
+
 _**Critical Status**: This TODO represents a comprehensive testing audit that identified significant gaps in E2E coverage for core user stories. The Jest configuration issues are blocking all unit test verification. Both issues must be resolved before proceeding to UI/UX refinement to ensure a stable, well-tested foundation._
 
 _**Next Action**: Begin with Jest configuration fixes to unblock unit test verification, then implement missing E2E test suites for live-scoring and data-persistence user stories._

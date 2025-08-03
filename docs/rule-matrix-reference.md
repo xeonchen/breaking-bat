@@ -52,146 +52,220 @@ This document serves as the comprehensive reference for the Breaking-Bat softbal
 | Hit Type | Outcome Type                        | Description                     | RBIs | Outs | Runs Scored            | After State            | Status |
 | -------- | ----------------------------------- | ------------------------------- | ---- | ---- | ---------------------- | ---------------------- | ------ |
 | 1B       | Standard                            | Batter to 1st                   | 0    | 0    | []                     | `(Batter, null, null)` | ✅     |
-| 1B       | Error                               | Batter to 2nd on throwing error | 0    | 0    | []                     | `(null, Batter, null)` | ✅     |
+| 1B       | Error                               | Batter to 2nd on error          | 0    | 0    | []                     | `(null, Batter, null)` | ✅     |
+| 1B       | Error                               | Batter to 3rd on error          | 0    | 0    | []                     | `(null, null, Batter)` | ✅     |
+| 1B       | Error                               | Batter scores on multiple errors| 0    | 0    | [Batter]               | `(null, null, null)`   | ✅     |
 | 2B       | Standard                            | Batter to 2nd                   | 0    | 0    | []                     | `(null, Batter, null)` | ✅     |
-| 2B       | Error                               | Batter to 3rd on fielding error | 0    | 0    | []                     | `(null, null, Batter)` | ✅     |
+| 2B       | Error                               | Batter to 3rd on error          | 0    | 0    | []                     | `(null, null, Batter)` | ✅     |
+| 2B       | Error                               | Batter scores on error          | 0    | 0    | [Batter]               | `(null, null, null)`   | ✅     |
 | 3B       | Standard                            | Batter reaches 3rd base         | 0    | 0    | []                     | `(null, null, Batter)` | ✅     |
+| 3B       | Error                               | Batter scores on error          | 0    | 0    | [Batter]               | `(null, null, null)`   | ✅     |
 | HR       | Standard                            | Solo home run                   | 1    | 0    | [Batter]               | `(null, null, null)`   | ✅     |
-| BB/IBB   | Batter walks                        | 0                               | 0    | []   | `(Batter, null, null)` | ✅                     |
-| SO       | Batter out                          | 0                               | 1    | []   | `(null, null, null)`   | ✅                     |
-| GO       | Batter out                          | 0                               | 1    | []   | `(null, null, null)`   | ✅                     |
-| AO       | Batter out                          | 0                               | 1    | []   | `(null, null, null)`   | ✅                     |
-| SF       | Batter out (no runner to sacrifice) | 0                               | 1    | []   | `(null, null, null)`   | ✅                     |
-| FC       | Batter to 1st                       | 0                               | 0    | []   | `(Batter, null, null)` | ✅                     |
-| DP       | Batter out (no DP possible)         | 0                               | 1    | []   | `(null, null, null)`   | ✅                     |
-| E        | Batter to 1st on error              | 0                               | 0    | []   | `(Batter, null, null)` | ✅                     |
+| BB/IBB   | Standard                            | Batter walks                    | 0    | 0    | []                     | `(Batter, null, null)` | ✅     |
+| SO       | Standard                            | Batter out                      | 0    | 1    | []                     | `(null, null, null)`   | ✅     |
+| GO       | Standard                            | Batter out                      | 0    | 1    | []                     | `(null, null, null)`   | ✅     |
+| AO       | Standard                            | Batter out                      | 0    | 1    | []                     | `(null, null, null)`   | ✅     |
+| SF       | N/A                                 | No runner to sacrifice          | N/A  | N/A  | N/A                    | N/A                    | ✅     |
+| FC       | N/A                                 | No runner to force out          | N/A  | N/A  | N/A                    | N/A                    | ✅     |
+| DP       | N/A                                 | No runner for double play       | N/A  | N/A  | N/A                    | N/A                    | ✅     |
+| E        | Standard                            | Batter to 1st on error          | 0    | 0    | []                     | `(Batter, null, null)` | ✅     |
+| E        | Error                               | Batter to 2nd on error          | 0    | 0    | []                     | `(null, Batter, null)` | ✅     |
+| E        | Error                               | Batter to 3rd on error          | 0    | 0    | []                     | `(null, null, Batter)` | ✅     |
+| E        | Error                               | Batter scores on error          | 0    | 0    | [Batter]               | `(null, null, null)`   | ✅     |
 
 ### 2. Runner on First Only (`first_only`)
 
-| Hit Type | Outcome Type                         | Description                  | RBIs | Outs | Runs Scored            | After State            | Status |
-| -------- | ------------------------------------ | ---------------------------- | ---- | ---- | ---------------------- | ---------------------- | ------ |
-| 1B       | Standard                             | R1→2nd, Batter→1st           | 0    | 0    | []                     | `(Batter, R1, null)`   | ✅     |
-| 1B       | Aggressive                           | R1 scores home               | 1    | 0    | [R1]                   | `(Batter, null, null)` | ✅     |
-| 1B       | Error                                | Batter→2nd on throw error    | 0    | 0    | []                     | `(null, Batter, R1)`   | ✅     |
-| 1B       | Agg+Error                            | R1 scores, Batter→2nd        | 1    | 0    | [R1]                   | `(null, Batter, null)` | ✅     |
-| 1B       | Agg Failed                           | R1 out at home, Batter safe  | 0    | 1    | []                     | `(Batter, null, null)` | ✅     |
-| 2B       | Standard                             | R1 scores, Batter→2nd        | 1    | 0    | [R1]                   | `(null, Batter, null)` | ✅     |
-| 2B       | Error                                | Both score on fielding error | 2    | 0    | [R1, Batter]           | `(null, null, null)`   | ✅     |
-| 3B       | Standard                             | Both score                   | 2    | 0    | [R1, Batter]           | `(null, null, null)`   | ✅     |
-| HR       | Standard                             | 2-run homer                  | 2    | 0    | [R1, Batter]           | `(null, null, null)`   | ✅     |
-| BB/IBB   | **Forced**: R1→2nd, Batter→1st       | 0                            | 0    | []   | `(Batter, R1, null)`   | ✅                     |
-| SO       | Batter out, R1 stays                 | 0                            | 1    | []   | `(R1, null, null)`     | ✅                     |
-| GO       | **Option 1**: Batter out, R1 stays   | 0                            | 1    | []   | `(R1, null, null)`     | ✅                     |
-|          | **Option 2**: Force play - both out  | 0                            | 2    | []   | `(null, null, null)`   | ✅                     |
-| AO       | Batter out, R1 stays                 | 0                            | 1    | []   | `(R1, null, null)`     | ✅                     |
-| SF       | Batter out, R1 stays (can't advance) | 0                            | 1    | []   | `(R1, null, null)`     | ✅                     |
-| FC       | R1 forced out, Batter→1st            | 0                            | 1    | []   | `(Batter, null, null)` | ✅                     |
-| DP       | Classic 6-4-3 double play            | 0                            | 2    | []   | `(null, null, null)`   | ✅                     |
-| E        | Batter→1st, R1→2nd on error          | 0                            | 0    | []   | `(Batter, R1, null)`   | ✅                     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State Examples   | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | R1→2nd, Batter→1st                   | 0    | 0    | []                     | `(Batter, R1, null)`   | ✅     |
+| 1B       | Aggressive                           | R1→3rd OR R1 scores, Batter→1st      | 0-1  | 0-1  | [] OR [R1]             | Various                | ✅     |
+| 1B       | Error                                | Extra advancement on defensive errors | 0    | 0    | Variable               | Various combinations   | ✅     |
+| 1B       | Aggressive+Error                     | Aggressive running + error advancement| 0    | 0-1  | Variable               | Various combinations   | ✅     |
+| 2B       | Standard                             | R1→3rd, Batter→2nd                   | 0    | 0    | []                     | `(null, Batter, R1)`   | ✅     |
+| 2B       | Aggressive                           | R1 scores, Batter→2nd                | 1    | 0    | [R1]                   | `(null, Batter, null)` | ✅     |
+| 2B       | Error                                | Extra advancement beyond standard     | 0    | 0    | Variable               | Various combinations   | ✅     |
+| 3B       | Standard                             | R1 scores, Batter→3rd                | 1    | 0    | [R1]                   | `(null, null, Batter)` | ✅     |
+| 3B       | Error                                | Both score on error                  | 0    | 0    | [R1, Batter]           | `(null, null, null)`   | ✅     |
+| HR       | Standard                             | 2-run homer                          | 2    | 0    | [R1, Batter]           | `(null, null, null)`   | ✅     |
+| BB/IBB   | Standard (Forced)                    | R1→2nd, Batter→1st                   | 0    | 0    | []                     | `(Batter, R1, null)`   | ✅     |
+| SO       | Standard                             | Batter out, R1 stays                 | 0    | 1    | []                     | `(R1, null, null)`     | ✅     |
+| GO       | Standard                             | Batter out, R1 stays                 | 0    | 1    | []                     | `(R1, null, null)`     | ✅     |
+| GO       | Force Play                           | R1 forced at 2nd, Batter out         | 0    | 1    | []                     | `(null, null, null)`   | ✅     |
+| AO       | Standard                             | Batter out, R1 stays                 | 0    | 1    | []                     | `(R1, null, null)`     | ✅     |
+| AO       | Aggressive                           | R1 attempts advancement after catch   | 0    | 1-2  | []                     | Variable               | ✅     |
+| SF       | N/A                                  | No runner on 3rd to sacrifice        | N/A  | N/A  | N/A                    | N/A                    | ✅     |
+| FC       | Standard                             | R1 forced out, Batter→1st            | 0    | 1    | []                     | `(Batter, null, null)` | ✅     |
+| DP       | Standard                             | Classic 6-4-3 double play            | 0    | 2    | []                     | `(null, null, null)`   | ✅     |
+| E        | Standard                             | Batter→1st, R1→2nd on error          | 0    | 0    | []                     | `(Batter, R1, null)`   | ✅     |
+| E        | Error                                | Variable advancement combinations     | 0    | 0    | Variable               | Various combinations   | ✅     |
 
 ### 3. Runner on Second Only (`second_only`)
 
-| Hit Type | Expected Outcome                 | RBIs     | Outs | Runs Scored  | After State            | Status |
-| -------- | -------------------------------- | -------- | ---- | ------------ | ---------------------- | ------ |
-| 1B       | R2 scores, Batter→1st            | 1        | 0    | [R2]         | `(Batter, null, null)` | ❌     |
-| 2B       | R2 scores, Batter→2nd            | 1        | 0    | [R2]         | `(null, Batter, null)` | ❌     |
-| 3B       | Both score                       | 2        | 0    | [R2, Batter] | `(null, null, null)`   | ❌     |
-| HR       | 2-run homer                      | 2        | 0    | [R2, Batter] | `(null, null, null)`   | ❌     |
-| BB/IBB   | R2 stays, Batter→1st             | 0        | 0    | []           | `(Batter, R2, null)`   | ❌     |
-| SO       | Batter out, R2 stays             | 0        | 1    | []           | `(null, R2, null)`     | ❌     |
-| GO       | Batter out, R2 stays             | 0        | 1    | []           | `(null, R2, null)`     | ❌     |
-| AO       | Batter out, R2 stays             | 0        | 1    | []           | `(null, R2, null)`     | ❌     |
-| SF       | Batter out, R2 may advance/score | Variable | 1    | Variable     | Variable               | ❌     |
-| FC       | R2 forced at 3rd, Batter→1st     | 0        | 1    | []           | `(Batter, null, null)` | ❌     |
-| DP       | Batter out, R2 stays             | 0        | 1    | []           | `(null, R2, null)`     | ❌     |
-| E        | Variable based on error type     | Variable | 0    | Variable     | Variable               | ❌     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State Examples   | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | R2 scores, Batter→1st                | 1    | 0    | [R2]                   | `(Batter, null, null)` | ❌     |
+| 1B       | Error                                | Extra advancement on defensive errors | 0    | 0    | Variable               | Various combinations   | ❌     |
+| 2B       | Standard                             | R2 scores, Batter→2nd                | 1    | 0    | [R2]                   | `(null, Batter, null)` | ❌     |
+| 2B       | Error                                | Extra advancement beyond standard     | 0    | 0    | Variable               | Various combinations   | ❌     |
+| 3B       | Standard                             | R2 scores, Batter→3rd                | 1    | 0    | [R2]                   | `(null, null, Batter)` | ❌     |
+| 3B       | Error                                | Both score on error                  | 0    | 0    | [R2, Batter]           | `(null, null, null)`   | ❌     |
+| HR       | Standard                             | 2-run homer                          | 2    | 0    | [R2, Batter]           | `(null, null, null)`   | ❌     |
+| BB/IBB   | Standard                             | R2 stays, Batter→1st                 | 0    | 0    | []                     | `(Batter, R2, null)`   | ❌     |
+| SO       | Standard                             | Batter out, R2 stays                 | 0    | 1    | []                     | `(null, R2, null)`     | ❌     |
+| GO       | Standard                             | Batter out, R2 stays                 | 0    | 1    | []                     | `(null, R2, null)`     | ❌     |
+| AO       | Standard                             | Batter out, R2 stays                 | 0    | 1    | []                     | `(null, R2, null)`     | ❌     |
+| AO       | Aggressive                           | R2 attempts advancement after catch   | 0    | 1    | []                     | Variable               | ❌     |
+| SF       | Standard                             | R2 advances to 3rd, Batter out       | 0    | 1    | []                     | `(null, null, R2)`     | ❌     |
+| SF       | Aggressive                           | R2 scores on sacrifice fly           | 1    | 1    | [R2]                   | `(null, null, null)`   | ❌     |
+| FC       | Standard                             | R2 forced at 3rd, Batter→1st         | 0    | 1    | []                     | `(Batter, null, null)` | ❌     |
+| DP       | N/A                                  | No double play possible               | N/A  | N/A  | N/A                    | N/A                    | ❌     |
+| E        | Standard                             | Batter→1st, R2→3rd on error          | 0    | 0    | []                     | `(Batter, null, R2)`   | ❌     |
+| E        | Error                                | Variable advancement combinations     | 0    | 0    | Variable               | Various combinations   | ❌     |
 
 ### 4. Runner on Third Only (`third_only`)
 
-| Hit Type | Expected Outcome                     | RBIs     | Outs | Runs Scored  | After State            | Status |
-| -------- | ------------------------------------ | -------- | ---- | ------------ | ---------------------- | ------ |
-| 1B       | R3 scores, Batter→1st                | 1        | 0    | [R3]         | `(Batter, null, null)` | ❌     |
-| 2B       | R3 scores, Batter→2nd                | 1        | 0    | [R3]         | `(null, Batter, null)` | ❌     |
-| 3B       | Both score                           | 2        | 0    | [R3, Batter] | `(null, null, null)`   | ❌     |
-| HR       | 2-run homer                          | 2        | 0    | [R3, Batter] | `(null, null, null)`   | ❌     |
-| BB/IBB   | R3 stays, Batter→1st                 | 0        | 0    | []           | `(Batter, null, R3)`   | ❌     |
-| SO       | Batter out, R3 stays                 | 0        | 1    | []           | `(null, null, R3)`     | ❌     |
-| GO       | Batter out, R3 stays                 | 0        | 1    | []           | `(null, null, R3)`     | ❌     |
-| AO       | Batter out, R3 stays                 | 0        | 1    | []           | `(null, null, R3)`     | ❌     |
-| SF       | **Sacrifice**: R3 scores, Batter out | 1        | 1    | [R3]         | `(null, null, null)`   | ❌     |
-| FC       | R3 forced at home, Batter→1st        | 0        | 1    | []           | `(Batter, null, null)` | ❌     |
-| DP       | Batter out, R3 stays                 | 0        | 1    | []           | `(null, null, R3)`     | ❌     |
-| E        | Variable advancement                 | Variable | 0    | Variable     | Variable               | ❌     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State            | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | R3 scores, Batter→1st                | 1    | 0    | [R3]                   | `(Batter, null, null)` | ❌     |
+| 1B       | Error                                | R3 scores, Batter→2nd on error       | 0    | 0    | [R3]                   | `(null, Batter, null)` | ❌     |
+| 1B       | Error                                | R3 scores, Batter→3rd on error       | 0    | 0    | [R3]                   | `(null, null, Batter)` | ❌     |
+| 1B       | Error                                | Both score on error                  | 0    | 0    | [R3, Batter]           | `(null, null, null)`   | ❌     |
+| 2B       | Standard                             | R3 scores, Batter→2nd                | 1    | 0    | [R3]                   | `(null, Batter, null)` | ❌     |
+| 2B       | Error                                | R3 scores, Batter→3rd on error       | 0    | 0    | [R3]                   | `(null, null, Batter)` | ❌     |
+| 2B       | Error                                | Both score on error                  | 0    | 0    | [R3, Batter]           | `(null, null, null)`   | ❌     |
+| 3B       | Standard                             | R3 scores, Batter→3rd                | 1    | 0    | [R3]                   | `(null, null, Batter)` | ❌     |
+| 3B       | Error                                | Both score on error                  | 0    | 0    | [R3, Batter]           | `(null, null, null)`   | ❌     |
+| HR       | Standard                             | 2-run homer                          | 2    | 0    | [R3, Batter]           | `(null, null, null)`   | ❌     |
+| BB/IBB   | Standard                             | R3 stays, Batter→1st                 | 0    | 0    | []                     | `(Batter, null, R3)`   | ❌     |
+| SO       | Standard                             | Batter out, R3 stays                 | 0    | 1    | []                     | `(null, null, R3)`     | ❌     |
+| GO       | Standard                             | Batter out, R3 stays                 | 0    | 1    | []                     | `(null, null, R3)`     | ❌     |
+| GO       | RBI Groundout                        | R3 scores on groundout, Batter out   | 1    | 1    | [R3]                   | `(null, null, null)`   | ❌     |
+| AO       | Standard                             | Batter out, R3 stays                 | 0    | 1    | []                     | `(null, null, R3)`     | ❌     |
+| SF       | Standard                             | R3 scores on sacrifice fly           | 1    | 1    | [R3]                   | `(null, null, null)`   | ❌     |
+| FC       | Standard                             | R3 forced at home, Batter→1st        | 0    | 1    | []                     | `(Batter, null, null)` | ❌     |
+| DP       | N/A                                  | No double play possible               | N/A  | N/A  | N/A                    | N/A                    | ❌     |
+| E        | Standard                             | Batter→1st on error, R3 stays        | 0    | 0    | []                     | `(Batter, null, R3)`   | ❌     |
+| E        | Error                                | R3 scores on error, Batter→1st       | 0    | 0    | [R3]                   | `(Batter, null, null)` | ❌     |
+| E        | Error                                | R3 scores on error, Batter→2nd       | 0    | 0    | [R3]                   | `(null, Batter, null)` | ❌     |
+| E        | Error                                | Both score on error                  | 0    | 0    | [R3, Batter]           | `(null, null, null)`   | ❌     |
 
 ### 5. Runners on First and Second (`first_second`)
 
-| Hit Type | Expected Outcome                     | RBIs     | Outs | Runs Scored      | After State            | Status |
-| -------- | ------------------------------------ | -------- | ---- | ---------------- | ---------------------- | ------ |
-| 1B       | R2 scores, R1→3rd, Batter→1st        | 1        | 0    | [R2]             | `(Batter, null, R1)`   | ❌     |
-| 2B       | Both runners score, Batter→2nd       | 2        | 0    | [R1, R2]         | `(null, Batter, null)` | ❌     |
-| 3B       | All score                            | 3        | 0    | [R1, R2, Batter] | `(null, null, null)`   | ❌     |
-| HR       | 3-run homer                          | 3        | 0    | [R1, R2, Batter] | `(null, null, null)`   | ❌     |
-| BB/IBB   | **Forced**: Bases loaded             | 0        | 0    | []               | `(Batter, R1, R2)`     | ❌     |
-| SO       | Batter out, runners stay             | 0        | 1    | []               | `(R1, R2, null)`       | ❌     |
-| GO       | **Force options** multiple scenarios | Variable | 1-2  | Variable         | Variable               | ❌     |
-| AO       | Batter out, runners stay             | 0        | 1    | []               | `(R1, R2, null)`       | ❌     |
-| SF       | Batter out, runners stay             | 0        | 1    | []               | `(R1, R2, null)`       | ❌     |
-| FC       | Lead runner forced, others advance   | 0        | 1    | []               | Variable               | ❌     |
-| DP       | Multiple DP scenarios possible       | 0        | 2    | []               | Variable               | ❌     |
-| E        | Variable advancement scenarios       | Variable | 0    | Variable         | Variable               | ❌     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State            | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | R2 scores, R1→3rd, Batter→1st        | 1    | 0    | [R2]                   | `(Batter, null, R1)`   | ❌     |
+| 1B       | Aggressive                           | Both runners score, Batter→1st       | 2    | 0    | [R1, R2]               | `(Batter, null, null)` | ❌     |
+| 1B       | Error                                | R2 scores, R1→3rd, Batter→2nd on error | 0  | 0    | [R2]                   | `(null, Batter, R1)`   | ❌     |
+| 1B       | Error                                | All score on error                   | 0    | 0    | [R1, R2, Batter]       | `(null, null, null)`   | ❌     |
+| 2B       | Standard                             | Both runners score, Batter→2nd       | 2    | 0    | [R1, R2]               | `(null, Batter, null)` | ❌     |
+| 2B       | Error                                | All score on error                   | 0    | 0    | [R1, R2, Batter]       | `(null, null, null)`   | ❌     |
+| 3B       | Standard                             | All score                            | 3    | 0    | [R1, R2, Batter]       | `(null, null, null)`   | ❌     |
+| HR       | Standard                             | 3-run homer                          | 3    | 0    | [R1, R2, Batter]       | `(null, null, null)`   | ❌     |
+| BB/IBB   | Standard (Forced)                    | Bases loaded                         | 0    | 0    | []                     | `(Batter, R1, R2)`     | ❌     |
+| SO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, R2, null)`       | ❌     |
+| GO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, R2, null)`       | ❌     |
+| GO       | Force Play                           | R2 forced at 3rd, others stay        | 0    | 1    | []                     | `(R1, null, null)`     | ❌     |
+| GO       | Double Play                          | R2 forced at 3rd, R1 forced at 2nd   | 0    | 2    | []                     | `(Batter, null, null)` | ❌     |
+| AO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, R2, null)`       | ❌     |
+| AO       | Tag Up                               | R2 advances to 3rd after catch       | 0    | 1    | []                     | `(R1, null, R2)`       | ❌     |
+| SF       | N/A                                  | No runner on 3rd to sacrifice        | N/A  | N/A  | N/A                    | N/A                    | ❌     |
+| FC       | Standard                             | R2 forced at 3rd, others advance     | 0    | 1    | []                     | `(Batter, R1, null)`   | ❌     |
+| DP       | Standard                             | 6-4-3 double play                    | 0    | 2    | []                     | `(null, R2, null)`     | ❌     |
+| DP       | Alternative                          | 5-4-3 double play                    | 0    | 2    | []                     | `(null, R2, null)`     | ❌     |
+| E        | Standard                             | Batter→1st, R1→2nd, R2→3rd on error  | 0    | 0    | []                     | `(Batter, R1, R2)`     | ❌     |
+| E        | Error                                | R2 scores on error, others advance   | 0    | 0    | [R2]                   | `(Batter, null, R1)`   | ❌     |
+| E        | Error                                | Both runners score on error          | 0    | 0    | [R1, R2]               | `(Batter, null, null)` | ❌     |
+| E        | Error                                | All score on error                   | 0    | 0    | [R1, R2, Batter]       | `(null, null, null)`   | ❌     |
 
 ### 6. Runners on First and Third (`first_third`)
 
-| Hit Type | Expected Outcome                                | RBIs     | Outs | Runs Scored      | After State            | Status |
-| -------- | ----------------------------------------------- | -------- | ---- | ---------------- | ---------------------- | ------ |
-| 1B       | **Standard**: R3 scores, R1→2nd, Batter→1st     | 1        | 0    | [R3]             | `(Batter, R1, null)`   | 🚧     |
-|          | **Aggressive**: Both runners score              | 2        | 0    | [R1, R3]         | `(Batter, null, null)` | 🚧     |
-| 2B       | **Standard**: Both runners score                | 2        | 0    | [R1, R3]         | `(null, Batter, null)` | 🚧     |
-|          | **Conservative**: R3 scores, R1→2nd, Batter→2nd | 1        | 0    | [R3]             | `(Batter, R1, null)`   | 🚧     |
-| 3B       | All score                                       | 3        | 0    | [R1, R3, Batter] | `(null, null, null)`   | 🚧     |
-| HR       | 3-run homer                                     | 3        | 0    | [R1, R3, Batter] | `(null, null, null)`   | 🚧     |
-| BB/IBB   | **Forced**: R1→2nd, Batter→1st, R3 stays        | 0        | 0    | []               | `(Batter, R1, R3)`     | 🚧     |
-| SO       | Batter out, runners stay                        | 0        | 1    | []               | `(R1, null, R3)`       | 🚧     |
-| GO       | Multiple force play options                     | Variable | 1-2  | Variable         | Variable               | 🚧     |
-| AO       | Batter out, runners stay                        | 0        | 1    | []               | `(R1, null, R3)`       | 🚧     |
-| SF       | **Classic**: R3 scores, R1 stays                | 1        | 1    | [R3]             | `(R1, null, null)`     | 🚧     |
-| FC       | Multiple force options                          | Variable | 1    | Variable         | Variable               | 🚧     |
-| DP       | Double play scenarios                           | 0        | 2    | []               | Variable               | 🚧     |
-| E        | Variable error advancement                      | Variable | 0    | Variable         | Variable               | 🚧     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State            | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | R3 scores, R1→2nd, Batter→1st        | 1    | 0    | [R3]                   | `(Batter, R1, null)`   | 🚧     |
+| 1B       | Aggressive                           | Both runners score, Batter→1st       | 2    | 0    | [R1, R3]               | `(Batter, null, null)` | 🚧     |
+| 1B       | Error                                | R3 scores, R1→3rd, Batter→2nd on error | 0  | 0    | [R3]                   | `(null, Batter, R1)`   | 🚧     |
+| 1B       | Error                                | All score on error                   | 0    | 0    | [R1, R3, Batter]       | `(null, null, null)`   | 🚧     |
+| 2B       | Standard                             | R3 scores, R1→3rd, Batter→2nd        | 1    | 0    | [R3]                   | `(null, Batter, R1)`   | 🚧     |
+| 2B       | Aggressive                           | Both runners score, Batter→2nd       | 2    | 0    | [R1, R3]               | `(null, Batter, null)` | 🚧     |
+| 2B       | Error                                | All score on error                   | 0    | 0    | [R1, R3, Batter]       | `(null, null, null)`   | 🚧     |
+| 3B       | Standard                             | All score                            | 3    | 0    | [R1, R3, Batter]       | `(null, null, null)`   | 🚧     |
+| HR       | Standard                             | 3-run homer                          | 3    | 0    | [R1, R3, Batter]       | `(null, null, null)`   | 🚧     |
+| BB/IBB   | Standard (Forced)                    | R1→2nd, Batter→1st, R3 stays         | 0    | 0    | []                     | `(Batter, R1, R3)`     | 🚧     |
+| SO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, null, R3)`       | 🚧     |
+| GO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, null, R3)`       | 🚧     |
+| GO       | Force Play                           | R1 forced at 2nd, R3 scores on play  | 1    | 1    | [R3]                   | `(null, null, null)`   | 🚧     |
+| GO       | Double Play                          | R1 forced at 2nd, Batter out         | 0    | 2    | []                     | `(null, null, R3)`     | 🚧     |
+| AO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, null, R3)`       | 🚧     |
+| AO       | Tag Up                               | R1 advances to 2nd after catch       | 0    | 1    | []                     | `(null, R1, R3)`       | 🚧     |
+| SF       | Standard                             | R3 scores on sacrifice fly, R1 stays | 1    | 1    | [R3]                   | `(R1, null, null)`     | 🚧     |
+| FC       | Standard                             | R3 forced at home, R1→2nd, Batter→1st | 0   | 1    | []                     | `(Batter, R1, null)`   | 🚧     |
+| FC       | Alternative                          | R1 forced at 2nd, R3 stays, Batter→1st | 0  | 1    | []                     | `(Batter, null, R3)`   | 🚧     |
+| DP       | Standard                             | R3 forced at home, R1 forced at 2nd  | 0    | 2    | []                     | `(Batter, null, null)` | 🚧     |
+| E        | Standard                             | Batter→1st, R1→2nd, R3 stays on error | 0   | 0    | []                     | `(Batter, R1, R3)`     | 🚧     |
+| E        | Error                                | R3 scores on error, R1→2nd, Batter→1st | 0  | 0    | [R3]                   | `(Batter, R1, null)`   | 🚧     |
+| E        | Error                                | Both runners score on error          | 0    | 0    | [R1, R3]               | `(Batter, null, null)` | 🚧     |
+| E        | Error                                | All score on error                   | 0    | 0    | [R1, R3, Batter]       | `(null, null, null)`   | 🚧     |
 
 ### 7. Runners on Second and Third (`second_third`)
 
-| Hit Type | Expected Outcome               | RBIs     | Outs | Runs Scored      | After State            | Status |
-| -------- | ------------------------------ | -------- | ---- | ---------------- | ---------------------- | ------ |
-| 1B       | Both runners score, Batter→1st | 2        | 0    | [R2, R3]         | `(Batter, null, null)` | ❌     |
-| 2B       | Both runners score, Batter→2nd | 2        | 0    | [R2, R3]         | `(null, Batter, null)` | ❌     |
-| 3B       | All score                      | 3        | 0    | [R2, R3, Batter] | `(null, null, null)`   | ❌     |
-| HR       | 3-run homer                    | 3        | 0    | [R2, R3, Batter] | `(null, null, null)`   | ❌     |
-| BB/IBB   | Runners stay, Batter→1st       | 0        | 0    | []               | `(Batter, R2, R3)`     | ❌     |
-| SO       | Batter out, runners stay       | 0        | 1    | []               | `(null, R2, R3)`       | ❌     |
-| GO       | Batter out, runners stay       | 0        | 1    | []               | `(null, R2, R3)`       | ❌     |
-| AO       | Batter out, runners stay       | 0        | 1    | []               | `(null, R2, R3)`       | ❌     |
-| SF       | R3 scores, R2 stays            | 1        | 1    | [R3]             | `(null, R2, null)`     | ❌     |
-| FC       | R3 forced at home, Batter→1st  | 0        | 1    | []               | `(Batter, R2, null)`   | ❌     |
-| DP       | Batter out, runners stay       | 0        | 1    | []               | `(null, R2, R3)`       | ❌     |
-| E        | Variable advancement           | Variable | 0    | Variable         | Variable               | ❌     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State            | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | Both runners score, Batter→1st       | 2    | 0    | [R2, R3]               | `(Batter, null, null)` | ❌     |
+| 1B       | Error                                | Both runners score, Batter→2nd on error | 0 | 0    | [R2, R3]               | `(null, Batter, null)` | ❌     |
+| 1B       | Error                                | All score on error                   | 0    | 0    | [R2, R3, Batter]       | `(null, null, null)`   | ❌     |
+| 2B       | Standard                             | Both runners score, Batter→2nd       | 2    | 0    | [R2, R3]               | `(null, Batter, null)` | ❌     |
+| 2B       | Error                                | All score on error                   | 0    | 0    | [R2, R3, Batter]       | `(null, null, null)`   | ❌     |
+| 3B       | Standard                             | All score                            | 3    | 0    | [R2, R3, Batter]       | `(null, null, null)`   | ❌     |
+| HR       | Standard                             | 3-run homer                          | 3    | 0    | [R2, R3, Batter]       | `(null, null, null)`   | ❌     |
+| BB/IBB   | Standard                             | Runners stay, Batter→1st             | 0    | 0    | []                     | `(Batter, R2, R3)`     | ❌     |
+| SO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(null, R2, R3)`       | ❌     |
+| GO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(null, R2, R3)`       | ❌     |
+| GO       | RBI Groundout                        | R3 scores on groundout, Batter out   | 1    | 1    | [R3]                   | `(null, R2, null)`     | ❌     |
+| AO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(null, R2, R3)`       | ❌     |
+| AO       | Tag Up                               | Both runners advance after catch     | 0    | 1    | []                     | `(Batter, null, R2)`   | ❌     |
+| SF       | Standard                             | R3 scores on sacrifice fly, R2 stays | 1    | 1    | [R3]                   | `(null, R2, null)`     | ❌     |
+| SF       | Aggressive                           | R3 scores, R2→3rd on sacrifice fly   | 1    | 1    | [R3]                   | `(null, null, R2)`     | ❌     |
+| FC       | Standard                             | R3 forced at home, R2 stays, Batter→1st | 0 | 1    | []                     | `(Batter, R2, null)`   | ❌     |
+| DP       | N/A                                  | No double play possible               | N/A  | N/A  | N/A                    | N/A                    | ❌     |
+| E        | Standard                             | Batter→1st, runners advance on error | 0    | 0    | []                     | `(Batter, null, R2)`   | ❌     |
+| E        | Error                                | R3 scores on error, R2→3rd, Batter→1st | 0  | 0    | [R3]                   | `(Batter, null, R2)`   | ❌     |
+| E        | Error                                | Both runners score on error          | 0    | 0    | [R2, R3]               | `(Batter, null, null)` | ❌     |
+| E        | Error                                | All score on error                   | 0    | 0    | [R2, R3, Batter]       | `(null, null, null)`   | ❌     |
 
 ### 8. Bases Loaded (`loaded`)
 
-| Hit Type | Expected Outcome                | RBIs     | Outs | Runs Scored          | After State            | Status |
-| -------- | ------------------------------- | -------- | ---- | -------------------- | ---------------------- | ------ |
-| 1B       | R3 scores, others advance       | 1        | 0    | [R3]                 | `(Batter, R1, R2)`     | ❌     |
-| 2B       | R2+R3 score, R1→3rd, Batter→2nd | 2        | 0    | [R2, R3]             | `(null, Batter, R1)`   | ❌     |
-| 3B       | All runners score               | 3        | 0    | [R1, R2, R3]         | `(null, null, Batter)` | ❌     |
-| HR       | **Grand slam** - all score      | 4        | 0    | [R1, R2, R3, Batter] | `(null, null, null)`   | ❌     |
-| BB/IBB   | **Forced walk** - R3 scores     | 1        | 0    | [R3]                 | `(Batter, R1, R2)`     | ❌     |
-| SO       | Batter out, runners stay        | 0        | 1    | []                   | `(R1, R2, R3)`         | ❌     |
-| GO       | **Force play** options multiple | Variable | 1-3  | Variable             | Variable               | ❌     |
-| AO       | Batter out, runners stay        | 0        | 1    | []                   | `(R1, R2, R3)`         | ❌     |
-| SF       | R3 scores, others stay          | 1        | 1    | [R3]                 | `(R1, R2, null)`       | ❌     |
-| FC       | Force play at any base          | Variable | 1    | Variable             | Variable               | ❌     |
-| DP       | Multiple double play options    | Variable | 2    | Variable             | Variable               | ❌     |
-| E        | Variable advancement            | Variable | 0    | Variable             | Variable               | ❌     |
+| Hit Type | Outcome Type                         | Description                          | RBIs | Outs | Runs Scored            | After State            | Status |
+| -------- | ------------------------------------ | ------------------------------------ | ---- | ---- | ---------------------- | ---------------------- | ------ |
+| 1B       | Standard                             | R3 scores, others advance            | 1    | 0    | [R3]                   | `(Batter, R1, R2)`     | ❌     |
+| 1B       | Error                                | R3 scores, others advance on error   | 0    | 0    | [R3]                   | `(Batter, R1, R2)`     | ❌     |
+| 1B       | Error                                | Multiple runners score on error      | 0    | 0    | [R2, R3]               | `(Batter, R1, null)`   | ❌     |
+| 1B       | Error                                | All runners score on error           | 0    | 0    | [R1, R2, R3]           | `(Batter, null, null)` | ❌     |
+| 1B       | Error                                | Everyone scores on error             | 0    | 0    | [R1, R2, R3, Batter]   | `(null, null, null)`   | ❌     |
+| 2B       | Standard                             | R2+R3 score, R1→3rd, Batter→2nd      | 2    | 0    | [R2, R3]               | `(null, Batter, R1)`   | ❌     |
+| 2B       | Error                                | All runners score on error           | 0    | 0    | [R1, R2, R3]           | `(null, Batter, null)` | ❌     |
+| 2B       | Error                                | Everyone scores on error             | 0    | 0    | [R1, R2, R3, Batter]   | `(null, null, null)`   | ❌     |
+| 3B       | Standard                             | All runners score, Batter→3rd        | 3    | 0    | [R1, R2, R3]           | `(null, null, Batter)` | ❌     |
+| 3B       | Error                                | Everyone scores on error             | 0    | 0    | [R1, R2, R3, Batter]   | `(null, null, null)`   | ❌     |
+| HR       | Standard                             | Grand slam - everyone scores         | 4    | 0    | [R1, R2, R3, Batter]   | `(null, null, null)`   | ❌     |
+| BB/IBB   | Standard (Forced)                    | Forced walk - R3 scores              | 1    | 0    | [R3]                   | `(Batter, R1, R2)`     | ❌     |
+| SO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, R2, R3)`         | ❌     |
+| GO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, R2, R3)`         | ❌     |
+| GO       | Force at Home                        | R3 forced at home, bases still loaded | 0   | 1    | []                     | `(R1, R2, Batter)`     | ❌     |
+| GO       | RBI Groundout                        | R3 scores, R2 forced at home         | 1    | 1    | [R3]                   | `(R1, null, Batter)`   | ❌     |
+| GO       | Double Play                          | R3 forced at home, R2 forced at 3rd  | 0    | 2    | []                     | `(R1, Batter, null)`   | ❌     |
+| GO       | Triple Play                          | All forced outs                      | 0    | 3    | []                     | `(null, null, null)`   | ❌     |
+| AO       | Standard                             | Batter out, runners stay             | 0    | 1    | []                     | `(R1, R2, R3)`         | ❌     |
+| AO       | Tag Up                               | Runners advance after catch          | 0    | 1    | []                     | `(Batter, R1, R2)`     | ❌     |
+| SF       | Standard                             | R3 scores on sacrifice fly           | 1    | 1    | [R3]                   | `(R1, R2, null)`       | ❌     |
+| FC       | Standard                             | R3 forced at home, others advance    | 0    | 1    | []                     | `(Batter, R1, R2)`     | ❌     |
+| FC       | Alternative                          | R2 forced at 3rd, others advance     | 0    | 1    | []                     | `(Batter, R1, R3)`     | ❌     |
+| DP       | Standard                             | R3 forced at home, R2 forced at 3rd  | 0    | 2    | []                     | `(Batter, R1, null)`   | ❌     |
+| DP       | Alternative                          | R2 forced at 3rd, R1 forced at 2nd   | 0    | 2    | []                     | `(Batter, null, R3)`   | ❌     |
+| E        | Standard                             | Batter→1st, runners advance on error | 0    | 0    | []                     | `(Batter, R1, R2)`     | ❌     |
+| E        | Error                                | R3 scores on error, others advance   | 0    | 0    | [R3]                   | `(Batter, R1, R2)`     | ❌     |
+| E        | Error                                | Multiple runners score on error      | 0    | 0    | [R2, R3]               | `(Batter, R1, null)`   | ❌     |
+| E        | Error                                | All runners score on error           | 0    | 0    | [R1, R2, R3]           | `(Batter, null, null)` | ❌     |
+| E        | Error                                | Everyone scores on error             | 0    | 0    | [R1, R2, R3, Batter]   | `(null, null, null)`   | ❌     |
 
 ## Rule Validation Examples
 

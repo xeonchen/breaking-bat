@@ -124,6 +124,13 @@ export class BattingResult {
     }
   }
 
+  /**
+   * Convert to HitType enum for compatibility with legacy code
+   */
+  public toHitType(): import('./HitType').HitType {
+    return this.value as import('./HitType').HitType;
+  }
+
   public equals(other: BattingResult): boolean {
     return this.value === other.value;
   }
