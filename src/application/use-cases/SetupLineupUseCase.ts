@@ -72,7 +72,7 @@ export class SetupLineupUseCase {
     // Validate batting orders are 1-10
     const battingOrders = command.lineupPositions
       .map((lp) => lp.battingOrder)
-      .sort();
+      .sort((a, b) => a - b); // Ensure numeric sort
     const expectedOrders = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     if (!this.arraysEqual(battingOrders, expectedOrders)) {
@@ -89,29 +89,33 @@ export class SetupLineupUseCase {
 
     // Validate no duplicate positions
     const positions = command.lineupPositions.map((lp) => lp.position);
-    const uniquePositions = new Set(positions);
+    const positionValues = positions.map(pos => pos.value);
+    const uniquePositionValues = new Set(positionValues);
 
-    if (uniquePositions.size !== positions.length) {
+    if (uniquePositionValues.size !== positionValues.length) {
       return Result.failure('Each position can only be assigned to one player');
     }
 
     // Validate all required positions are covered
-    const requiredPositions = new Set([
-      Position.pitcher(),
-      Position.catcher(),
-      Position.firstBase(),
-      Position.secondBase(),
-      Position.thirdBase(),
-      Position.shortstop(),
-      Position.leftField(),
-      Position.centerField(),
-      Position.rightField(),
-      Position.shortFielder(),
+    const requiredPositionValues = new Set([
+      'pitcher',
+      'catcher',
+      'first-base',
+      'second-base',
+      'third-base',
+      'shortstop',
+      'left-field',
+      'center-field',
+      'right-field',
+      'short-fielder',
     ]);
 
+    const actualPositionValues = new Set(positions.map(pos => pos.value));
+
+
     if (
-      uniquePositions.size !== requiredPositions.size ||
-      ![...uniquePositions].every((pos) => requiredPositions.has(pos))
+      actualPositionValues.size !== requiredPositionValues.size ||
+      ![...requiredPositionValues].every((val) => actualPositionValues.has(val))
     ) {
       return Result.failure('All required defensive positions must be filled');
     }
