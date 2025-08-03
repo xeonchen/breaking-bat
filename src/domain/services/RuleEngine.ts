@@ -283,6 +283,8 @@ export class RuleEngine {
       case 'AO':
       case 'SF':
         return 1;
+      case 'DP':
+        return 2;
       default:
         return 0;
     }

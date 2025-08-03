@@ -52,6 +52,8 @@ export class BaseAdvancementCalculator {
         return this.calculateHomeRunAdvancement(beforeState, batterId);
       case 'FC':
         return this.calculateFieldersChoiceAdvancement(beforeState, batterId);
+      case 'DP':
+        return this.calculateDoublePlayAdvancement(beforeState, batterId);
       default:
         throw new Error(`Unknown batting result: ${result}`);
     }
@@ -265,6 +267,36 @@ export class BaseAdvancementCalculator {
       afterState: new BaserunnerState(newFirst, newSecond, newThird),
       runsScored: [], // Standard fielder's choice doesn't score runs
       batterPosition: 'first',
+    };
+  }
+
+  private static calculateDoublePlayAdvancement(
+    beforeState: BaserunnerState,
+    batterId: string
+  ): {
+    afterState: BaserunnerState;
+    runsScored: string[];
+    batterPosition: 'out';
+  } {
+    // Double play: batter is out and typically one base runner is also out
+    // Usually the force runner (runner on first) is out
+    // Other runners may or may not advance depending on the play
+    
+    // For simplicity, assume batter + lead runner are out, others stay
+    let newFirst = null;
+    let newSecond = beforeState.secondBase;
+    let newThird = beforeState.thirdBase;
+    
+    // If runner on first, they're typically the second out
+    if (beforeState.firstBase) {
+      // Runner on first is out (force play)
+      // Other runners might stay or advance depending on timing
+    }
+    
+    return {
+      afterState: new BaserunnerState(newFirst, newSecond, newThird),
+      runsScored: [], // Double plays typically don't score runs
+      batterPosition: 'out',
     };
   }
 
