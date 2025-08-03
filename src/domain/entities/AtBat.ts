@@ -13,6 +13,7 @@ export class AtBat extends BaseEntity {
   public readonly description: string;
   public readonly rbis: number;
   public readonly runsScored: string[]; // player IDs who scored
+  public readonly runningErrors: string[]; // player IDs who made running errors
   public readonly baserunnersBefore: BaserunnerState;
   public readonly baserunnersAfter: BaserunnerState;
 
@@ -26,6 +27,7 @@ export class AtBat extends BaseEntity {
     description: string,
     rbis: number,
     runsScored: string[],
+    runningErrors: string[],
     baserunnersBefore: BaserunnerState,
     baserunnersAfter: BaserunnerState,
     createdAt?: Date,
@@ -54,6 +56,7 @@ export class AtBat extends BaseEntity {
     this.description = description;
     this.rbis = rbis;
     this.runsScored = [...runsScored];
+    this.runningErrors = [...runningErrors];
     this.baserunnersBefore = baserunnersBefore;
     this.baserunnersAfter = baserunnersAfter;
   }
@@ -115,6 +118,20 @@ export class AtBat extends BaseEntity {
   }
 
   /**
+   * Check if this at-bat involved running errors
+   */
+  public hasRunningErrors(): boolean {
+    return this.runningErrors.length > 0;
+  }
+
+  /**
+   * Get the count of running errors in this at-bat
+   */
+  public getRunningErrorCount(): number {
+    return this.runningErrors.length;
+  }
+
+  /**
    * Update the at-bat result (for corrections)
    */
   public updateResult(
@@ -122,6 +139,7 @@ export class AtBat extends BaseEntity {
     newDescription: string,
     newRbis: number,
     newRunsScored: string[],
+    newRunningErrors: string[],
     newBaserunnersAfter: BaserunnerState
   ): AtBat {
     return new AtBat(
@@ -134,6 +152,7 @@ export class AtBat extends BaseEntity {
       newDescription,
       newRbis,
       newRunsScored,
+      newRunningErrors,
       this.baserunnersBefore,
       newBaserunnersAfter,
       this.createdAt,
@@ -153,6 +172,10 @@ export class AtBat extends BaseEntity {
       ? ` ${this.rbis} RBI${this.rbis > 1 ? 's' : ''}`
       : '';
 
-    return `${this.result.value}${rbisText}${runsScoredText}`;
+    const runningErrorText = this.runningErrors.length > 0
+      ? ` [${this.runningErrors.length} running error${this.runningErrors.length > 1 ? 's' : ''}]`
+      : '';
+
+    return `${this.result.value}${rbisText}${runsScoredText}${runningErrorText}`;
   }
 }

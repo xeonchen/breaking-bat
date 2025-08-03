@@ -19,6 +19,7 @@ export interface RecordAtBatCommand {
   baserunnersBefore: BaserunnerState;
   baserunnersAfter: BaserunnerState;
   runsScored: string[];
+  runningErrors: string[];
 }
 
 export class RecordAtBatUseCase {
@@ -58,6 +59,7 @@ export class RecordAtBatUseCase {
         command.description,
         command.rbi,
         command.runsScored,
+        command.runningErrors,
         command.baserunnersBefore,
         command.baserunnersAfter,
         timestamp

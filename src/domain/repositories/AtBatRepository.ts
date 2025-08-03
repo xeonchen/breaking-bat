@@ -64,4 +64,18 @@ export interface AtBatRepository {
    * Find at-bats that produced RBIs
    */
   findWithRBIs(gameId: string): Promise<AtBat[]>;
+
+  /**
+   * Find at-bats that involved running errors
+   */
+  findWithRunningErrors(gameId: string): Promise<AtBat[]>;
+
+  /**
+   * Get running error statistics for a player
+   */
+  getPlayerRunningErrorStats(batterId: string): Promise<{
+    totalRunningErrors: number;
+    gamesWithRunningErrors: number;
+    atBatsWithRunningErrors: number;
+  }>;
 }

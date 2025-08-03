@@ -74,6 +74,7 @@ describe('RecordAtBatUseCase', () => {
           thirdBase: null,
         },
         runsScored: ['player2'],
+        runningErrors: [],
       };
 
       const mockGame = {
@@ -119,6 +120,7 @@ describe('RecordAtBatUseCase', () => {
           thirdBase: null,
         },
         runsScored: ['player2', 'player3', 'player4', 'player1'],
+        runningErrors: [],
       };
 
       const mockGame = {
@@ -161,6 +163,7 @@ describe('RecordAtBatUseCase', () => {
           thirdBase: null,
         },
         runsScored: [],
+        runningErrors: [],
       };
 
       const mockGame = {
@@ -195,6 +198,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       mockGameRepository.findById.mockResolvedValue(null);
@@ -217,6 +221,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
@@ -237,6 +242,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
@@ -257,6 +263,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
@@ -276,7 +283,8 @@ describe('RecordAtBatUseCase', () => {
         rbi: 2,
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: 'player2' },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
-        runsScored: ['player2'], // Only 1 run but RBI is 2
+        runsScored: ['player2'],
+        runningErrors: [], // Only 1 run but RBI is 2
       };
 
       const result = await useCase.execute(command);
@@ -299,6 +307,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
@@ -319,6 +328,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const mockGame = { id: 'game1', ourScore: 0 };
@@ -344,6 +354,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const mockGame = { id: 'game1', ourScore: 0 };
@@ -368,6 +379,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const mockGame = { id: 'game1', ourScore: 0 };
@@ -400,6 +412,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: 'player1', secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const mockGame = { id: 'game1', ourScore: 0 };
@@ -437,6 +450,7 @@ describe('RecordAtBatUseCase', () => {
           thirdBase: null,
         },
         runsScored: ['player2', 'player1'],
+        runningErrors: [],
       };
 
       const mockGame = { id: 'game1', ourScore: 0 };
@@ -464,6 +478,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: null, secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
@@ -484,6 +499,7 @@ describe('RecordAtBatUseCase', () => {
         baserunnersBefore: { firstBase: null, secondBase: null, thirdBase: null },
         baserunnersAfter: { firstBase: null, secondBase: null, thirdBase: null },
         runsScored: [],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
@@ -508,12 +524,50 @@ describe('RecordAtBatUseCase', () => {
         },
         baserunnersAfter: { firstBase: null, secondBase: null, thirdBase: null },
         runsScored: ['player2', 'player3', 'player4', 'player1', 'extra'],
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(false);
       expect(result.error).toBe('Maximum RBI per at-bat is 4');
+    });
+
+    it('should record running errors when players make base running mistakes', async () => {
+      const command: RecordAtBatCommand = {
+        gameId: 'game1',
+        batterId: 'player1',
+        inning: 1,
+        isTopInning: true,
+        result: BattingResult.single(),
+        description: 'Single, runner thrown out at 3rd',
+        rbi: 0,
+        baserunnersBefore: {
+          firstBase: 'player2',
+          secondBase: null,
+          thirdBase: null,
+        },
+        baserunnersAfter: {
+          firstBase: 'player1',
+          secondBase: null,
+          thirdBase: null,
+        },
+        runsScored: [],
+        runningErrors: ['player2'], // Player2 made running error
+      };
+
+      const mockGame = { id: 'game1', ourScore: 0 };
+      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
+      mockGameRepository.save.mockImplementation(async (game) => game);
+
+      const result = await useCase.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.runningErrors).toEqual(['player2']);
+      expect(result.value!.hasRunningErrors()).toBe(true);
+      expect(result.value!.getRunningErrorCount()).toBe(1);
+      expect(result.value!.getSummary()).toContain('[1 running error]');
     });
 
     it('should validate player cannot score multiple times in same at-bat', async () => {
@@ -532,6 +586,7 @@ describe('RecordAtBatUseCase', () => {
         },
         baserunnersAfter: { firstBase: null, secondBase: null, thirdBase: 'player1' },
         runsScored: ['player2', 'player2'], // Same player scoring twice
+        runningErrors: [],
       };
 
       const result = await useCase.execute(command);
