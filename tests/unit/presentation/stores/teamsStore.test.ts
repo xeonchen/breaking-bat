@@ -27,7 +27,13 @@ const mockPlayerRepository = {
 };
 
 const mockTeamHydrationService = {
-  hydrateTeams: jest.fn(),
+  hydrateTeams: jest.fn().mockImplementation(async (domainTeams: any[]) => {
+    return domainTeams.map((team) => ({
+      id: team.id,
+      name: team.name,
+      players: [], // Default empty players array
+    }));
+  }),
   convertPresentationPlayerToDomain: jest.fn(),
 };
 
@@ -80,11 +86,15 @@ describe('TeamsStore', () => {
 
   describe('Team Loading', () => {
     it('should load teams successfully', async () => {
-      const mockTeams = [
+      const mockDomainTeams = [
         new Team('team-1', 'Yankees', [], []),
         new Team('team-2', 'Red Sox', [], []),
       ];
-      mockTeamRepository.findAll.mockResolvedValue(mockTeams);
+      const expectedPresentationTeams = [
+        { id: 'team-1', name: 'Yankees', players: [] },
+        { id: 'team-2', name: 'Red Sox', players: [] },
+      ];
+      mockTeamRepository.findAll.mockResolvedValue(mockDomainTeams);
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -92,7 +102,7 @@ describe('TeamsStore', () => {
         await result.current.getTeams();
       });
 
-      expect(result.current.teams).toEqual(mockTeams);
+      expect(result.current.teams).toEqual(expectedPresentationTeams);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });

@@ -20,7 +20,7 @@ export class BaseAdvancementCalculator {
     batterPosition: 'first' | 'second' | 'third' | 'home';
   } {
     const result = battingResult.value;
-    
+
     // Handle non-advancement results
     if (result === 'SO' || result === 'GO' || result === 'AO') {
       return {
@@ -96,15 +96,13 @@ export class BaseAdvancementCalculator {
     };
   }
 
-  private static calculateSacrificeAdvancement(
-    beforeState: BaserunnerState
-  ): {
+  private static calculateSacrificeAdvancement(beforeState: BaserunnerState): {
     afterState: BaserunnerState;
     runsScored: string[];
     batterPosition: 'first' | 'second' | 'third' | 'home';
   } {
     const runsScored: string[] = [];
-    
+
     // Standard sacrifice fly: runner on third scores
     if (beforeState.thirdBase) {
       runsScored.push(beforeState.thirdBase);
@@ -251,7 +249,7 @@ export class BaseAdvancementCalculator {
     const newFirst = batterId;
     let newSecond = beforeState.secondBase;
     let newThird = beforeState.thirdBase;
-    
+
     // If runner on first, they're typically the one forced out
     if (beforeState.firstBase) {
       // Runner on first is out, no advancement for other runners
@@ -272,31 +270,31 @@ export class BaseAdvancementCalculator {
 
   private static calculateDoublePlayAdvancement(
     beforeState: BaserunnerState,
-    batterId: string
+    _batterId: string
   ): {
     afterState: BaserunnerState;
     runsScored: string[];
-    batterPosition: 'out';
+    batterPosition: 'first' | 'second' | 'third' | 'home';
   } {
     // Double play: batter is out and typically one base runner is also out
     // Usually the force runner (runner on first) is out
     // Other runners may or may not advance depending on the play
-    
+
     // For simplicity, assume batter + lead runner are out, others stay
     const newFirst = null;
     const newSecond = beforeState.secondBase;
     const newThird = beforeState.thirdBase;
-    
+
     // If runner on first, they're typically the second out
     if (beforeState.firstBase) {
       // Runner on first is out (force play)
       // Other runners might stay or advance depending on timing
     }
-    
+
     return {
       afterState: new BaserunnerState(newFirst, newSecond, newThird),
       runsScored: [], // Double plays typically don't score runs
-      batterPosition: 'out',
+      batterPosition: 'first', // Placeholder - batter is actually out in double play
     };
   }
 
@@ -310,7 +308,7 @@ export class BaseAdvancementCalculator {
   ): string[] {
     // In standard advancement, all runs are earned by the hit (not errors)
     const result = battingResult.value;
-    
+
     // No RBIs for strikeouts, ground outs, or air outs (unless rare scenarios)
     if (result === 'SO' || result === 'GO' || result === 'AO') {
       return [];

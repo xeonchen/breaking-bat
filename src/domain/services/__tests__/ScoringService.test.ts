@@ -159,8 +159,10 @@ describe('ScoringService', () => {
         'player1',
         1,
         BattingResult.double(),
+        'Double to left field',
         1,
         ['player2'],
+        [],
         BaserunnerState.empty(),
         new BaserunnerState(null, 'player1', null)
       );
@@ -183,7 +185,9 @@ describe('ScoringService', () => {
         'player1',
         1,
         BattingResult.walk(),
+        'Walk on 4 pitches',
         0,
+        [],
         [],
         BaserunnerState.empty(),
         new BaserunnerState('player1', null, null)
@@ -205,8 +209,10 @@ describe('ScoringService', () => {
         'player2', // Different batter
         2,
         BattingResult.single(),
+        'RBI single to center',
         1,
         ['player1'], // This player scored
+        [],
         new BaserunnerState(null, null, 'player1'),
         new BaserunnerState('player2', null, null)
       );

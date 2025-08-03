@@ -284,8 +284,10 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     batterId: string;
     battingPosition: number;
     result: string;
+    description?: string;
     rbis: number;
     runsScored: string[];
+    runningErrors?: string[];
     baserunnersBefore: {
       firstBase: string | null;
       secondBase: string | null;
@@ -306,12 +308,57 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
       record.batterId,
       record.battingPosition,
       new BattingResult(record.result),
+      record.description || '', // Default empty description for backward compatibility
       record.rbis,
       record.runsScored,
+      record.runningErrors || [], // Default empty array for backward compatibility
       this.recordToBaserunnerState(record.baserunnersBefore),
       this.recordToBaserunnerState(record.baserunnersAfter),
       record.createdAt,
       record.updatedAt
     );
+  }
+
+  async findWithRunningErrors(gameId: string): Promise<AtBat[]> {
+    const records = await this.db
+      .table('atBats')
+      .where('gameId')
+      .equals(gameId)
+      .filter(
+        (record) => record.runningErrors && record.runningErrors.length > 0
+      )
+      .toArray();
+
+    return records.map((record) => this.recordToAtBat(record));
+  }
+
+  async getPlayerRunningErrorStats(batterId: string): Promise<{
+    totalRunningErrors: number;
+    gamesWithRunningErrors: number;
+    atBatsWithRunningErrors: number;
+  }> {
+    const atBats = await this.db
+      .table('atBats')
+      .where('batterId')
+      .equals(batterId)
+      .toArray();
+
+    let totalRunningErrors = 0;
+    let atBatsWithRunningErrors = 0;
+    const gamesWithErrors = new Set<string>();
+
+    atBats.forEach((atBat) => {
+      if (atBat.runningErrors && atBat.runningErrors.length > 0) {
+        totalRunningErrors += atBat.runningErrors.length;
+        atBatsWithRunningErrors++;
+        gamesWithErrors.add(atBat.gameId);
+      }
+    });
+
+    return {
+      totalRunningErrors,
+      gamesWithRunningErrors: gamesWithErrors.size,
+      atBatsWithRunningErrors,
+    };
   }
 }

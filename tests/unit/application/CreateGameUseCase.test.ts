@@ -39,16 +39,17 @@ describe('CreateGameUseCase', () => {
 
   describe('execute', () => {
     it('should create a new game successfully', async () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
       const command: CreateGameCommand = {
         name: 'Season Opener',
         teamId: 'team1',
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-04-01'),
-        time: '14:00',
-        location: 'Fenway Park',
-        isHomeGame: false,
+        date: tomorrow,
+        homeAway: 'away',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -60,8 +61,8 @@ describe('CreateGameUseCase', () => {
       expect(result.value!.name).toBe('Season Opener');
       expect(result.value!.teamId).toBe('team1');
       expect(result.value!.opponent).toBe('Red Sox');
-      expect(result.value!.status).toBe(GameStatus.SETUP);
-      expect(result.value!.isHomeGame).toBe(false);
+      expect(result.value!.status).toBe('setup');
+      expect(result.value!.homeAway).toBe('away');
 
       expect(mockGameRepository.save).toHaveBeenCalled();
     });
@@ -347,7 +348,7 @@ describe('CreateGameUseCase', () => {
     it('should handle repository save failure', async () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       const command: CreateGameCommand = {
         name: 'Test Game',
         teamId: 'team1',

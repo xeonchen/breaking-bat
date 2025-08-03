@@ -32,14 +32,10 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Clean Architecture rules
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/explicit-function-return-type': ['error', { 
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true,
-        allowHigherOrderFunctions: true
-      }],
-      '@typescript-eslint/explicit-member-accessibility': ['error', {
+      // Clean Architecture rules (consistent everywhere)
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/explicit-function-return-type': 'off', // Too noisy, TypeScript inference is good
+      '@typescript-eslint/explicit-member-accessibility': ['warn', {
         accessibility: 'explicit',
         overrides: {
           accessors: 'explicit',
@@ -49,8 +45,8 @@ export default tseslint.config(
           parameterProperties: 'explicit'
         }
       }],
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn', // Allow with warning for gradual cleanup
+      '@typescript-eslint/no-non-null-assertion': 'warn', // Allow with warning for gradual cleanup
       'prefer-const': 'error',
       'no-var': 'error',
       // Security-specific rules

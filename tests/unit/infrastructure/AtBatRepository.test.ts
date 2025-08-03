@@ -26,8 +26,10 @@ describe('AtBatRepository', () => {
       'batter1',
       1,
       BattingResult.double(),
+      'Double to left field',
       1,
       ['player3'],
+      [],
       baserunnersBefore,
       baserunnersAfter
     );

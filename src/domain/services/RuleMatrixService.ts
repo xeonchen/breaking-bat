@@ -1,7 +1,10 @@
 import { BaserunnerState } from '../values/BaserunnerState';
 import { BattingResult } from '../values/BattingResult';
 import { ValidOutcome } from '../values/ValidOutcome';
-import { OutcomeParameters, OutcomeParametersFactory } from '../values/OutcomeParameters';
+import {
+  OutcomeParameters,
+  OutcomeParametersFactory,
+} from '../values/OutcomeParameters';
 import {
   RuleViolation,
   ValidationResult,
@@ -23,7 +26,7 @@ export class RuleMatrixService {
   constructor(ruleEngine?: ConfigurableRuleEngine) {
     // Initialize configurable rule engine
     this.configurableRuleEngine = ruleEngine || new ConfigurableRuleEngine();
-    
+
     // Register critical validation rules by default
     if (!ruleEngine) {
       CriticalValidationRules.registerWithEngine(this.configurableRuleEngine);
@@ -51,7 +54,12 @@ export class RuleMatrixService {
     parameters: OutcomeParameters,
     batterId: string = 'batter'
   ): readonly ValidOutcome[] {
-    return RuleEngine.generateValidOutcomes(baseState, battingResult, batterId, parameters);
+    return RuleEngine.generateValidOutcomes(
+      baseState,
+      battingResult,
+      batterId,
+      parameters
+    );
   }
 
   /**
@@ -79,26 +87,39 @@ export class RuleMatrixService {
         batterId,
       };
 
-      const ruleValidationResult = this.configurableRuleEngine.validateAtBat(scenario);
-      
-      // If rule validation fails, return early with rule violations
+      const ruleValidationResult =
+        this.configurableRuleEngine.validateAtBat(scenario);
+
+      // If rule validation fails, still provide parameter-based valid outcomes as suggestions
       if (!ruleValidationResult.isValid) {
+        const validOutcomes = this.getValidOutcomes(
+          before,
+          battingResult,
+          batterId
+        );
         return ValidationResult.invalid(
           ruleValidationResult.allViolations,
-          ruleValidationResult.allSuggestions
+          validOutcomes
         );
       }
 
       // Step 2: Run parameter-based outcome validation
-      const validOutcomes = this.getValidOutcomes(before, battingResult, batterId);
+      const validOutcomes = this.getValidOutcomes(
+        before,
+        battingResult,
+        batterId
+      );
 
       // Check if the proposed outcome matches any valid outcome
-      const matchingOutcome = validOutcomes.find(outcome => 
-        outcome.afterState.equals(after) &&
-        outcome.rbis === rbis &&
-        outcome.outs === outs &&
-        outcome.runsScored.length === runsScored.length &&
-        outcome.runsScored.every((runner, index) => runner === runsScored[index])
+      const matchingOutcome = validOutcomes.find(
+        (outcome) =>
+          outcome.afterState.equals(after) &&
+          outcome.rbis === rbis &&
+          outcome.outs === outs &&
+          outcome.runsScored.length === runsScored.length &&
+          outcome.runsScored.every(
+            (runner, index) => runner === runsScored[index]
+          )
       );
 
       if (matchingOutcome) {

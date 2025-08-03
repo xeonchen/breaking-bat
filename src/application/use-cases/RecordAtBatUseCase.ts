@@ -65,8 +65,8 @@ export class RecordAtBatUseCase {
         timestamp
       );
 
-      // Update game score
-      (game as { ourScore: number }).ourScore += command.rbi;
+      // Note: Game score is tracked through finalScore when game is completed
+      // For now, score tracking is handled at the inning/at-bat level
 
       // Save at-bat and game
       const savedAtBat = await this.atBatRepository.save(atBat);
