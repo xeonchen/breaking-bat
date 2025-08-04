@@ -31,6 +31,11 @@ import {
   Select,
   useDisclosure,
   useToast,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  CloseButton,
 } from '@chakra-ui/react';
 import { AddIcon, SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
@@ -54,6 +59,7 @@ export default function GamePage() {
     homeAway: 'home' as 'home' | 'away',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [creationError, setCreationError] = useState<string | null>(null);
 
   // Store hooks
   const {
@@ -62,6 +68,7 @@ export default function GamePage() {
     gameTypes,
     teams,
     loading,
+    error,
     loadGames,
     loadSeasons,
     loadGameTypes,
@@ -69,6 +76,7 @@ export default function GamePage() {
     createGame,
     searchGames,
     filterGamesByStatus,
+    clearError,
   } = useGamesStore();
 
   // Load data on mount
@@ -93,6 +101,10 @@ export default function GamePage() {
   }, [searchQuery, searchGames, loadGames]);
 
   const handleCreateGame = async () => {
+    // Clear previous errors
+    setFormErrors({});
+    setCreationError(null);
+
     // Validate form
     const errors: Record<string, string> = {};
     if (!formData.name.trim()) errors.name = 'Game name is required';
@@ -135,9 +147,12 @@ export default function GamePage() {
         homeAway: 'home',
       });
       setFormErrors({});
+      setCreationError(null);
       onClose();
-    } catch {
-      // Error handling is done in the store
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Creation failed';
+      setCreationError(message);
     }
   };
 
@@ -234,7 +249,30 @@ export default function GamePage() {
         </HStack>
 
         {/* Error Alert */}
-        {/* Error handling temporarily disabled */}
+        {error && (
+          <Alert status="error" role="alert">
+            <AlertIcon />
+            <Box flex="1">
+              <AlertTitle>Error!</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Box>
+            <HStack spacing={2}>
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="red"
+                data-testid="retry-button"
+                onClick={() => {
+                  clearError();
+                  loadGames();
+                }}
+              >
+                Retry
+              </Button>
+              <CloseButton onClick={clearError} />
+            </HStack>
+          </Alert>
+        )}
 
         {/* Search and Filters */}
         <HStack spacing={4}>
@@ -290,11 +328,6 @@ export default function GamePage() {
                   }}
                   gap={4}
                   data-testid="games-grid"
-                  style={{
-                    display: window.innerWidth < 768 ? 'flex' : 'grid',
-                    flexDirection:
-                      window.innerWidth < 768 ? 'column' : undefined,
-                  }}
                 >
                   {games.map((game) => (
                     <Card
@@ -351,6 +384,13 @@ export default function GamePage() {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
+              {/* Creation Error Alert */}
+              {creationError && (
+                <Alert status="error" role="alert">
+                  <AlertIcon />
+                  <AlertDescription>{creationError}</AlertDescription>
+                </Alert>
+              )}
               <FormControl isInvalid={!!formErrors.name}>
                 <FormLabel>Game Name</FormLabel>
                 <Input

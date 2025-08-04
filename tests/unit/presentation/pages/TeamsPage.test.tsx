@@ -250,7 +250,7 @@ describe('TeamsPage Component', () => {
       renderWithChakra(<TeamsPage />);
 
       const redSoxCard = screen.getByTestId('team-red-sox');
-      const yankeesCard = screen.getByTestId('team-red-sox');
+      const yankeesCard = screen.getByTestId('team-yankees');
 
       expect(redSoxCard).toHaveTextContent('2 Players');
       expect(yankeesCard).toHaveTextContent('1 Player');
@@ -293,7 +293,7 @@ describe('TeamsPage Component', () => {
       await user.selectOptions(filterSelect, 'single-player');
 
       expect(screen.queryByTestId('team-red-sox')).not.toBeInTheDocument();
-      expect(screen.getByTestId('team-red-sox')).toBeInTheDocument();
+      expect(screen.getByTestId('team-yankees')).toBeInTheDocument();
     });
 
     it('should allow sorting teams', async () => {
@@ -305,7 +305,7 @@ describe('TeamsPage Component', () => {
       await user.selectOptions(sortSelect, 'player-count');
 
       const teamCards = screen.getAllByTestId(/^team-/);
-      expect(teamCards[0]).toHaveAttribute('data-testid', 'team-red-sox'); // 1 player
+      expect(teamCards[0]).toHaveAttribute('data-testid', 'team-yankees'); // 1 player
       expect(teamCards[1]).toHaveAttribute('data-testid', 'team-red-sox'); // 2 players
     });
   });

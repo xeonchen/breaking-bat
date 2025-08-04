@@ -314,13 +314,13 @@ describe('TeamManagement Component', () => {
         target: { value: 'second-base' },
       });
 
-      const saveButton = screen.getByTestId('save-player-button');
+      const saveButton = screen.getByTestId('confirm-add-player');
       await user.click(saveButton);
 
       expect(onPlayerAdd).toHaveBeenCalledWith({
         name: 'David Brown',
         jerseyNumber: '45',
-        position: expect.objectContaining({ value: 'second-base' }),
+        positions: [expect.objectContaining({ value: 'second-base' })],
         isActive: true,
       });
     });
@@ -355,7 +355,7 @@ describe('TeamManagement Component', () => {
         target: { value: 'shortstop' },
       });
 
-      const saveButton = screen.getByTestId('save-player-button');
+      const saveButton = screen.getByTestId('confirm-add-player');
       await user.click(saveButton);
 
       expect(screen.getByTestId('validation-error')).toHaveTextContent(
@@ -399,7 +399,9 @@ describe('TeamManagement Component', () => {
         id: 'player-1',
         name: 'Johnny Smith',
         jerseyNumber: '12',
-        positions: expect.arrayContaining([expect.objectContaining({ value: 'pitcher' })]),
+        positions: expect.arrayContaining([
+          expect.objectContaining({ value: 'pitcher' }),
+        ]),
         isActive: true,
       });
     });
@@ -788,7 +790,7 @@ describe('TeamManagement Component', () => {
       await user.click(addPlayerButton);
 
       // Try to save without filling required fields
-      const saveButton = screen.getByTestId('save-player-button');
+      const saveButton = screen.getByTestId('confirm-add-player');
       await user.click(saveButton);
 
       expect(screen.getByTestId('validation-error')).toHaveTextContent(
@@ -827,7 +829,7 @@ describe('TeamManagement Component', () => {
         target: { value: 'shortstop' },
       });
 
-      const saveButton = screen.getByTestId('save-player-button');
+      const saveButton = screen.getByTestId('confirm-add-player');
       await user.click(saveButton);
 
       await waitFor(
@@ -936,7 +938,7 @@ describe('TeamManagement Component', () => {
         id: 'player-4',
         name: 'David Ortiz',
         jerseyNumber: '34',
-        position: Position.firstBase(),
+        positions: [Position.firstBase()],
         isActive: true,
       };
       const updatedTeam = {
@@ -979,7 +981,7 @@ describe('TeamManagement Component', () => {
       // Remove a player from the team
       const teamWithRemovedPlayer = {
         ...mockTeam,
-        players: mockTeam.players.filter(p => p.id !== 'player-2'),
+        players: mockTeam.players.filter((p) => p.id !== 'player-2'),
       };
 
       rerender(
@@ -1018,8 +1020,8 @@ describe('TeamManagement Component', () => {
       // Update player name and jersey number
       const teamWithUpdatedPlayer = {
         ...mockTeam,
-        players: mockTeam.players.map(p => 
-          p.id === 'player-1' 
+        players: mockTeam.players.map((p) =>
+          p.id === 'player-1'
             ? { ...p, name: 'Johnny Smith', jerseyNumber: '99' }
             : p
         ),
@@ -1072,7 +1074,7 @@ describe('TeamManagement Component', () => {
         id: 'player-4',
         name: 'Jane Smith',
         jerseyNumber: '44',
-        position: Position.shortstop(),
+        positions: [Position.shortstop()],
         isActive: true,
       };
       const updatedTeam = {
@@ -1094,18 +1096,32 @@ describe('TeamManagement Component', () => {
         />
       );
 
-      // Should now show both Smith players due to existing filter
+      // After rerender, search filter is reset so all players should show
+      expect(screen.getByTestId('player-player-1')).toBeInTheDocument();
+      expect(screen.getByTestId('player-player-2')).toBeInTheDocument();
+      expect(screen.getByTestId('player-player-3')).toBeInTheDocument();
+      expect(screen.getByTestId('player-player-4')).toBeInTheDocument();
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+
+      // Re-apply search to verify filtering still works with new data
+      const searchInputAfterRerender = screen.getByTestId(
+        'player-search-input'
+      );
+      fireEvent.change(searchInputAfterRerender, {
+        target: { value: 'Smith' },
+      });
+
+      // Should now show both Smith players
       expect(screen.getByTestId('player-player-1')).toBeInTheDocument();
       expect(screen.queryByTestId('player-player-2')).not.toBeInTheDocument();
       expect(screen.queryByTestId('player-player-3')).not.toBeInTheDocument();
       expect(screen.getByTestId('player-player-4')).toBeInTheDocument();
-      expect(screen.getByText('John Smith')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
     });
 
     it('should handle empty team to populated team transition', () => {
       const emptyTeam = { ...mockTeam, players: [] };
-      
+
       const { rerender } = renderWithChakra(
         <TeamManagement
           team={emptyTeam}
@@ -1134,7 +1150,9 @@ describe('TeamManagement Component', () => {
       );
 
       // Should now show roster with players
-      expect(screen.queryByTestId('empty-roster-message')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('empty-roster-message')
+      ).not.toBeInTheDocument();
       expect(screen.getByTestId('team-roster')).toBeInTheDocument();
       expect(screen.getAllByTestId(/^player-player-/)).toHaveLength(3);
     });

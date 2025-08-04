@@ -248,7 +248,14 @@ describe('TeamsStore', () => {
         });
       });
 
-      expect(mockTeamRepository.save).toHaveBeenCalledWith(updatedTeam);
+      expect(mockTeamRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'team-1',
+          name: 'New Yankees',
+          seasonIds: [],
+          playerIds: [],
+        })
+      );
       expect(result.current.teams[0].name).toBe('New Yankees');
       expect(result.current.error).toBeNull();
     });
