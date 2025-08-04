@@ -29,7 +29,7 @@ describe('AtBatRepository', () => {
       'Double to left field',
       1,
       ['player3'],
-      [],
+      [], // runningErrors
       baserunnersBefore,
       baserunnersAfter
     );
@@ -55,8 +55,10 @@ describe('AtBatRepository', () => {
 
       const correctedAtBat = testAtBat.updateResult(
         BattingResult.triple(),
+        'Triple to right field',
         2,
         ['player3', 'player1'],
+        [], // runningErrors
         new BaserunnerState('batter', null, null)
       );
       const savedAtBat = await repository.save(correctedAtBat);
@@ -94,8 +96,10 @@ describe('AtBatRepository', () => {
         'batter2',
         2,
         BattingResult.single(),
+        'Single',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter2', null, null)
       );
@@ -106,8 +110,10 @@ describe('AtBatRepository', () => {
         'batter3',
         1,
         BattingResult.homeRun(),
+        'Home run',
         1,
         ['batter3'],
+        [], // runningErrors
         BaserunnerState.empty(),
         BaserunnerState.empty()
       );
@@ -139,8 +145,10 @@ describe('AtBatRepository', () => {
         'batter2',
         2,
         BattingResult.strikeout(),
+        'Strikeout',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         BaserunnerState.empty()
       );
@@ -151,8 +159,10 @@ describe('AtBatRepository', () => {
         'batter3',
         3,
         BattingResult.walk(),
+        'Walk',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter3', null, null)
       );
@@ -178,8 +188,10 @@ describe('AtBatRepository', () => {
         'batter1',
         1,
         BattingResult.single(),
+        'Single',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter1', null, null)
       );
@@ -190,8 +202,10 @@ describe('AtBatRepository', () => {
         'batter2',
         2,
         BattingResult.homeRun(),
+        'Home run',
         1,
         ['batter2'],
+        [], // runningErrors
         BaserunnerState.empty(),
         BaserunnerState.empty()
       );
@@ -217,8 +231,10 @@ describe('AtBatRepository', () => {
         'batter2',
         1,
         BattingResult.walk(),
+        'Walk',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter2', null, null)
       );
@@ -229,8 +245,10 @@ describe('AtBatRepository', () => {
         'batter3',
         2,
         BattingResult.single(),
+        'Single',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter3', null, null)
       );
@@ -274,8 +292,10 @@ describe('AtBatRepository', () => {
         'batter1',
         1,
         BattingResult.homeRun(),
+        'Home run',
         4,
         ['player1', 'player2', 'player3', 'batter1'],
+        [], // runningErrors
         new BaserunnerState('player1', 'player2', 'player3'),
         BaserunnerState.empty()
       );
@@ -286,8 +306,10 @@ describe('AtBatRepository', () => {
         'batter1',
         1,
         BattingResult.strikeout(),
+        'Strikeout',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         BaserunnerState.empty()
       );
@@ -325,8 +347,10 @@ describe('AtBatRepository', () => {
         'batter2',
         2,
         BattingResult.single(),
+        'Single',
         1,
         ['player1'],
+        [], // runningErrors
         new BaserunnerState('player1', null, null),
         new BaserunnerState('batter2', null, null)
       );
@@ -337,8 +361,10 @@ describe('AtBatRepository', () => {
         'batter3',
         3,
         BattingResult.walk(),
+        'Walk',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter3', null, null)
       );
@@ -374,8 +400,10 @@ describe('AtBatRepository', () => {
         'batter2',
         2,
         BattingResult.single(),
+        'Single',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter2', null, null)
       );
@@ -386,8 +414,10 @@ describe('AtBatRepository', () => {
         'batter3',
         3,
         BattingResult.strikeout(),
+        'Strikeout',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         BaserunnerState.empty()
       );
@@ -413,8 +443,10 @@ describe('AtBatRepository', () => {
         'batter2',
         2,
         BattingResult.walk(),
+        'Walk',
         0,
         [],
+        [], // runningErrors
         BaserunnerState.empty(),
         new BaserunnerState('batter2', null, null)
       );

@@ -74,10 +74,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-04-01'),
+        date: new Date('2025-04-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -94,10 +94,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: '',
-        date: new Date('2024-04-01'),
+        date: new Date('2025-04-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -114,10 +114,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-04-01'),
+        date: new Date('2025-04-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -133,10 +133,10 @@ describe('CreateGameUseCase', () => {
         seasonId: '',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-04-01'),
+        date: new Date('2025-04-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -152,10 +152,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: '',
         opponent: 'Red Sox',
-        date: new Date('2024-04-01'),
+        date: new Date('2025-04-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -175,7 +175,7 @@ describe('CreateGameUseCase', () => {
         date: pastDate,
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -197,7 +197,7 @@ describe('CreateGameUseCase', () => {
         date: today,
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -207,48 +207,9 @@ describe('CreateGameUseCase', () => {
       expect(result.isSuccess).toBe(true);
     });
 
-    it('should validate time format', async () => {
-      const command: CreateGameCommand = {
-        name: 'Test Game',
-        teamId: 'team1',
-        seasonId: 'season1',
-        gameTypeId: 'regular',
-        opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: 'invalid-time',
-        location: 'Fenway Park',
-        isHomeGame: true,
-      };
+    // Time validation test removed - time field not in current interface
 
-      const result = await useCase.execute(command);
-
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Time must be in HH:MM format');
-    });
-
-    it('should accept valid time formats', async () => {
-      const validTimes = ['14:00', '09:30', '23:45', '00:00'];
-
-      for (const time of validTimes) {
-        const command: CreateGameCommand = {
-          name: `Test Game ${time}`,
-          teamId: 'team1',
-          seasonId: 'season1',
-          gameTypeId: 'regular',
-          opponent: 'Red Sox',
-          date: new Date('2024-12-01'),
-          time,
-          location: 'Fenway Park',
-          isHomeGame: true,
-        };
-
-        mockGameRepository.save.mockImplementation(async (game) => game);
-
-        const result = await useCase.execute(command);
-
-        expect(result.isSuccess).toBe(true);
-      }
-    });
+    // Valid time formats test removed - time field not in current interface
 
     it('should trim whitespace from string fields', async () => {
       const command: CreateGameCommand = {
@@ -257,10 +218,8 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: '  Yankees  ',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: '  Yankee Stadium  ',
-        isHomeGame: true,
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -270,29 +229,9 @@ describe('CreateGameUseCase', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value!.name).toBe('Championship Game');
       expect(result.value!.opponent).toBe('Yankees');
-      expect(result.value!.location).toBe('Yankee Stadium');
     });
 
-    it('should handle optional location field', async () => {
-      const command: CreateGameCommand = {
-        name: 'Test Game',
-        teamId: 'team1',
-        seasonId: 'season1',
-        gameTypeId: 'regular',
-        opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: '',
-        isHomeGame: true,
-      };
-
-      mockGameRepository.save.mockImplementation(async (game) => game);
-
-      const result = await useCase.execute(command);
-
-      expect(result.isSuccess).toBe(true);
-      expect(result.value!.location).toBe('');
-    });
+    // Optional location test removed - location field not in current interface
 
     it('should generate unique game ID', async () => {
       const command: CreateGameCommand = {
@@ -301,10 +240,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
+        date: new Date('2025-12-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -320,17 +259,15 @@ describe('CreateGameUseCase', () => {
       expect(result1.value!.id).not.toBe(result2.value!.id);
     });
 
-    it('should initialize game with setup status and empty statistics', async () => {
+    it('should initialize game with setup status', async () => {
       const command: CreateGameCommand = {
         name: 'New Game',
         teamId: 'team1',
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
-        isHomeGame: true,
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -338,11 +275,10 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.status).toBe(GameStatus.SETUP);
-      expect(result.value!.ourScore).toBe(0);
-      expect(result.value!.opponentScore).toBe(0);
-      expect(result.value!.currentInning).toBe(1);
-      expect(result.value!.isTopInning).toBe(true);
+      expect(result.value!.status).toBe('setup');
+      expect(result.value!.lineupId).toBeNull();
+      expect(result.value!.inningIds).toEqual([]);
+      expect(result.value!.finalScore).toBeNull();
     });
 
     it('should handle repository save failure', async () => {
@@ -374,10 +310,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
+        date: new Date('2025-12-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -393,10 +329,10 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'A'.repeat(101), // Assuming 100 char limit
-        date: new Date('2024-12-01'),
+        date: new Date('2025-12-01'),
         time: '14:00',
         location: 'Fenway Park',
-        isHomeGame: true,
+        homeAway: 'home',
       };
 
       const result = await useCase.execute(command);
@@ -405,24 +341,7 @@ describe('CreateGameUseCase', () => {
       expect(result.error).toBe('Opponent name cannot exceed 100 characters');
     });
 
-    it('should validate maximum location length', async () => {
-      const command: CreateGameCommand = {
-        name: 'Test Game',
-        teamId: 'team1',
-        seasonId: 'season1',
-        gameTypeId: 'regular',
-        opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: 'A'.repeat(201), // Assuming 200 char limit
-        isHomeGame: true,
-      };
-
-      const result = await useCase.execute(command);
-
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Location cannot exceed 200 characters');
-    });
+    // Location length validation test removed - location field not in current interface
   });
 
   describe('business rules validation', () => {
@@ -433,10 +352,8 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: 'Our Stadium',
-        isHomeGame: true,
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -444,8 +361,8 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.isHomeGame).toBe(true);
-      expect(result.value!.isTopInning).toBe(true); // Visitors bat first
+      expect(result.value!.homeAway).toBe('home');
+      expect(result.value!.isHomeGame()).toBe(true);
     });
 
     it('should set correct initial game state for away games', async () => {
@@ -455,10 +372,8 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
-        isHomeGame: false,
+        date: new Date('2025-12-01'),
+        homeAway: 'away',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
@@ -466,8 +381,8 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.isHomeGame).toBe(false);
-      expect(result.value!.isTopInning).toBe(true); // We bat first as visitors
+      expect(result.value!.homeAway).toBe('away');
+      expect(result.value!.isAwayGame()).toBe(true);
     });
 
     it('should create game with current timestamp', async () => {
@@ -479,10 +394,8 @@ describe('CreateGameUseCase', () => {
         seasonId: 'season1',
         gameTypeId: 'regular',
         opponent: 'Red Sox',
-        date: new Date('2024-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
-        isHomeGame: true,
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
       };
 
       mockGameRepository.save.mockImplementation(async (game) => game);
