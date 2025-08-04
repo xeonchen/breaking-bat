@@ -7,39 +7,53 @@ import {
   within,
 } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import GamePage from '@/presentation/pages/GamePage';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
 import { useTeamsStore } from '@/presentation/stores/teamsStore';
 import { Game, GameStatus, Team, Season, GameType } from '@/domain';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-// Mock the stores
-jest.mock('@/presentation/stores/gamesStore');
-jest.mock('@/presentation/stores/teamsStore');
+// Mock the stores with proper implementations
+jest.mock('@/presentation/stores/gamesStore', () => ({
+  useGamesStore: jest.fn(),
+}));
+
+jest.mock('@/presentation/stores/teamsStore', () => ({
+  useTeamsStore: jest.fn(),
+}));
 
 // Mock react-router-dom navigation
 const mockNavigate = jest.fn();
-jest.mock('react-router-dom', async () => {
-  const actual = await import('react-router-dom');
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
   return {
     ...actual,
     useNavigate: () => mockNavigate,
   };
 });
 
-const mockUseGamesStore = jest.mocked(useGamesStore);
-const mockUseTeamsStore = jest.mocked(useTeamsStore);
+const mockUseGamesStore = useGamesStore as jest.MockedFunction<
+  typeof useGamesStore
+>;
+const mockUseTeamsStore = useTeamsStore as jest.MockedFunction<
+  typeof useTeamsStore
+>;
 
 // Test wrapper component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <ChakraProvider>
-    <BrowserRouter>{children}</BrowserRouter>
+    <MemoryRouter>{children}</MemoryRouter>
   </ChakraProvider>
 );
 
 // Test data
-const mockTeam = new Team('team-1', 'Red Sox', ['player-1', 'player-2']);
+const mockTeam = new Team(
+  'team-1',
+  'Red Sox',
+  ['season-1'],
+  ['player-1', 'player-2']
+);
 const mockSeason = new Season(
   'season-1',
   'Season 2024',
@@ -98,6 +112,8 @@ describe('GamePage', () => {
     selectedGame: null,
     loading: false,
     error: null,
+    searchQuery: '',
+    statusFilter: 'all' as const,
     loadGames: jest.fn(),
     loadTeams: jest.fn(),
     loadSeasons: jest.fn(),
@@ -106,10 +122,17 @@ describe('GamePage', () => {
     updateGame: jest.fn(),
     deleteGame: jest.fn(),
     selectGame: jest.fn(),
+    clearSelection: jest.fn(),
     clearError: jest.fn(),
     searchGames: jest.fn(),
     filterGamesByStatus: jest.fn(),
     filterGamesByTeam: jest.fn(),
+    createSeason: jest.fn(),
+    updateSeason: jest.fn(),
+    deleteSeason: jest.fn(),
+    createGameType: jest.fn(),
+    updateGameType: jest.fn(),
+    deleteGameType: jest.fn(),
   };
 
   const mockTeamsStoreState = {
@@ -151,7 +174,7 @@ describe('GamePage', () => {
       );
 
       expect(
-        screen.getByRole('button', { name: /create game/i })
+        screen.getByRole('button', { name: /create new game/i })
       ).toBeInTheDocument();
     });
 

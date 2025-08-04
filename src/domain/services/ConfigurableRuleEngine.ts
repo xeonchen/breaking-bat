@@ -1,5 +1,14 @@
-import { ValidationRule, AtBatValidationScenario, RuleEngineConfig, RuleEngineValidationResult } from '../values/ValidationRule';
-import { ValidationResult } from '../values/RuleViolation';
+import {
+  ValidationRule,
+  AtBatValidationScenario,
+  RuleEngineConfig,
+  RuleEngineValidationResult,
+} from '../values/ValidationRule';
+import {
+  ValidationResult,
+  RuleViolation,
+  ViolationType,
+} from '../values/RuleViolation';
 
 /**
  * Configurable rule engine that manages validation rules
@@ -22,7 +31,7 @@ export class ConfigurableRuleEngine {
    */
   registerRule(rule: ValidationRule): void {
     this.rules.set(rule.id, rule);
-    
+
     // Set initial enabled state from config or rule default
     if (this.config.ruleStates.has(rule.id)) {
       rule.enabled = this.config.ruleStates.get(rule.id)!;
@@ -77,14 +86,18 @@ export class ConfigurableRuleEngine {
    * Get all enabled rules
    */
   getEnabledRules(): readonly ValidationRule[] {
-    return Array.from(this.rules.values()).filter(rule => rule.enabled);
+    return Array.from(this.rules.values()).filter((rule) => rule.enabled);
   }
 
   /**
    * Get rules by category
    */
-  getRulesByCategory(category: 'critical' | 'configurable' | 'optional'): readonly ValidationRule[] {
-    return Array.from(this.rules.values()).filter(rule => rule.category === category);
+  getRulesByCategory(
+    category: 'critical' | 'configurable' | 'optional'
+  ): readonly ValidationRule[] {
+    return Array.from(this.rules.values()).filter(
+      (rule) => rule.category === category
+    );
   }
 
   /**
@@ -111,13 +124,19 @@ export class ConfigurableRuleEngine {
       } catch (error) {
         // Rule execution failed - treat as validation failure
         const errorResult = ValidationResult.invalid(
-          new (require('../values/RuleViolation').RuleViolation)(
-            require('../values/RuleViolation').ViolationType.INVALID_HIT_TYPE,
+          new RuleViolation(
+            ViolationType.INVALID_HIT_TYPE,
             `Rule '${rule.name}' failed to execute: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            scenario
+            {
+              before: scenario.beforeState,
+              after: scenario.afterState,
+              hitType: scenario.battingResult.toHitType(),
+              rbis: scenario.rbis,
+              outs: scenario.outs,
+            }
           )
         );
-        
+
         ruleResults.set(rule.id, errorResult);
         isValid = false;
         allViolations.push(...errorResult.violations);
