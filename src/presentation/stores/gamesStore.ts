@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { Game, Season, GameType, Team, GameStatus } from '@/domain';
+import {
+  Game,
+  Season,
+  GameType,
+  Team,
+  GameStatus,
+  GameRepository,
+  SeasonRepository,
+  GameTypeRepository,
+  TeamRepository,
+} from '@/domain';
+import { CreateGameUseCase } from '@/application/use-cases/CreateGameUseCase';
 
 interface CreateGameCommand {
   name: string;
@@ -59,29 +70,19 @@ interface GamesState {
 }
 
 // Repository interfaces - will be injected in production
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let gameRepository: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let seasonRepository: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let gameTypeRepository: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let teamRepository: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let createGameUseCase: any;
+let gameRepository: GameRepository;
+let seasonRepository: SeasonRepository;
+let gameTypeRepository: GameTypeRepository;
+let teamRepository: TeamRepository;
+let createGameUseCase: CreateGameUseCase;
 
 // Initialize function for dependency injection
 export const initializeGamesStore = (deps: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gameRepository: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  seasonRepository: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gameTypeRepository: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  teamRepository: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createGameUseCase: any;
+  gameRepository: GameRepository;
+  seasonRepository: SeasonRepository;
+  gameTypeRepository: GameTypeRepository;
+  teamRepository: TeamRepository;
+  createGameUseCase: CreateGameUseCase;
 }): void => {
   console.log('🔧 Initializing GamesStore with dependencies:', {
     gameRepository: !!deps.gameRepository,
@@ -214,13 +215,17 @@ export const useGamesStore = create<GamesState>()(
           set({ loading: true, error: null });
           try {
             console.log('🆕 Creating game:', command.name);
-            const result = await createGameUseCase?.execute(command);
+            const result = await createGameUseCase.execute(command);
 
             if (!result.isSuccess) {
               throw new Error(result.error);
             }
 
             const newGame = result.value;
+            if (!newGame) {
+              throw new Error('Game creation returned no result');
+            }
+
             console.log('✅ Game created successfully:', newGame.id);
 
             // Add new game to current list

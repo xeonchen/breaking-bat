@@ -1,8 +1,27 @@
 import { BaserunnerState } from '../values/BaserunnerState';
 import { BattingResult } from '../values/BattingResult';
 import { ValidOutcome } from '../values/ValidOutcome';
-import { OutcomeParameters, OutcomeParametersFactory } from '../values/OutcomeParameters';
+import {
+  OutcomeParameters,
+  OutcomeParametersFactory,
+} from '../values/OutcomeParameters';
 import { BaseAdvancementCalculator } from './BaseAdvancementCalculator';
+
+// Define interfaces for typed advancement calculations
+interface AdvancementCalculation {
+  afterState: BaserunnerState;
+  runsScored: string[];
+  batterPosition: 'first' | 'second' | 'third' | 'home';
+}
+
+interface AdvancementVariation {
+  afterState: BaserunnerState;
+  rbis: number;
+  outs: number;
+  runsScored: string[];
+  runsEarnedByHit: string[];
+  description: string;
+}
 
 /**
  * Core rule engine that generates valid outcomes based on base state, hit type, and parameters
@@ -12,7 +31,7 @@ export class RuleEngine {
   /**
    * Generate all valid outcomes for a given scenario and parameter combination
    */
-  static generateValidOutcomes(
+  public static generateValidOutcomes(
     beforeState: BaserunnerState,
     battingResult: BattingResult,
     batterId: string,
@@ -70,7 +89,7 @@ export class RuleEngine {
    * Get all valid outcomes for all parameter combinations
    * This is useful for presenting users with all possible choices
    */
-  static getAllValidOutcomes(
+  public static getAllValidOutcomes(
     beforeState: BaserunnerState,
     battingResult: BattingResult,
     batterId: string
@@ -95,7 +114,7 @@ export class RuleEngine {
   /**
    * Validate if a proposed outcome is valid for the given scenario
    */
-  static validateOutcome(
+  public static validateOutcome(
     beforeState: BaserunnerState,
     battingResult: BattingResult,
     batterId: string,
@@ -111,7 +130,6 @@ export class RuleEngine {
       validOutcome.equals(proposedOutcome)
     );
   }
-
 
   private static generateStandardOutcome(
     beforeState: BaserunnerState,
@@ -188,7 +206,11 @@ export class RuleEngine {
         variation.runsScored,
         variation.runsEarnedByHit,
         `Aggressive ${battingResult.value} - ${variation.description}`,
-        { runner_is_aggressive: true, has_fielding_error: false, has_running_error: false }
+        {
+          runner_is_aggressive: true,
+          has_fielding_error: false,
+          has_running_error: false,
+        }
       );
       outcomes.push(outcome);
     }
@@ -227,7 +249,11 @@ export class RuleEngine {
         variation.runsScored,
         variation.runsEarnedByHit,
         `${battingResult.value} + Error - ${variation.description}`,
-        { runner_is_aggressive: false, has_fielding_error: true, has_running_error: false }
+        {
+          runner_is_aggressive: false,
+          has_fielding_error: true,
+          has_running_error: false,
+        }
       );
       outcomes.push(outcome);
     }
@@ -266,7 +292,11 @@ export class RuleEngine {
         variation.runsScored,
         variation.runsEarnedByHit,
         `${battingResult.value} + Running Error - ${variation.description}`,
-        { runner_is_aggressive: false, has_fielding_error: false, has_running_error: true }
+        {
+          runner_is_aggressive: false,
+          has_fielding_error: false,
+          has_running_error: true,
+        }
       );
       outcomes.push(outcome);
     }
@@ -276,7 +306,7 @@ export class RuleEngine {
 
   private static calculateOutsForResult(battingResult: BattingResult): number {
     const result = battingResult.value;
-    
+
     switch (result) {
       case 'SO':
       case 'GO':
@@ -292,29 +322,34 @@ export class RuleEngine {
 
   private static calculateAggressiveRunnerVariations(
     beforeState: BaserunnerState,
-    standard: any,
+    standard: AdvancementCalculation,
     battingResult: BattingResult,
     batterId: string
-  ): any[] {
-    const variations: any[] = [];
+  ): AdvancementVariation[] {
+    const variations: AdvancementVariation[] = [];
     const result = battingResult.value;
 
     // Comprehensive aggressive running scenarios
 
     if (result === '1B') {
       // Single with aggressive running
-      
+
       if (beforeState.firstBase && !beforeState.secondBase) {
         // Runner on first attempts to reach third (instead of stopping at second)
         variations.push({
-          afterState: new BaserunnerState(batterId, null, beforeState.firstBase),
+          afterState: new BaserunnerState(
+            batterId,
+            null,
+            beforeState.firstBase
+          ),
           runsScored: standard.runsScored,
           runsEarnedByHit: standard.runsScored,
           rbis: standard.runsScored.length,
+          outs: 0,
           description: 'Runner from 1st reaches 3rd',
         });
       }
-      
+
       if (beforeState.secondBase) {
         // Runner on second attempts to score (instead of stopping at third)
         const runsScored = [...standard.runsScored];
@@ -323,10 +358,15 @@ export class RuleEngine {
         }
 
         variations.push({
-          afterState: new BaserunnerState(batterId, beforeState.firstBase, null),
+          afterState: new BaserunnerState(
+            batterId,
+            beforeState.firstBase,
+            null
+          ),
           runsScored,
           runsEarnedByHit: runsScored,
           rbis: runsScored.length,
+          outs: 0,
           description: 'Runner from 2nd scores',
         });
       }
@@ -339,10 +379,15 @@ export class RuleEngine {
         }
 
         variations.push({
-          afterState: new BaserunnerState(batterId, null, beforeState.firstBase),
+          afterState: new BaserunnerState(
+            batterId,
+            null,
+            beforeState.firstBase
+          ),
           runsScored,
           runsEarnedByHit: runsScored,
           rbis: runsScored.length,
+          outs: 0,
           description: 'R1→3rd, R2 scores',
         });
       }
@@ -362,6 +407,7 @@ export class RuleEngine {
           runsScored,
           runsEarnedByHit: runsScored,
           rbis: runsScored.length,
+          outs: 0,
           description: 'Runner from 1st scores',
         });
       }
@@ -381,6 +427,7 @@ export class RuleEngine {
           runsScored,
           runsEarnedByHit: runsScored,
           rbis: runsScored.length,
+          outs: 0,
           description: 'Both R1 and R2 score',
         });
       }
@@ -389,7 +436,11 @@ export class RuleEngine {
     if (result === '3B') {
       // Triple - normally all runners score, but aggressive might mean extra advancement
       // Batter attempts to score on throwing error during triple
-      if (beforeState.firstBase || beforeState.secondBase || beforeState.thirdBase) {
+      if (
+        beforeState.firstBase ||
+        beforeState.secondBase ||
+        beforeState.thirdBase
+      ) {
         const runsScored = [...standard.runsScored];
         runsScored.push(batterId); // Batter scores too
 
@@ -398,6 +449,7 @@ export class RuleEngine {
           runsScored,
           runsEarnedByHit: runsScored,
           rbis: runsScored.length,
+          outs: 0,
           description: 'Batter scores on aggressive advancement',
         });
       }
@@ -408,24 +460,25 @@ export class RuleEngine {
 
   private static calculateFieldingErrorVariations(
     beforeState: BaserunnerState,
-    standard: any,
+    standard: AdvancementCalculation,
     battingResult: BattingResult,
     batterId: string
-  ): any[] {
-    const variations: any[] = [];
+  ): AdvancementVariation[] {
+    const variations: AdvancementVariation[] = [];
     const result = battingResult.value;
 
     // Comprehensive fielding error scenarios
 
     if (result === '1B') {
       // Single + throwing error variations
-      
+
       // Batter reaches second on throwing error
       variations.push({
         afterState: new BaserunnerState(null, batterId, beforeState.firstBase),
         runsScored: standard.runsScored,
         runsEarnedByHit: standard.runsScored,
         rbis: standard.runsScored.length,
+        outs: 0,
         description: 'Batter reaches 2nd on throwing error',
       });
 
@@ -437,10 +490,15 @@ export class RuleEngine {
         }
 
         variations.push({
-          afterState: new BaserunnerState(batterId, beforeState.firstBase, null),
+          afterState: new BaserunnerState(
+            batterId,
+            beforeState.firstBase,
+            null
+          ),
           runsScored: errorRuns,
           runsEarnedByHit: standard.runsScored, // Only original runs count as RBIs
           rbis: standard.runsScored.length,
+          outs: 0,
           description: 'Runner from 2nd scores on error',
         });
       }
@@ -448,25 +506,30 @@ export class RuleEngine {
 
     if (result === '2B') {
       // Double + fielding error variations
-      
+
       // Batter reaches third on error
       variations.push({
         afterState: new BaserunnerState(null, null, batterId),
         runsScored: standard.runsScored,
         runsEarnedByHit: standard.runsScored,
         rbis: standard.runsScored.length,
+        outs: 0,
         description: 'Batter reaches 3rd on error',
       });
 
       // Runner from first scores on error (if they didn't already)
-      if (beforeState.firstBase && !standard.runsScored.includes(beforeState.firstBase)) {
+      if (
+        beforeState.firstBase &&
+        !standard.runsScored.includes(beforeState.firstBase)
+      ) {
         const errorRuns = [...standard.runsScored, beforeState.firstBase];
-        
+
         variations.push({
           afterState: new BaserunnerState(null, batterId, null),
           runsScored: errorRuns,
           runsEarnedByHit: standard.runsScored, // Error run doesn't count as RBI
           rbis: standard.runsScored.length,
+          outs: 0,
           description: 'Runner from 1st scores on error',
         });
       }
@@ -475,12 +538,13 @@ export class RuleEngine {
     if (result === '3B') {
       // Triple + error - batter scores
       const errorRuns = [...standard.runsScored, batterId];
-      
+
       variations.push({
         afterState: BaserunnerState.empty(),
         runsScored: errorRuns,
         runsEarnedByHit: standard.runsScored, // Batter scoring on error doesn't count as RBI
         rbis: standard.runsScored.length,
+        outs: 0,
         description: 'Batter scores on error',
       });
     }
@@ -490,19 +554,25 @@ export class RuleEngine {
 
   private static calculateRunningErrorVariations(
     beforeState: BaserunnerState,
-    standard: any,
+    standard: AdvancementCalculation,
     battingResult: BattingResult,
     batterId: string
-  ): any[] {
-    const variations: any[] = [];
+  ): AdvancementVariation[] {
+    const variations: AdvancementVariation[] = [];
 
     // Example: Runner thrown out attempting extra base
     if (battingResult.value === '1B' && beforeState.firstBase) {
       variations.push({
         afterState: new BaserunnerState(batterId, null, null),
-        runsScored: standard.runsScored.filter((r: string) => r !== beforeState.firstBase),
-        runsEarnedByHit: standard.runsScored.filter((r: string) => r !== beforeState.firstBase),
-        rbis: standard.runsScored.filter((r: string) => r !== beforeState.firstBase).length,
+        runsScored: standard.runsScored.filter(
+          (r: string) => r !== beforeState.firstBase
+        ),
+        runsEarnedByHit: standard.runsScored.filter(
+          (r: string) => r !== beforeState.firstBase
+        ),
+        rbis: standard.runsScored.filter(
+          (r: string) => r !== beforeState.firstBase
+        ).length,
         outs: 1,
         description: 'Runner thrown out at 3rd',
       });
@@ -511,15 +581,17 @@ export class RuleEngine {
     return variations;
   }
 
-  private static removeDuplicateOutcomes(outcomes: ValidOutcome[]): ValidOutcome[] {
+  private static removeDuplicateOutcomes(
+    outcomes: ValidOutcome[]
+  ): ValidOutcome[] {
     const unique: ValidOutcome[] = [];
-    
+
     for (const outcome of outcomes) {
       if (!unique.some((existing) => existing.equals(outcome))) {
         unique.push(outcome);
       }
     }
-    
+
     return unique;
   }
 }

@@ -2,7 +2,7 @@ import {
   CreateGameUseCase,
   CreateGameCommand,
 } from '@/application/use-cases/CreateGameUseCase';
-import { GameRepository, GameStatus } from '@/domain';
+import { GameRepository } from '@/domain';
 import {
   createTestDatabase,
   clearTestDatabase,
@@ -58,11 +58,13 @@ describe('CreateGameUseCase', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.name).toBe('Season Opener');
-      expect(result.value!.teamId).toBe('team1');
-      expect(result.value!.opponent).toBe('Red Sox');
-      expect(result.value!.status).toBe('setup');
-      expect(result.value!.homeAway).toBe('away');
+      if (result.value) {
+        expect(result.value.name).toBe('Season Opener');
+        expect(result.value.teamId).toBe('team1');
+        expect(result.value.opponent).toBe('Red Sox');
+        expect(result.value.status).toBe('setup');
+        expect(result.value.homeAway).toBe('away');
+      }
 
       expect(mockGameRepository.save).toHaveBeenCalled();
     });
@@ -227,8 +229,11 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('Championship Game');
-      expect(result.value!.opponent).toBe('Yankees');
+      expect(result.value).toBeDefined();
+      if (result.value) {
+        expect(result.value.name).toBe('Championship Game');
+        expect(result.value.opponent).toBe('Yankees');
+      }
     });
 
     // Optional location test removed - location field not in current interface
@@ -256,7 +261,9 @@ describe('CreateGameUseCase', () => {
 
       expect(result1.isSuccess).toBe(true);
       expect(result2.isSuccess).toBe(true);
-      expect(result1.value!.id).not.toBe(result2.value!.id);
+      if (result1.value && result2.value) {
+        expect(result1.value.id).not.toBe(result2.value.id);
+      }
     });
 
     it('should initialize game with setup status', async () => {
@@ -275,10 +282,12 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.status).toBe('setup');
-      expect(result.value!.lineupId).toBeNull();
-      expect(result.value!.inningIds).toEqual([]);
-      expect(result.value!.finalScore).toBeNull();
+      if (result.value) {
+        expect(result.value.status).toBe('setup');
+        expect(result.value.lineupId).toBeNull();
+        expect(result.value.inningIds).toEqual([]);
+        expect(result.value.finalScore).toBeNull();
+      }
     });
 
     it('should handle repository save failure', async () => {
@@ -361,8 +370,10 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.homeAway).toBe('home');
-      expect(result.value!.isHomeGame()).toBe(true);
+      if (result.value) {
+        expect(result.value.homeAway).toBe('home');
+        expect(result.value.isHomeGame()).toBe(true);
+      }
     });
 
     it('should set correct initial game state for away games', async () => {
@@ -381,8 +392,10 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.homeAway).toBe('away');
-      expect(result.value!.isAwayGame()).toBe(true);
+      if (result.value) {
+        expect(result.value.homeAway).toBe('away');
+        expect(result.value.isAwayGame()).toBe(true);
+      }
     });
 
     it('should create game with current timestamp', async () => {
@@ -404,18 +417,20 @@ describe('CreateGameUseCase', () => {
       const afterTime = new Date();
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.createdAt.getTime()).toBeGreaterThanOrEqual(
-        beforeTime.getTime()
-      );
-      expect(result.value!.createdAt.getTime()).toBeLessThanOrEqual(
-        afterTime.getTime()
-      );
-      expect(result.value!.updatedAt.getTime()).toBeGreaterThanOrEqual(
-        beforeTime.getTime()
-      );
-      expect(result.value!.updatedAt.getTime()).toBeLessThanOrEqual(
-        afterTime.getTime()
-      );
+      if (result.value) {
+        expect(result.value.createdAt.getTime()).toBeGreaterThanOrEqual(
+          beforeTime.getTime()
+        );
+        expect(result.value.createdAt.getTime()).toBeLessThanOrEqual(
+          afterTime.getTime()
+        );
+        expect(result.value.updatedAt.getTime()).toBeGreaterThanOrEqual(
+          beforeTime.getTime()
+        );
+        expect(result.value.updatedAt.getTime()).toBeLessThanOrEqual(
+          afterTime.getTime()
+        );
+      }
     });
   });
 });

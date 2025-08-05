@@ -36,9 +36,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
     // Initialize repositories and services
     teamRepository = new IndexedDBTeamRepository(db);
     playerRepository = new IndexedDBPlayerRepository(db);
-    teamHydrationService = new TeamHydrationService(
-      playerRepository
-    );
+    teamHydrationService = new TeamHydrationService(playerRepository);
 
     // Initialize use cases
     addPlayerUseCase = new AddPlayerUseCase(playerRepository, teamRepository);
@@ -70,7 +68,10 @@ describe('Manage Roster Dialog Integration Tests', () => {
       playerIds: [],
     });
     expect(teamResult.isSuccess).toBe(true);
-    testTeamId = teamResult.value!.id;
+    expect(teamResult.value).toBeDefined();
+    if (teamResult.value) {
+      testTeamId = teamResult.value.id;
+    }
   }, 15000);
 
   afterEach(async () => {
@@ -193,7 +194,11 @@ describe('Manage Roster Dialog Integration Tests', () => {
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
-      const playerId = addResult.value!.id;
+      expect(addResult.value).toBeDefined();
+      let playerId = '';
+      if (addResult.value) {
+        playerId = addResult.value.id;
+      }
 
       renderTeamsPage();
 
@@ -251,7 +256,11 @@ describe('Manage Roster Dialog Integration Tests', () => {
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
-      const playerId = addResult.value!.id;
+      expect(addResult.value).toBeDefined();
+      let playerId = '';
+      if (addResult.value) {
+        playerId = addResult.value.id;
+      }
 
       renderTeamsPage();
 

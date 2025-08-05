@@ -4,7 +4,7 @@ import { getDatabase } from '../database/connection';
 import { BreakingBatDatabase } from '../database/types';
 
 export class IndexedDBGameTypeRepository implements GameTypeRepository {
-  async save(gameType: GameType): Promise<GameType> {
+  public async save(gameType: GameType): Promise<GameType> {
     const db = getDatabase() as BreakingBatDatabase;
 
     const gameTypeData = {
@@ -26,7 +26,7 @@ export class IndexedDBGameTypeRepository implements GameTypeRepository {
     );
   }
 
-  async findById(id: string): Promise<GameType | null> {
+  public async findById(id: string): Promise<GameType | null> {
     const db = getDatabase() as BreakingBatDatabase;
     const gameTypeData = await db.gameTypes.get(id);
 
@@ -43,7 +43,7 @@ export class IndexedDBGameTypeRepository implements GameTypeRepository {
     );
   }
 
-  async findAll(): Promise<GameType[]> {
+  public async findAll(): Promise<GameType[]> {
     const db = getDatabase() as BreakingBatDatabase;
     const gameTypesData = await db.gameTypes.orderBy('name').toArray();
 
@@ -59,7 +59,7 @@ export class IndexedDBGameTypeRepository implements GameTypeRepository {
     );
   }
 
-  async findByName(name: string): Promise<GameType | null> {
+  public async findByName(name: string): Promise<GameType | null> {
     const db = getDatabase() as BreakingBatDatabase;
     const gameTypeData = await db.gameTypes.where('name').equals(name).first();
 
@@ -76,18 +76,18 @@ export class IndexedDBGameTypeRepository implements GameTypeRepository {
     );
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     const db = getDatabase() as BreakingBatDatabase;
     await db.gameTypes.delete(id);
   }
 
-  async existsByName(name: string): Promise<boolean> {
+  public async existsByName(name: string): Promise<boolean> {
     const db = getDatabase() as BreakingBatDatabase;
     const gameType = await db.gameTypes.where('name').equals(name).first();
     return !!gameType;
   }
 
-  async search(query: string): Promise<GameType[]> {
+  public async search(query: string): Promise<GameType[]> {
     const db = getDatabase() as BreakingBatDatabase;
     const gameTypesData = await db.gameTypes.toArray();
 
@@ -111,7 +111,7 @@ export class IndexedDBGameTypeRepository implements GameTypeRepository {
     );
   }
 
-  async findAllOrderedByName(): Promise<GameType[]> {
+  public async findAllOrderedByName(): Promise<GameType[]> {
     return this.findAll(); // Already ordered by name in findAll()
   }
 }

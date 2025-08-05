@@ -27,7 +27,7 @@ const mockPlayerRepository = {
 };
 
 const mockTeamHydrationService = {
-  hydrateTeams: jest.fn().mockImplementation(async (domainTeams: any[]) => {
+  hydrateTeams: jest.fn().mockImplementation(async (domainTeams: Team[]) => {
     return domainTeams.map((team) => ({
       id: team.id,
       name: team.name,
@@ -51,10 +51,6 @@ const mockUpdatePlayerUseCase = {
 
 const mockRemovePlayerUseCase = {
   execute: jest.fn(),
-};
-
-const mockStatsRepository = {
-  getPlayerStats: jest.fn(),
 };
 
 // Initialize store with mocks before each test
@@ -123,7 +119,9 @@ describe('TeamsStore', () => {
       expect(result.current.loading).toBe(true);
 
       await act(async () => {
-        resolvePromise!([]);
+        if (resolvePromise) {
+          resolvePromise([]);
+        }
       });
 
       expect(result.current.loading).toBe(false);

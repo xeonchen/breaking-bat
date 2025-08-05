@@ -36,7 +36,7 @@ export class OutcomeParametersFactory {
   /**
    * Standard outcome - no aggressive running, no errors
    */
-  static standard(): OutcomeParameters {
+  public static standard(): OutcomeParameters {
     return {
       runner_is_aggressive: false,
       has_fielding_error: false,
@@ -47,7 +47,7 @@ export class OutcomeParametersFactory {
   /**
    * Aggressive running only
    */
-  static aggressive(): OutcomeParameters {
+  public static aggressive(): OutcomeParameters {
     return {
       runner_is_aggressive: true,
       has_fielding_error: false,
@@ -58,7 +58,7 @@ export class OutcomeParametersFactory {
   /**
    * Fielding error only
    */
-  static fieldingError(): OutcomeParameters {
+  public static fieldingError(): OutcomeParameters {
     return {
       runner_is_aggressive: false,
       has_fielding_error: true,
@@ -69,7 +69,7 @@ export class OutcomeParametersFactory {
   /**
    * Running error only
    */
-  static runningError(): OutcomeParameters {
+  public static runningError(): OutcomeParameters {
     return {
       runner_is_aggressive: false,
       has_fielding_error: false,
@@ -80,7 +80,7 @@ export class OutcomeParametersFactory {
   /**
    * Create custom parameter combination
    */
-  static custom(
+  public static custom(
     runner_is_aggressive: boolean,
     has_fielding_error: boolean,
     has_running_error: boolean
@@ -95,9 +95,9 @@ export class OutcomeParametersFactory {
   /**
    * Get all possible parameter combinations (8 total: 2^3)
    */
-  static getAllCombinations(): OutcomeParameters[] {
+  public static getAllCombinations(): OutcomeParameters[] {
     const combinations: OutcomeParameters[] = [];
-    
+
     for (let aggressive = 0; aggressive <= 1; aggressive++) {
       for (let fieldingError = 0; fieldingError <= 1; fieldingError++) {
         for (let runningError = 0; runningError <= 1; runningError++) {
@@ -109,15 +109,19 @@ export class OutcomeParametersFactory {
         }
       }
     }
-    
+
     return combinations;
   }
 
   /**
    * Get a description of the parameter combination
    */
-  static describe(params: OutcomeParameters): string {
-    if (!params.runner_is_aggressive && !params.has_fielding_error && !params.has_running_error) {
+  public static describe(params: OutcomeParameters): string {
+    if (
+      !params.runner_is_aggressive &&
+      !params.has_fielding_error &&
+      !params.has_running_error
+    ) {
       return 'Standard';
     }
 

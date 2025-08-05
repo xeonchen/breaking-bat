@@ -289,7 +289,9 @@ test.describe('Data Persistence Features', () => {
       // Check that page has some content (not blank due to storage error)
       const hasContent = await page.locator('body').textContent();
       expect(hasContent).toBeTruthy();
-      expect(hasContent!.length).toBeGreaterThan(10);
+      if (hasContent) {
+        expect(hasContent.length).toBeGreaterThan(10);
+      }
     }
   });
 

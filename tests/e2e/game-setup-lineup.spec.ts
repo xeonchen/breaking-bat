@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 /**
  * Game Setup and Lineup Management E2E Tests
@@ -399,7 +399,7 @@ test.describe('Game Setup and Lineup Management', () => {
 /**
  * Helper function to create basic prerequisites (team, season, game type)
  */
-async function createBasicPrerequisites(page: any) {
+async function createBasicPrerequisites(page: Page) {
   // Create a team first
   await page.goto('/teams');
   await page.waitForTimeout(1000);
@@ -453,7 +453,7 @@ async function createBasicPrerequisites(page: any) {
 /**
  * Helper function to create prerequisites and a game
  */
-async function createGameWithPrerequisites(page: any) {
+async function createGameWithPrerequisites(page: Page) {
   await createBasicPrerequisites(page);
 
   // Create a game

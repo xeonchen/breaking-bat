@@ -6,20 +6,20 @@ import { ValidationResult } from './RuleViolation';
 export interface ValidationRule {
   /** Unique identifier for the rule */
   readonly id: string;
-  
+
   /** Human-readable name for the rule */
   readonly name: string;
-  
+
   /** Description of what the rule validates */
   readonly description: string;
-  
+
   /** Whether the rule is currently enabled */
   enabled: boolean;
-  
+
   /** Rule category for organization */
   readonly category: 'critical' | 'configurable' | 'optional';
-  
-  /** 
+
+  /**
    * Validate an at-bat scenario against this rule
    * @param scenario The at-bat scenario to validate
    * @returns ValidationResult indicating if the scenario is valid
@@ -33,22 +33,22 @@ export interface ValidationRule {
 export interface AtBatValidationScenario {
   /** Baserunner state before the at-bat */
   beforeState: import('../values/BaserunnerState').BaserunnerState;
-  
+
   /** Baserunner state after the at-bat */
   afterState: import('../values/BaserunnerState').BaserunnerState;
-  
+
   /** The batting result */
   battingResult: import('../values/BattingResult').BattingResult;
-  
+
   /** Number of RBIs recorded */
   rbis: number;
-  
+
   /** Number of outs recorded */
   outs: number;
-  
+
   /** List of runs scored */
   runsScored: readonly string[];
-  
+
   /** ID of the batter */
   batterId: string;
 }
@@ -60,7 +60,7 @@ export class ValidationRuleFactory {
   /**
    * Create a validation rule with the given properties
    */
-  static create(
+  public static create(
     id: string,
     name: string,
     description: string,
@@ -85,7 +85,7 @@ export class ValidationRuleFactory {
 export interface RuleEngineConfig {
   /** Map of rule ID to enabled status */
   ruleStates: Map<string, boolean>;
-  
+
   /** Default enabled state for new rules */
   defaultEnabled: boolean;
 }
@@ -96,13 +96,13 @@ export interface RuleEngineConfig {
 export interface RuleEngineValidationResult {
   /** Whether all enabled rules passed */
   isValid: boolean;
-  
+
   /** Results from individual rules */
   ruleResults: Map<string, ValidationResult>;
-  
+
   /** Combined violations from all failed rules */
   allViolations: readonly import('./RuleViolation').RuleViolation[];
-  
+
   /** All suggested corrections from failed rules */
   allSuggestions: readonly import('./ValidOutcome').ValidOutcome[];
 }

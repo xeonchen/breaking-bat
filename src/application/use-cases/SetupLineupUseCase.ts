@@ -19,7 +19,7 @@ export class SetupLineupUseCase {
     private playerRepository: PlayerRepository
   ) {}
 
-  async execute(command: SetupLineupCommand): Promise<Result<void>> {
+  public async execute(command: SetupLineupCommand): Promise<Result<void>> {
     try {
       // Validate command structure first
       const validationResult = await this.validateCommand(command);
@@ -89,7 +89,7 @@ export class SetupLineupUseCase {
 
     // Validate no duplicate positions
     const positions = command.lineupPositions.map((lp) => lp.position);
-    const positionValues = positions.map(pos => pos.value);
+    const positionValues = positions.map((pos) => pos.value);
     const uniquePositionValues = new Set(positionValues);
 
     if (uniquePositionValues.size !== positionValues.length) {
@@ -110,8 +110,7 @@ export class SetupLineupUseCase {
       'short-fielder',
     ]);
 
-    const actualPositionValues = new Set(positions.map(pos => pos.value));
-
+    const actualPositionValues = new Set(positions.map((pos) => pos.value));
 
     if (
       actualPositionValues.size !== requiredPositionValues.size ||

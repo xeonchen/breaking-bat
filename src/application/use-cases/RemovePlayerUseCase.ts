@@ -12,7 +12,7 @@ export class RemovePlayerUseCase {
     private teamRepository: TeamRepository
   ) {}
 
-  async execute(command: RemovePlayerCommand): Promise<Result<void>> {
+  public async execute(command: RemovePlayerCommand): Promise<Result<void>> {
     try {
       // Validate command
       const validationResult = this.validateCommand(command);

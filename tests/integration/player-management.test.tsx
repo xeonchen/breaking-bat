@@ -33,7 +33,10 @@ describe('Player Management Integration Tests', () => {
     });
 
     expect(teamResult.isSuccess).toBe(true);
-    testTeamId = teamResult.value!.id;
+    expect(teamResult.value).toBeDefined();
+    if (teamResult.value) {
+      testTeamId = teamResult.value.id;
+    }
   }, 15000);
 
   afterEach(async () => {
@@ -54,8 +57,11 @@ describe('Player Management Integration Tests', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('Ted Williams');
-      expect(result.value!.jerseyNumber).toBe(9);
+      expect(result.value).toBeDefined();
+      if (result.value) {
+        expect(result.value.name).toBe('Ted Williams');
+        expect(result.value.jerseyNumber).toBe(9);
+      }
     }, 10000);
 
     it('should prevent duplicate jersey numbers within same team', async () => {
@@ -79,7 +85,9 @@ describe('Player Management Integration Tests', () => {
       });
 
       expect(secondResult.isSuccess).toBe(false);
-      expect(secondResult.error).toContain('Jersey number 9 is already in use for this team');
+      expect(secondResult.error).toContain(
+        'Jersey number 9 is already in use for this team'
+      );
     }, 10000);
   });
 

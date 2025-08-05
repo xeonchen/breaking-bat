@@ -15,7 +15,7 @@ export interface CreateGameCommand {
 export class CreateGameUseCase {
   constructor(private gameRepository: GameRepository) {}
 
-  async execute(command: CreateGameCommand): Promise<Result<Game>> {
+  public async execute(command: CreateGameCommand): Promise<Result<Game>> {
     try {
       // Validate command
       const validationResult = this.validateCommand(command);

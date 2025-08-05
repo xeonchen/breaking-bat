@@ -23,7 +23,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     }
   }
 
-  async save(team: Team): Promise<Team> {
+  public async save(team: Team): Promise<Team> {
     // Check for duplicate team name
     const existingTeam = await this.findByName(team.name);
 
@@ -45,7 +45,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return team;
   }
 
-  async findById(id: string): Promise<Team | null> {
+  public async findById(id: string): Promise<Team | null> {
     const record = await this.db.table('teams').get(id);
 
     if (!record) {
@@ -55,13 +55,13 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return this.recordToTeam(record);
   }
 
-  async findAll(): Promise<Team[]> {
+  public async findAll(): Promise<Team[]> {
     const records = await this.db.table('teams').toArray();
 
     return records.map((record) => this.recordToTeam(record));
   }
 
-  async findBySeasonId(seasonId: string): Promise<Team[]> {
+  public async findBySeasonId(seasonId: string): Promise<Team[]> {
     const records = await this.db
       .table('teams')
       .filter((record) => record.seasonIds.includes(seasonId))
@@ -70,7 +70,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return records.map((record) => this.recordToTeam(record));
   }
 
-  async findByName(name: string): Promise<Team | null> {
+  public async findByName(name: string): Promise<Team | null> {
     const record = await this.db
       .table('teams')
       .filter((record) => record.name.toLowerCase() === name.toLowerCase())
@@ -83,11 +83,11 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return this.recordToTeam(record);
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.db.table('teams').delete(id);
   }
 
-  async addPlayer(teamId: string, playerId: string): Promise<Team> {
+  public async addPlayer(teamId: string, playerId: string): Promise<Team> {
     const team = await this.findById(teamId);
 
     if (!team) {
@@ -98,7 +98,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return await this.save(updatedTeam);
   }
 
-  async removePlayer(teamId: string, playerId: string): Promise<Team> {
+  public async removePlayer(teamId: string, playerId: string): Promise<Team> {
     const team = await this.findById(teamId);
 
     if (!team) {
@@ -109,7 +109,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return await this.save(updatedTeam);
   }
 
-  async addSeason(teamId: string, seasonId: string): Promise<Team> {
+  public async addSeason(teamId: string, seasonId: string): Promise<Team> {
     const team = await this.findById(teamId);
 
     if (!team) {
@@ -120,7 +120,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return await this.save(updatedTeam);
   }
 
-  async removeSeason(teamId: string, seasonId: string): Promise<Team> {
+  public async removeSeason(teamId: string, seasonId: string): Promise<Team> {
     const team = await this.findById(teamId);
 
     if (!team) {
@@ -131,7 +131,7 @@ export class IndexedDBTeamRepository implements TeamRepository {
     return await this.save(updatedTeam);
   }
 
-  async search(query: string): Promise<Team[]> {
+  public async search(query: string): Promise<Team[]> {
     const lowerQuery = query.toLowerCase();
 
     const records = await this.db

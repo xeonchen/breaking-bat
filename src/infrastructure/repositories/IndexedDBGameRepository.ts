@@ -1,6 +1,7 @@
 import { Game, GameRepository } from '@/domain';
 import { GameStatus, GameScore } from '@/domain/entities/Game';
 import { getDatabase } from '../database/connection';
+import { GameRecord } from '../database/types';
 import Dexie from 'dexie';
 
 export class IndexedDBGameRepository implements GameRepository {
@@ -24,7 +25,7 @@ export class IndexedDBGameRepository implements GameRepository {
     }
   }
 
-  async save(game: Game): Promise<Game> {
+  public async save(game: Game): Promise<Game> {
     // Convert domain entity to database record
     const gameRecord = {
       id: game.id,
@@ -47,7 +48,7 @@ export class IndexedDBGameRepository implements GameRepository {
     return game;
   }
 
-  async findById(id: string): Promise<Game | null> {
+  public async findById(id: string): Promise<Game | null> {
     const record = await this.db.table('games').get(id);
 
     if (!record) {
@@ -57,7 +58,37 @@ export class IndexedDBGameRepository implements GameRepository {
     return this.recordToGame(record);
   }
 
-  async findByTeamId(teamId: string): Promise<Game[]> {
+  public async findAll(): Promise<Game[]> {
+    const records = await this.db.table('games').toArray();
+    return records.map((record) => this.recordToGame(record));
+  }
+
+  public async findCurrent(): Promise<Game | null> {
+    const records = await this.db
+      .table('games')
+      .where('status')
+      .equals('in_progress')
+      .first();
+
+    if (!records) {
+      return null;
+    }
+
+    return this.recordToGame(records);
+  }
+
+  public async getLineup(gameId: string): Promise<string[]> {
+    const game = await this.findById(gameId);
+    if (!game || !game.lineupId) {
+      return [];
+    }
+
+    // This is a simplified implementation
+    // In reality, this would fetch lineup data from a lineup repository
+    return [];
+  }
+
+  public async findByTeamId(teamId: string): Promise<Game[]> {
     const records = await this.db
       .table('games')
       .where('teamId')
@@ -67,7 +98,7 @@ export class IndexedDBGameRepository implements GameRepository {
     return records.map((record) => this.recordToGame(record));
   }
 
-  async findBySeasonId(seasonId: string): Promise<Game[]> {
+  public async findBySeasonId(seasonId: string): Promise<Game[]> {
     const records = await this.db
       .table('games')
       .where('seasonId')
@@ -77,7 +108,7 @@ export class IndexedDBGameRepository implements GameRepository {
     return records.map((record) => this.recordToGame(record));
   }
 
-  async findByStatus(status: GameStatus): Promise<Game[]> {
+  public async findByStatus(status: GameStatus): Promise<Game[]> {
     const records = await this.db
       .table('games')
       .where('status')
@@ -87,10 +118,13 @@ export class IndexedDBGameRepository implements GameRepository {
     return records.map((record) => this.recordToGame(record));
   }
 
-  async findByDateRange(startDate: Date, endDate: Date): Promise<Game[]> {
+  public async findByDateRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<Game[]> {
     const records = await this.db
       .table('games')
-      .filter((record: any) => {
+      .filter((record: GameRecord) => {
         const gameDate = new Date(record.date);
         return gameDate >= startDate && gameDate <= endDate;
       })
@@ -99,15 +133,15 @@ export class IndexedDBGameRepository implements GameRepository {
     return records.map((record) => this.recordToGame(record));
   }
 
-  async findActiveGames(): Promise<Game[]> {
+  public async findActiveGames(): Promise<Game[]> {
     return await this.findByStatus('in_progress');
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.db.table('games').delete(id);
   }
 
-  async addInning(gameId: string, inningId: string): Promise<Game> {
+  public async addInning(gameId: string, inningId: string): Promise<Game> {
     const game = await this.findById(gameId);
 
     if (!game) {
@@ -122,7 +156,7 @@ export class IndexedDBGameRepository implements GameRepository {
     return await this.save(updatedGame);
   }
 
-  async updateScore(gameId: string, score: GameScore): Promise<Game> {
+  public async updateScore(gameId: string, score: GameScore): Promise<Game> {
     const game = await this.findById(gameId);
 
     if (!game) {
@@ -150,7 +184,7 @@ export class IndexedDBGameRepository implements GameRepository {
     return await this.save(updatedGame);
   }
 
-  async search(query: string): Promise<Game[]> {
+  public async search(query: string): Promise<Game[]> {
     const lowerQuery = query.toLowerCase();
 
     const records = await this.db
@@ -165,7 +199,7 @@ export class IndexedDBGameRepository implements GameRepository {
     return records.map((record) => this.recordToGame(record));
   }
 
-  async getGameStatistics(gameId: string): Promise<{
+  public async getGameStatistics(gameId: string): Promise<{
     totalRuns: number;
     ourScore: number;
     opponentScore: number;
@@ -210,22 +244,7 @@ export class IndexedDBGameRepository implements GameRepository {
     };
   }
 
-  private recordToGame(record: {
-    id: string;
-    name: string;
-    opponent: string;
-    date: Date;
-    seasonId: string;
-    gameTypeId: string;
-    homeAway: 'home' | 'away';
-    teamId: string;
-    status: GameStatus;
-    lineupId: string | null;
-    inningIds: string[];
-    finalScore: GameScore | null;
-    createdAt: Date;
-    updatedAt: Date;
-  }): Game {
+  private recordToGame(record: GameRecord): Game {
     return new Game(
       record.id,
       record.name,

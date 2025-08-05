@@ -11,12 +11,12 @@ export interface CreateTeamCommand {
 export class CreateTeamUseCase {
   constructor(private teamRepository: TeamRepository) {}
 
-  async execute(command: CreateTeamCommand): Promise<Result<Team>> {
+  public async execute(command: CreateTeamCommand): Promise<Result<Team>> {
     try {
       // Validate command
       const validationResult = this.validateCommand(command);
       if (!validationResult.isSuccess) {
-        return Result.failure(validationResult.error!);
+        return Result.failure(validationResult.error || 'Validation failed');
       }
 
       // Check if team name already exists

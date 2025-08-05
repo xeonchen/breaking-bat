@@ -16,6 +16,21 @@ export interface GameRepository {
   findById(id: string): Promise<Game | null>;
 
   /**
+   * Find all games
+   */
+  findAll(): Promise<Game[]>;
+
+  /**
+   * Find current active game
+   */
+  findCurrent(): Promise<Game | null>;
+
+  /**
+   * Get lineup for a game
+   */
+  getLineup(gameId: string): Promise<string[]>;
+
+  /**
    * Find games by team ID
    */
   findByTeamId(teamId: string): Promise<Game[]>;

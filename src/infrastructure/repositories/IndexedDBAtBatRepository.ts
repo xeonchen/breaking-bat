@@ -1,6 +1,7 @@
 import { AtBat, AtBatRepository, PlayerStatistics, Player } from '@/domain';
 import { BattingResult, BaserunnerState } from '@/domain/values';
 import { getDatabase } from '../database/connection';
+import { AtBatRecord } from '../database/types';
 import Dexie from 'dexie';
 
 export class IndexedDBAtBatRepository implements AtBatRepository {
@@ -23,7 +24,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     }
   }
 
-  async save(atBat: AtBat): Promise<AtBat> {
+  public async save(atBat: AtBat): Promise<AtBat> {
     const atBatRecord = {
       id: atBat.id,
       gameId: atBat.gameId,
@@ -43,7 +44,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     return atBat;
   }
 
-  async findById(id: string): Promise<AtBat | null> {
+  public async findById(id: string): Promise<AtBat | null> {
     const record = await this.db.table('atBats').get(id);
 
     if (!record) {
@@ -53,7 +54,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     return this.recordToAtBat(record);
   }
 
-  async findByGameId(gameId: string): Promise<AtBat[]> {
+  public async findByGameId(gameId: string): Promise<AtBat[]> {
     const records = await this.db
       .table('atBats')
       .where('gameId')
@@ -63,7 +64,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     return records.map((record) => this.recordToAtBat(record));
   }
 
-  async findByInningId(inningId: string): Promise<AtBat[]> {
+  public async findByInningId(inningId: string): Promise<AtBat[]> {
     const records = await this.db
       .table('atBats')
       .where('inningId')
@@ -73,7 +74,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     return records.map((record) => this.recordToAtBat(record));
   }
 
-  async findByBatterId(batterId: string): Promise<AtBat[]> {
+  public async findByBatterId(batterId: string): Promise<AtBat[]> {
     const records = await this.db
       .table('atBats')
       .where('batterId')
@@ -83,7 +84,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     return records.map((record) => this.recordToAtBat(record));
   }
 
-  async findByBattingPosition(
+  public async findByBattingPosition(
     gameId: string,
     position: number
   ): Promise<AtBat[]> {
@@ -91,17 +92,19 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
       .table('atBats')
       .where('gameId')
       .equals(gameId)
-      .and((record: any) => record.battingPosition === position)
+      .and((record: AtBatRecord) => record.battingPosition === position)
       .toArray();
 
     return records.map((record) => this.recordToAtBat(record));
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.db.table('atBats').delete(id);
   }
 
-  async getPlayerStatistics(batterId: string): Promise<PlayerStatistics> {
+  public async getPlayerStatistics(
+    batterId: string
+  ): Promise<PlayerStatistics> {
     const atBats = await this.findByBatterId(batterId);
 
     if (atBats.length === 0) {
@@ -190,7 +193,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     };
   }
 
-  async getGameStatistics(gameId: string): Promise<{
+  public async getGameStatistics(gameId: string): Promise<{
     totalAtBats: number;
     totalHits: number;
     totalRuns: number;
@@ -243,12 +246,12 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     };
   }
 
-  async findHitsOnly(gameId: string): Promise<AtBat[]> {
+  public async findHitsOnly(gameId: string): Promise<AtBat[]> {
     const atBats = await this.findByGameId(gameId);
     return atBats.filter((atBat) => atBat.result.isHit());
   }
 
-  async findWithRBIs(gameId: string): Promise<AtBat[]> {
+  public async findWithRBIs(gameId: string): Promise<AtBat[]> {
     const atBats = await this.findByGameId(gameId);
     return atBats.filter((atBat) => atBat.rbis > 0);
   }
@@ -319,7 +322,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     );
   }
 
-  async findWithRunningErrors(gameId: string): Promise<AtBat[]> {
+  public async findWithRunningErrors(gameId: string): Promise<AtBat[]> {
     const records = await this.db
       .table('atBats')
       .where('gameId')
@@ -332,7 +335,7 @@ export class IndexedDBAtBatRepository implements AtBatRepository {
     return records.map((record) => this.recordToAtBat(record));
   }
 
-  async getPlayerRunningErrorStats(batterId: string): Promise<{
+  public async getPlayerRunningErrorStats(batterId: string): Promise<{
     totalRunningErrors: number;
     gamesWithRunningErrors: number;
     atBatsWithRunningErrors: number;

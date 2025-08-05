@@ -10,7 +10,7 @@ export class BaseAdvancementCalculator {
    * Calculate standard advancement for all runners and batter based on hit type
    * This represents the default, conservative advancement pattern
    */
-  static calculateStandardAdvancement(
+  public static calculateStandardAdvancement(
     beforeState: BaserunnerState,
     battingResult: BattingResult,
     batterId: string
@@ -302,7 +302,7 @@ export class BaseAdvancementCalculator {
    * Calculate which runs should count as RBIs (earned by the hit, not errors)
    * In standard advancement, all runs scored are earned by the hit
    */
-  static calculateStandardRBIs(
+  public static calculateStandardRBIs(
     runsScored: string[],
     battingResult: BattingResult
   ): string[] {

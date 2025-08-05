@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { Team, Position } from '@/domain';
-import { CreateTeamCommand } from '@/application/use-cases/CreateTeamUseCase';
+import { Team, Position, TeamRepository, PlayerRepository } from '@/domain';
+import {
+  CreateTeamCommand,
+  CreateTeamUseCase,
+} from '@/application/use-cases/CreateTeamUseCase';
+import { AddPlayerUseCase } from '@/application/use-cases/AddPlayerUseCase';
+import { UpdatePlayerUseCase } from '@/application/use-cases/UpdatePlayerUseCase';
+import { RemovePlayerUseCase } from '@/application/use-cases/RemovePlayerUseCase';
 import {
   PresentationTeam,
   PresentationPlayer,
@@ -55,35 +61,22 @@ interface TeamsState {
 }
 
 // Repository interfaces - will be injected in production
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let teamRepository: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let teamHydrationService: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let createTeamUseCase: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let addPlayerUseCase: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let updatePlayerUseCase: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let removePlayerUseCase: any;
+let teamRepository: TeamRepository;
+let teamHydrationService: TeamHydrationService;
+let createTeamUseCase: CreateTeamUseCase;
+let addPlayerUseCase: AddPlayerUseCase;
+let updatePlayerUseCase: UpdatePlayerUseCase;
+let removePlayerUseCase: RemovePlayerUseCase;
 
 // Initialize function for dependency injection
 export const initializeTeamsStore = (deps: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  teamRepository: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  playerRepository: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  teamHydrationService: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createTeamUseCase: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addPlayerUseCase: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updatePlayerUseCase: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  removePlayerUseCase: any;
+  teamRepository: TeamRepository;
+  playerRepository: PlayerRepository;
+  teamHydrationService: TeamHydrationService;
+  createTeamUseCase: CreateTeamUseCase;
+  addPlayerUseCase: AddPlayerUseCase;
+  updatePlayerUseCase: UpdatePlayerUseCase;
+  removePlayerUseCase: RemovePlayerUseCase;
 }): void => {
   console.log('🔧 Initializing TeamsStore with dependencies:', {
     teamRepository: !!deps.teamRepository,
@@ -133,7 +126,7 @@ export const useTeamsStore = create<TeamsState>()(
             const domainTeams = await teamRepository.findAll();
             console.log(
               `✅ Found ${domainTeams.length} domain teams:`,
-              domainTeams.map((t: any) => ({ id: t.id, name: t.name }))
+              domainTeams.map((t: Team) => ({ id: t.id, name: t.name }))
             );
 
             console.log('💧 Hydrating teams with player data...');
@@ -141,7 +134,7 @@ export const useTeamsStore = create<TeamsState>()(
               await teamHydrationService.hydrateTeams(domainTeams);
             console.log(
               `✅ Hydrated ${hydratedTeams.length} teams:`,
-              hydratedTeams.map((t: any) => ({
+              hydratedTeams.map((t: PresentationTeam) => ({
                 id: t.id,
                 name: t.name,
                 playerCount: t.players.length,
@@ -201,7 +194,7 @@ export const useTeamsStore = create<TeamsState>()(
           }
         },
 
-        updateTeam: async (teamId: string, teamData: TeamData) => {
+        updateTeam: async (_teamId: string, teamData: TeamData) => {
           set({ loading: true, error: null });
           try {
             const updatedTeam = new Team(
@@ -211,14 +204,14 @@ export const useTeamsStore = create<TeamsState>()(
               teamData.playerIds
             );
 
-            const savedTeam = await teamRepository.save(updatedTeam);
+            await teamRepository.save(updatedTeam);
 
-            const currentTeams = get().teams;
-            const updatedTeams = currentTeams.map((team) =>
-              team.id === teamId ? savedTeam : team
-            );
+            // Refresh teams list to get updated data with proper hydration
+            const domainTeams = await teamRepository.findAll();
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
 
-            set({ teams: updatedTeams, loading: false });
+            set({ teams: hydratedTeams, loading: false });
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';

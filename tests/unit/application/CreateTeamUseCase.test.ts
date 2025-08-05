@@ -52,9 +52,11 @@ describe('CreateTeamUseCase', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.name).toBe('Red Sox');
-      expect(result.value!.seasonIds).toEqual(['season1']);
-      expect(result.value!.playerIds).toEqual(['player1', 'player2']);
+      if (result.value) {
+        expect(result.value.name).toBe('Red Sox');
+        expect(result.value.seasonIds).toEqual(['season1']);
+        expect(result.value.playerIds).toEqual(['player1', 'player2']);
+      }
 
       expect(mockTeamRepository.findByName).toHaveBeenCalledWith('Red Sox');
       expect(mockTeamRepository.save).toHaveBeenCalled();
@@ -118,8 +120,11 @@ describe('CreateTeamUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.seasonIds).toEqual([]);
-      expect(result.value!.playerIds).toEqual([]);
+      expect(result.value).toBeDefined();
+      if (result.value) {
+        expect(result.value.seasonIds).toEqual([]);
+        expect(result.value.playerIds).toEqual([]);
+      }
     });
 
     it('should trim team name whitespace', async () => {
@@ -135,7 +140,10 @@ describe('CreateTeamUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('Dodgers');
+      expect(result.value).toBeDefined();
+      if (result.value) {
+        expect(result.value.name).toBe('Dodgers');
+      }
       expect(mockTeamRepository.findByName).toHaveBeenCalledWith('  Dodgers  ');
     });
 
@@ -202,7 +210,11 @@ describe('CreateTeamUseCase', () => {
 
       expect(result1.isSuccess).toBe(true);
       expect(result2.isSuccess).toBe(true);
-      expect(result1.value!.id).not.toBe(result2.value!.id);
+      expect(result1.value).toBeDefined();
+      expect(result2.value).toBeDefined();
+      if (result1.value && result2.value) {
+        expect(result1.value.id).not.toBe(result2.value.id);
+      }
     });
 
     it('should validate season IDs format', async () => {
@@ -283,8 +295,11 @@ describe('CreateTeamUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeDefined();
       // Should deduplicate automatically
-      expect(result.value!.seasonIds).toEqual(['season1', 'season2']);
+      if (result.value) {
+        expect(result.value.seasonIds).toEqual(['season1', 'season2']);
+      }
     });
 
     it('should allow duplicate player IDs in playerIds array', async () => {
@@ -300,8 +315,11 @@ describe('CreateTeamUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeDefined();
       // Should deduplicate automatically
-      expect(result.value!.playerIds).toEqual(['player1', 'player2']);
+      if (result.value) {
+        expect(result.value.playerIds).toEqual(['player1', 'player2']);
+      }
     });
   });
 });

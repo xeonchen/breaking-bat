@@ -1,17 +1,24 @@
-import { ValidationRule, ValidationRuleFactory, AtBatValidationScenario } from '../values/ValidationRule';
-import { ValidationResult, RuleViolation, ViolationType } from '../values/RuleViolation';
+import {
+  ValidationRule,
+  ValidationRuleFactory,
+  AtBatValidationScenario,
+} from '../values/ValidationRule';
+import {
+  ValidationResult,
+  RuleViolation,
+  ViolationType,
+} from '../values/RuleViolation';
 
 /**
  * Critical validation rules that prevent fundamental game rule violations
  * These rules represent basic game mechanics and data consistency requirements
  */
 export class CriticalValidationRules {
-  
   /**
    * Create the "no-runner-passing" validation rule
    * Prevents scenarios where a trailing runner passes a lead runner
    */
-  static createNoRunnerPassingRule(): ValidationRule {
+  public static createNoRunnerPassingRule(): ValidationRule {
     return ValidationRuleFactory.create(
       'no-runner-passing',
       'No Runner Passing',
@@ -21,21 +28,21 @@ export class CriticalValidationRules {
         // Check for runner passing violations
         const before = scenario.beforeState;
         const after = scenario.afterState;
-        
+
         // Get runner positions before and after
         const beforeRunners = new Map<string, number>();
         const afterRunners = new Map<string, number>();
-        
+
         // Map before positions (1=first, 2=second, 3=third)
         if (before.firstBase) beforeRunners.set(before.firstBase, 1);
         if (before.secondBase) beforeRunners.set(before.secondBase, 2);
         if (before.thirdBase) beforeRunners.set(before.thirdBase, 3);
-        
-        // Map after positions  
+
+        // Map after positions
         if (after.firstBase) afterRunners.set(after.firstBase, 1);
         if (after.secondBase) afterRunners.set(after.secondBase, 2);
         if (after.thirdBase) afterRunners.set(after.thirdBase, 3);
-        
+
         // Check if any runner moved backwards past another runner
         for (const [runnerId, beforePos] of beforeRunners) {
           const afterPos = afterRunners.get(runnerId);
@@ -44,13 +51,14 @@ export class CriticalValidationRules {
             for (const [otherRunnerId, otherBeforePos] of beforeRunners) {
               if (runnerId !== otherRunnerId) {
                 const otherAfterPos = afterRunners.get(otherRunnerId);
-                
+
                 // If trailing runner (lower position) ends up ahead of lead runner
-                if (beforePos < otherBeforePos && 
-                    afterPos !== undefined && 
-                    otherAfterPos !== undefined && 
-                    afterPos > otherAfterPos) {
-                  
+                if (
+                  beforePos < otherBeforePos &&
+                  afterPos !== undefined &&
+                  otherAfterPos !== undefined &&
+                  afterPos > otherAfterPos
+                ) {
                   const violation = new RuleViolation(
                     ViolationType.RUNNER_ORDER_VIOLATION,
                     `Runner ${runnerId} cannot pass runner ${otherRunnerId}`,
@@ -62,14 +70,14 @@ export class CriticalValidationRules {
                       outs: scenario.outs,
                     }
                   );
-                  
+
                   return ValidationResult.invalid(violation);
                 }
               }
             }
           }
         }
-        
+
         return ValidationResult.valid();
       }
     );
@@ -79,7 +87,7 @@ export class CriticalValidationRules {
    * Create the "rbi-validation" rule
    * Ensures RBI count does not exceed runs scored
    */
-  static createRbiValidationRule(): ValidationRule {
+  public static createRbiValidationRule(): ValidationRule {
     return ValidationRuleFactory.create(
       'rbi-validation',
       'RBI Validation',
@@ -98,20 +106,20 @@ export class CriticalValidationRules {
               outs: scenario.outs,
             }
           );
-          
+
           return ValidationResult.invalid(violation);
         }
-        
+
         return ValidationResult.valid();
       }
     );
   }
 
   /**
-   * Create the "max-outs-validation" rule  
+   * Create the "max-outs-validation" rule
    * Ensures no more than 3 outs are recorded on a single at-bat
    */
-  static createMaxOutsValidationRule(): ValidationRule {
+  public static createMaxOutsValidationRule(): ValidationRule {
     return ValidationRuleFactory.create(
       'max-outs-validation',
       'Maximum Outs Validation',
@@ -130,10 +138,10 @@ export class CriticalValidationRules {
               outs: scenario.outs,
             }
           );
-          
+
           return ValidationResult.invalid(violation);
         }
-        
+
         return ValidationResult.valid();
       }
     );
@@ -142,7 +150,7 @@ export class CriticalValidationRules {
   /**
    * Create all critical validation rules
    */
-  static createAllCriticalRules(): ValidationRule[] {
+  public static createAllCriticalRules(): ValidationRule[] {
     return [
       this.createNoRunnerPassingRule(),
       this.createRbiValidationRule(),
@@ -153,7 +161,9 @@ export class CriticalValidationRules {
   /**
    * Register all critical rules with a rule engine
    */
-  static registerWithEngine(engine: import('./ConfigurableRuleEngine').ConfigurableRuleEngine): void {
+  public static registerWithEngine(
+    engine: import('./ConfigurableRuleEngine').ConfigurableRuleEngine
+  ): void {
     const rules = this.createAllCriticalRules();
     for (const rule of rules) {
       engine.registerRule(rule);

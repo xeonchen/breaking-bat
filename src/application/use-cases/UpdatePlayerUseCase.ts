@@ -13,12 +13,12 @@ export interface UpdatePlayerCommand {
 export class UpdatePlayerUseCase {
   constructor(private playerRepository: PlayerRepository) {}
 
-  async execute(command: UpdatePlayerCommand): Promise<Result<Player>> {
+  public async execute(command: UpdatePlayerCommand): Promise<Result<Player>> {
     try {
       // Validate command
       const validationResult = this.validateCommand(command);
       if (!validationResult.isSuccess) {
-        return Result.failure(validationResult.error!);
+        return Result.failure(validationResult.error || 'Validation failed');
       }
 
       // Check if player exists

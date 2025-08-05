@@ -13,6 +13,19 @@ export interface BaserunnerAdvancementCalculation {
  */
 export class ScoringService {
   /**
+   * Record an at-bat result and calculate consequences
+   */
+  public recordAtBat(
+    _gameId: string,
+    _playerId: string,
+    _result: BattingResult,
+    _currentState: BaserunnerState
+  ): Promise<AtBat> {
+    // This is a placeholder implementation
+    // In reality, this would create an AtBat entity and persist it
+    throw new Error('recordAtBat method not fully implemented');
+  }
+  /**
    * Calculate automatic baserunner advancement based on batting result
    */
   public calculateBaserunnerAdvancement(

@@ -1,6 +1,7 @@
 import { Player, PlayerRepository, PlayerStatistics } from '@/domain';
 import { Position } from '@/domain/values';
 import { getDatabase } from '../database/connection';
+import { PlayerRecord } from '../database/types';
 import Dexie from 'dexie';
 
 export class IndexedDBPlayerRepository implements PlayerRepository {
@@ -24,7 +25,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     }
   }
 
-  async save(player: Player): Promise<Player> {
+  public async save(player: Player): Promise<Player> {
     // Check for duplicate jersey number within the same team
     const existingPlayer = await this.findByJerseyNumber(
       player.teamId,
@@ -54,7 +55,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return player;
   }
 
-  async findById(id: string): Promise<Player | null> {
+  public async findById(id: string): Promise<Player | null> {
     const record = await this.db.table('players').get(id);
 
     if (!record) {
@@ -64,7 +65,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return this.recordToPlayer(record);
   }
 
-  async findByTeamId(teamId: string): Promise<Player[]> {
+  public async findByTeamId(teamId: string): Promise<Player[]> {
     const records = await this.db
       .table('players')
       .where('teamId')
@@ -74,7 +75,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return records.map((record) => this.recordToPlayer(record));
   }
 
-  async findByJerseyNumber(
+  public async findByJerseyNumber(
     teamId: string,
     jerseyNumber: number
   ): Promise<Player | null> {
@@ -91,36 +92,36 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return this.recordToPlayer(record);
   }
 
-  async findActiveByTeamId(teamId: string): Promise<Player[]> {
+  public async findActiveByTeamId(teamId: string): Promise<Player[]> {
     const records = await this.db
       .table('players')
       .where('teamId')
       .equals(teamId)
-      .filter((record: any) => record.isActive === true)
+      .filter((record: PlayerRecord) => record.isActive === true)
       .toArray();
 
     return records.map((record) => this.recordToPlayer(record));
   }
 
-  async findAll(): Promise<Player[]> {
+  public async findAll(): Promise<Player[]> {
     const records = await this.db.table('players').toArray();
     return records.map((record) => this.recordToPlayer(record));
   }
 
-  async create(player: Player): Promise<Player> {
+  public async create(player: Player): Promise<Player> {
     return await this.save(player);
   }
 
-  async update(player: Player): Promise<Player> {
+  public async update(player: Player): Promise<Player> {
     return await this.save(player);
   }
 
-  async exists(id: string): Promise<boolean> {
+  public async exists(id: string): Promise<boolean> {
     const record = await this.db.table('players').get(id);
     return record !== undefined;
   }
 
-  async isJerseyNumberUnique(
+  public async isJerseyNumberUnique(
     teamId: string,
     jerseyNumber: number,
     excludePlayerId?: string
@@ -135,23 +136,22 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return excludePlayerId ? existingPlayer.id === excludePlayerId : false;
   }
 
-  async searchByName(query: string, teamId?: string): Promise<Player[]> {
+  public async searchByName(query: string, teamId?: string): Promise<Player[]> {
     const lowerQuery = query.toLowerCase();
 
-    let queryBuilder = (this.db as any).players;
-
-    if (teamId) {
-      queryBuilder = queryBuilder.where('teamId').equals(teamId);
-    }
-
-    const records = await queryBuilder
-      .filter((record: any) => record.name.toLowerCase().includes(lowerQuery))
+    const records = await this.db
+      .table('players')
+      .filter((record: PlayerRecord) => {
+        const nameMatches = record.name.toLowerCase().includes(lowerQuery);
+        const teamMatches = !teamId || record.teamId === teamId;
+        return nameMatches && teamMatches;
+      })
       .toArray();
 
-    return records.map((record: any) => this.recordToPlayer(record));
+    return records.map((record: PlayerRecord) => this.recordToPlayer(record));
   }
 
-  async getPlayersWithStatistics(
+  public async getPlayersWithStatistics(
     teamId: string,
     _seasonId?: string
   ): Promise<Player[]> {
@@ -160,11 +160,11 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return await this.findByTeamId(teamId);
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     await this.db.table('players').delete(id);
   }
 
-  async updateStatistics(
+  public async updateStatistics(
     id: string,
     statistics: PlayerStatistics
   ): Promise<Player> {
@@ -178,17 +178,7 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return await this.save(updatedPlayer);
   }
 
-  private recordToPlayer(record: {
-    id: string;
-    name: string;
-    jerseyNumber: number;
-    teamId: string;
-    positions: string[];
-    isActive: boolean;
-    statistics: PlayerStatistics;
-    createdAt: Date;
-    updatedAt: Date;
-  }): Player {
+  private recordToPlayer(record: PlayerRecord): Player {
     return new Player(
       record.id,
       record.name,

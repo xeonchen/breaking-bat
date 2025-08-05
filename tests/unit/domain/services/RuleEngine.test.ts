@@ -66,9 +66,9 @@ describe('RuleEngine', () => {
 
       // Should have standard + aggressive variations
       expect(outcomes.length).toBeGreaterThan(1);
-      
+
       // Check that some outcomes have aggressive descriptions
-      const aggressiveOutcome = outcomes.find(o => 
+      const aggressiveOutcome = outcomes.find((o) =>
         o.description.includes('Aggressive')
       );
       expect(aggressiveOutcome).toBeDefined();
@@ -89,9 +89,9 @@ describe('RuleEngine', () => {
 
       // Should have standard + error variations
       expect(outcomes.length).toBeGreaterThan(1);
-      
+
       // Check that some outcomes have error descriptions
-      const errorOutcome = outcomes.find(o => 
+      const errorOutcome = outcomes.find((o) =>
         o.description.includes('Error')
       );
       expect(errorOutcome).toBeDefined();
@@ -135,7 +135,12 @@ describe('RuleEngine', () => {
       const outcome = outcomes[0];
       expect(outcome.afterState.equals(BaserunnerState.empty())).toBe(true);
       expect(outcome.rbis).toBe(4);
-      expect(outcome.runsScored).toEqual(['runner1', 'runner2', 'runner3', 'batter1']);
+      expect(outcome.runsScored).toEqual([
+        'runner1',
+        'runner2',
+        'runner3',
+        'batter1',
+      ]);
       expect(outcome.outs).toBe(0);
     });
   });
@@ -154,9 +159,9 @@ describe('RuleEngine', () => {
 
       // Should have outcomes from multiple parameter combinations
       expect(allOutcomes.length).toBeGreaterThan(1);
-      
+
       // Should remove duplicates
-      const uniqueDescriptions = new Set(allOutcomes.map(o => o.description));
+      const uniqueDescriptions = new Set(allOutcomes.map((o) => o.description));
       expect(uniqueDescriptions.size).toBeLessThanOrEqual(allOutcomes.length);
     });
 
@@ -171,7 +176,7 @@ describe('RuleEngine', () => {
         batterId
       );
 
-      const standardOutcome = allOutcomes.find(o => 
+      const standardOutcome = allOutcomes.find((o) =>
         o.description.includes('Standard')
       );
       expect(standardOutcome).toBeDefined();
@@ -190,20 +195,20 @@ describe('RuleEngine', () => {
         battingResult,
         batterId
       );
-      const standardOutcome = validOutcomes.find(o => 
+      const standardOutcome = validOutcomes.find((o) =>
         o.description.includes('Standard')
       );
 
       expect(standardOutcome).toBeDefined();
-      
-      const isValid = RuleEngine.validateOutcome(
-        beforeState,
-        battingResult,
-        batterId,
-        standardOutcome!
-      );
-
-      expect(isValid).toBe(true);
+      if (standardOutcome) {
+        const isValid = RuleEngine.validateOutcome(
+          beforeState,
+          battingResult,
+          batterId,
+          standardOutcome
+        );
+        expect(isValid).toBe(true);
+      }
     });
 
     it('should reject invalid outcome', () => {
@@ -219,7 +224,7 @@ describe('RuleEngine', () => {
         batterId,
         invalidOutcome
       )[0];
-      
+
       // Modify it to be invalid
       const modifiedOutcome = {
         ...outcome,
@@ -253,16 +258,16 @@ describe('RuleEngine', () => {
       );
 
       // All outcomes should be valid with aggressive parameters
-      aggressiveOutcomes.forEach(outcome => {
+      aggressiveOutcomes.forEach((outcome) => {
         expect(outcome.isValidWithParameters(aggressiveParams)).toBe(true);
       });
 
       // Some outcomes might not be valid with standard parameters
       const standardParams = OutcomeParametersFactory.standard();
-      const aggressiveOnlyOutcomes = aggressiveOutcomes.filter(outcome => 
-        !outcome.isValidWithParameters(standardParams)
+      const aggressiveOnlyOutcomes = aggressiveOutcomes.filter(
+        (outcome) => !outcome.isValidWithParameters(standardParams)
       );
-      
+
       // There should be some aggressive-only outcomes
       expect(aggressiveOnlyOutcomes.length).toBeGreaterThan(0);
     });

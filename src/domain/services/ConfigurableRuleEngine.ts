@@ -29,12 +29,14 @@ export class ConfigurableRuleEngine {
   /**
    * Register a new validation rule
    */
-  registerRule(rule: ValidationRule): void {
+  public registerRule(rule: ValidationRule): void {
     this.rules.set(rule.id, rule);
 
     // Set initial enabled state from config or rule default
     if (this.config.ruleStates.has(rule.id)) {
-      rule.enabled = this.config.ruleStates.get(rule.id)!;
+      const ruleState = this.config.ruleStates.get(rule.id);
+      rule.enabled =
+        ruleState !== undefined ? ruleState : this.config.defaultEnabled;
     } else {
       rule.enabled = this.config.defaultEnabled;
       this.config.ruleStates.set(rule.id, rule.enabled);
@@ -44,7 +46,7 @@ export class ConfigurableRuleEngine {
   /**
    * Enable a specific rule
    */
-  enableRule(ruleId: string): void {
+  public enableRule(ruleId: string): void {
     const rule = this.rules.get(ruleId);
     if (rule) {
       rule.enabled = true;
@@ -57,7 +59,7 @@ export class ConfigurableRuleEngine {
   /**
    * Disable a specific rule
    */
-  disableRule(ruleId: string): void {
+  public disableRule(ruleId: string): void {
     const rule = this.rules.get(ruleId);
     if (rule) {
       rule.enabled = false;
@@ -70,7 +72,7 @@ export class ConfigurableRuleEngine {
   /**
    * Get the current enabled state of a rule
    */
-  isRuleEnabled(ruleId: string): boolean {
+  public isRuleEnabled(ruleId: string): boolean {
     const rule = this.rules.get(ruleId);
     return rule ? rule.enabled : false;
   }
@@ -78,21 +80,21 @@ export class ConfigurableRuleEngine {
   /**
    * Get all registered rules
    */
-  getAllRules(): readonly ValidationRule[] {
+  public getAllRules(): readonly ValidationRule[] {
     return Array.from(this.rules.values());
   }
 
   /**
    * Get all enabled rules
    */
-  getEnabledRules(): readonly ValidationRule[] {
+  public getEnabledRules(): readonly ValidationRule[] {
     return Array.from(this.rules.values()).filter((rule) => rule.enabled);
   }
 
   /**
    * Get rules by category
    */
-  getRulesByCategory(
+  public getRulesByCategory(
     category: 'critical' | 'configurable' | 'optional'
   ): readonly ValidationRule[] {
     return Array.from(this.rules.values()).filter(
@@ -103,7 +105,9 @@ export class ConfigurableRuleEngine {
   /**
    * Validate an at-bat scenario against all enabled rules
    */
-  validateAtBat(scenario: AtBatValidationScenario): RuleEngineValidationResult {
+  public validateAtBat(
+    scenario: AtBatValidationScenario
+  ): RuleEngineValidationResult {
     const enabledRules = this.getEnabledRules();
     const ruleResults = new Map<string, ValidationResult>();
     let isValid = true;
@@ -154,7 +158,7 @@ export class ConfigurableRuleEngine {
   /**
    * Clear all registered rules
    */
-  clearRules(): void {
+  public clearRules(): void {
     this.rules.clear();
     this.config.ruleStates.clear();
   }
@@ -162,7 +166,7 @@ export class ConfigurableRuleEngine {
   /**
    * Get current configuration
    */
-  getConfig(): RuleEngineConfig {
+  public getConfig(): RuleEngineConfig {
     return {
       ruleStates: new Map(this.config.ruleStates),
       defaultEnabled: this.config.defaultEnabled,
@@ -172,7 +176,7 @@ export class ConfigurableRuleEngine {
   /**
    * Update configuration
    */
-  updateConfig(newConfig: Partial<RuleEngineConfig>): void {
+  public updateConfig(newConfig: Partial<RuleEngineConfig>): void {
     if (newConfig.ruleStates) {
       // Update rule states and apply to existing rules
       for (const [ruleId, enabled] of newConfig.ruleStates) {

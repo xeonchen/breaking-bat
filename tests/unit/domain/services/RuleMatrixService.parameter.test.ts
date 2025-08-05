@@ -2,7 +2,6 @@ import { BaserunnerState } from '@/domain/values/BaserunnerState';
 import { BattingResult } from '@/domain/values/BattingResult';
 import { OutcomeParametersFactory } from '@/domain/values/OutcomeParameters';
 import { RuleMatrixService } from '@/domain/services/RuleMatrixService';
-import { ValidationResult } from '@/domain/values/RuleViolation';
 
 describe('RuleMatrixService (Parameter-based)', () => {
   let service: RuleMatrixService;
@@ -17,17 +16,23 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const battingResult = BattingResult.single();
       const batterId = 'batter1';
 
-      const outcomes = service.getValidOutcomes(beforeState, battingResult, batterId);
+      const outcomes = service.getValidOutcomes(
+        beforeState,
+        battingResult,
+        batterId
+      );
 
       expect(outcomes.length).toBeGreaterThan(0);
-      
+
       // Should include standard outcome
-      const standardOutcome = outcomes.find(o => 
+      const standardOutcome = outcomes.find((o) =>
         o.description.includes('Standard')
       );
       expect(standardOutcome).toBeDefined();
-      expect(standardOutcome!.afterState.firstBase).toBe('batter1');
-      expect(standardOutcome!.rbis).toBe(0);
+      if (standardOutcome) {
+        expect(standardOutcome.afterState.firstBase).toBe('batter1');
+        expect(standardOutcome.rbis).toBe(0);
+      }
     });
 
     it('should return multiple outcomes for scenarios with variations', () => {
@@ -35,19 +40,23 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const battingResult = BattingResult.single();
       const batterId = 'batter1';
 
-      const outcomes = service.getValidOutcomes(beforeState, battingResult, batterId);
+      const outcomes = service.getValidOutcomes(
+        beforeState,
+        battingResult,
+        batterId
+      );
 
       // Should have multiple outcomes (standard + aggressive + error variations)
       expect(outcomes.length).toBeGreaterThan(1);
-      
+
       // Should include both conservative and aggressive options
-      const standardOutcome = outcomes.find(o => 
+      const standardOutcome = outcomes.find((o) =>
         o.description.includes('Standard')
       );
-      const aggressiveOutcome = outcomes.find(o => 
+      const aggressiveOutcome = outcomes.find((o) =>
         o.description.includes('Aggressive')
       );
-      
+
       expect(standardOutcome).toBeDefined();
       expect(aggressiveOutcome).toBeDefined();
     });
@@ -61,9 +70,9 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const outcomes = service.getValidOutcomesWithParameters(
-        beforeState, 
-        battingResult, 
-        parameters, 
+        beforeState,
+        battingResult,
+        parameters,
         batterId
       );
 
@@ -78,16 +87,16 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const outcomes = service.getValidOutcomesWithParameters(
-        beforeState, 
-        battingResult, 
-        parameters, 
+        beforeState,
+        battingResult,
+        parameters,
         batterId
       );
 
       expect(outcomes.length).toBeGreaterThan(1);
-      
+
       // Should include aggressive variations
-      const aggressiveOutcome = outcomes.find(o => 
+      const aggressiveOutcome = outcomes.find((o) =>
         o.description.includes('Aggressive')
       );
       expect(aggressiveOutcome).toBeDefined();
@@ -100,16 +109,16 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const outcomes = service.getValidOutcomesWithParameters(
-        beforeState, 
-        battingResult, 
-        parameters, 
+        beforeState,
+        battingResult,
+        parameters,
         batterId
       );
 
       expect(outcomes.length).toBeGreaterThan(1);
-      
+
       // Should include error variations
-      const errorOutcome = outcomes.find(o => 
+      const errorOutcome = outcomes.find((o) =>
         o.description.includes('Error')
       );
       expect(errorOutcome).toBeDefined();
@@ -127,12 +136,12 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const result = service.validateAtBat(
-        before, 
-        after, 
-        battingResult, 
-        rbis, 
-        runsScored, 
-        outs, 
+        before,
+        after,
+        battingResult,
+        rbis,
+        runsScored,
+        outs,
         batterId
       );
 
@@ -149,12 +158,12 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const result = service.validateAtBat(
-        before, 
-        after, 
-        battingResult, 
-        rbis, 
-        runsScored, 
-        outs, 
+        before,
+        after,
+        battingResult,
+        rbis,
+        runsScored,
+        outs,
         batterId
       );
 
@@ -171,19 +180,21 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const result = service.validateAtBat(
-        before, 
-        after, 
-        battingResult, 
-        rbis, 
-        runsScored, 
-        outs, 
+        before,
+        after,
+        battingResult,
+        rbis,
+        runsScored,
+        outs,
         batterId
       );
 
       expect(result.isValid).toBe(false);
       expect(result.violation).toBeDefined();
       expect(result.suggestedOutcomes).toBeDefined();
-      expect(result.suggestedOutcomes!.length).toBeGreaterThan(0);
+      if (result.suggestedOutcomes) {
+        expect(result.suggestedOutcomes.length).toBeGreaterThan(0);
+      }
     });
 
     it('should reject impossible base advancement', () => {
@@ -196,12 +207,12 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const result = service.validateAtBat(
-        before, 
-        after, 
-        battingResult, 
-        rbis, 
-        runsScored, 
-        outs, 
+        before,
+        after,
+        battingResult,
+        rbis,
+        runsScored,
+        outs,
         batterId
       );
 
@@ -219,12 +230,12 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const batterId = 'batter1';
 
       const result = service.validateAtBat(
-        before, 
-        after, 
-        battingResult, 
-        rbis, 
-        runsScored, 
-        outs, 
+        before,
+        after,
+        battingResult,
+        rbis,
+        runsScored,
+        outs,
         batterId
       );
 
@@ -235,18 +246,22 @@ describe('RuleMatrixService (Parameter-based)', () => {
   describe('getAvailableParameters', () => {
     it('should return all 8 parameter combinations', () => {
       const parameters = service.getAvailableParameters();
-      
+
       expect(parameters).toHaveLength(8); // 2^3 = 8 combinations
-      
+
       // Should include standard parameters
-      const standardParams = parameters.find(p => 
-        !p.runner_is_aggressive && !p.has_fielding_error && !p.has_running_error
+      const standardParams = parameters.find(
+        (p) =>
+          !p.runner_is_aggressive &&
+          !p.has_fielding_error &&
+          !p.has_running_error
       );
       expect(standardParams).toBeDefined();
-      
+
       // Should include all-true parameters
-      const allTrueParams = parameters.find(p => 
-        p.runner_is_aggressive && p.has_fielding_error && p.has_running_error
+      const allTrueParams = parameters.find(
+        (p) =>
+          p.runner_is_aggressive && p.has_fielding_error && p.has_running_error
       );
       expect(allTrueParams).toBeDefined();
     });
@@ -256,21 +271,21 @@ describe('RuleMatrixService (Parameter-based)', () => {
     it('should describe standard parameters correctly', () => {
       const parameters = OutcomeParametersFactory.standard();
       const description = service.describeParameters(parameters);
-      
+
       expect(description).toBe('Standard');
     });
 
     it('should describe aggressive parameters correctly', () => {
       const parameters = OutcomeParametersFactory.aggressive();
       const description = service.describeParameters(parameters);
-      
+
       expect(description).toBe('Aggressive Running');
     });
 
     it('should describe combined parameters correctly', () => {
       const parameters = OutcomeParametersFactory.custom(true, true, false);
       const description = service.describeParameters(parameters);
-      
+
       expect(description).toBe('Aggressive Running + Fielding Error');
     });
   });
@@ -279,21 +294,21 @@ describe('RuleMatrixService (Parameter-based)', () => {
     it('should identify empty bases correctly', () => {
       const baseState = BaserunnerState.empty();
       const key = service.getBaseConfigurationKey(baseState);
-      
+
       expect(key).toBe('empty');
     });
 
     it('should identify first_third correctly', () => {
       const baseState = new BaserunnerState('runner1', null, 'runner3');
       const key = service.getBaseConfigurationKey(baseState);
-      
+
       expect(key).toBe('first_third');
     });
 
     it('should identify loaded bases correctly', () => {
       const baseState = new BaserunnerState('runner1', 'runner2', 'runner3');
       const key = service.getBaseConfigurationKey(baseState);
-      
+
       expect(key).toBe('loaded');
     });
   });
@@ -304,15 +319,20 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const battingResult = BattingResult.walk();
       const batterId = 'batter1';
 
-      const outcomes = service.getValidOutcomes(before, battingResult, batterId);
-      
-      // Walk should force runner to second, batter to first
-      const validOutcome = outcomes.find(o => 
-        o.afterState.firstBase === 'batter1' && 
-        o.afterState.secondBase === 'runner1' &&
-        o.rbis === 0
+      const outcomes = service.getValidOutcomes(
+        before,
+        battingResult,
+        batterId
       );
-      
+
+      // Walk should force runner to second, batter to first
+      const validOutcome = outcomes.find(
+        (o) =>
+          o.afterState.firstBase === 'batter1' &&
+          o.afterState.secondBase === 'runner1' &&
+          o.rbis === 0
+      );
+
       expect(validOutcome).toBeDefined();
     });
 
@@ -321,13 +341,17 @@ describe('RuleMatrixService (Parameter-based)', () => {
       const battingResult = BattingResult.single();
       const batterId = 'batter1';
 
-      const outcomes = service.getValidOutcomes(before, battingResult, batterId);
-      
-      // Single with runner on third should typically score the runner
-      const scoringOutcome = outcomes.find(o => 
-        o.runsScored.includes('runner3') && o.rbis === 1
+      const outcomes = service.getValidOutcomes(
+        before,
+        battingResult,
+        batterId
       );
-      
+
+      // Single with runner on third should typically score the runner
+      const scoringOutcome = outcomes.find(
+        (o) => o.runsScored.includes('runner3') && o.rbis === 1
+      );
+
       expect(scoringOutcome).toBeDefined();
     });
   });

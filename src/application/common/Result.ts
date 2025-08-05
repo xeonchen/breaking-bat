@@ -55,7 +55,7 @@ export class Result<T> {
     if (this.isSuccess && this.value !== undefined) {
       return Result.success(fn(this.value));
     }
-    return Result.failure<U>(this.error!);
+    return Result.failure<U>(this.error || 'Unknown error');
   }
 
   /**
@@ -65,7 +65,7 @@ export class Result<T> {
     if (this.isSuccess && this.value !== undefined) {
       return fn(this.value);
     }
-    return Result.failure<U>(this.error!);
+    return Result.failure<U>(this.error || 'Unknown error');
   }
 
   /**

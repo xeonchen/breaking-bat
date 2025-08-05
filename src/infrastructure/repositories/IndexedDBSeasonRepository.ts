@@ -4,7 +4,7 @@ import { getDatabase } from '../database/connection';
 import { BreakingBatDatabase } from '../database/types';
 
 export class IndexedDBSeasonRepository implements SeasonRepository {
-  async save(season: Season): Promise<Season> {
+  public async save(season: Season): Promise<Season> {
     const db = getDatabase() as BreakingBatDatabase;
 
     const seasonData = {
@@ -14,6 +14,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
       startDate: season.startDate,
       endDate: season.endDate,
       teamIds: season.teamIds,
+      isActive: season.isActive(),
       createdAt: season.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -32,7 +33,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async findById(id: string): Promise<Season | null> {
+  public async findById(id: string): Promise<Season | null> {
     const db = getDatabase() as BreakingBatDatabase;
     const seasonData = await db.seasons.get(id);
 
@@ -52,7 +53,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async findAll(): Promise<Season[]> {
+  public async findAll(): Promise<Season[]> {
     const db = getDatabase() as BreakingBatDatabase;
     const seasonsData = await db.seasons.orderBy('year').reverse().toArray();
 
@@ -71,7 +72,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async findByYear(year: number): Promise<Season[]> {
+  public async findByYear(year: number): Promise<Season[]> {
     const db = getDatabase() as BreakingBatDatabase;
     const seasonsData = await db.seasons.where('year').equals(year).toArray();
 
@@ -90,7 +91,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async findActiveSeason(): Promise<Season | null> {
+  public async findActiveSeason(): Promise<Season | null> {
     const db = getDatabase() as BreakingBatDatabase;
     const now = new Date();
 
@@ -117,7 +118,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async findByTeamId(teamId: string): Promise<Season[]> {
+  public async findByTeamId(teamId: string): Promise<Season[]> {
     const db = getDatabase() as BreakingBatDatabase;
     const seasonsData = await db.seasons.toArray();
 
@@ -140,12 +141,15 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     const db = getDatabase() as BreakingBatDatabase;
     await db.seasons.delete(id);
   }
 
-  async existsByNameAndYear(name: string, year: number): Promise<boolean> {
+  public async existsByNameAndYear(
+    name: string,
+    year: number
+  ): Promise<boolean> {
     const db = getDatabase() as BreakingBatDatabase;
     const season = await db.seasons
       .where(['name', 'year'])
@@ -155,7 +159,10 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     return !!season;
   }
 
-  async findByDateRange(startDate: Date, endDate: Date): Promise<Season[]> {
+  public async findByDateRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<Season[]> {
     const db = getDatabase() as BreakingBatDatabase;
     const seasonsData = await db.seasons.toArray();
 
@@ -182,7 +189,10 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     );
   }
 
-  async addTeamToSeason(seasonId: string, teamId: string): Promise<Season> {
+  public async addTeamToSeason(
+    seasonId: string,
+    teamId: string
+  ): Promise<Season> {
     const season = await this.findById(seasonId);
     if (!season) {
       throw new Error(`Season with ID ${seasonId} not found`);
@@ -192,7 +202,7 @@ export class IndexedDBSeasonRepository implements SeasonRepository {
     return await this.save(updatedSeason);
   }
 
-  async removeTeamFromSeason(
+  public async removeTeamFromSeason(
     seasonId: string,
     teamId: string
   ): Promise<Season> {

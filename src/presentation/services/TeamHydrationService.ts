@@ -15,7 +15,7 @@ export class TeamHydrationService {
   /**
    * Convert domain team to presentation team with embedded players
    */
-  async hydrateTeam(domainTeam: DomainTeam): Promise<PresentationTeam> {
+  public async hydrateTeam(domainTeam: DomainTeam): Promise<PresentationTeam> {
     // Load all players for this team
     const domainPlayers = await this.playerRepository.findByTeamId(
       domainTeam.id
@@ -36,7 +36,9 @@ export class TeamHydrationService {
   /**
    * Convert multiple domain teams to presentation teams
    */
-  async hydrateTeams(domainTeams: DomainTeam[]): Promise<PresentationTeam[]> {
+  public async hydrateTeams(
+    domainTeams: DomainTeam[]
+  ): Promise<PresentationTeam[]> {
     const hydratedTeams = await Promise.all(
       domainTeams.map((team) => this.hydrateTeam(team))
     );
@@ -61,7 +63,7 @@ export class TeamHydrationService {
   /**
    * Convert presentation player back to domain-compatible format for use cases
    */
-  static convertPresentationPlayerToDomain(
+  public static convertPresentationPlayerToDomain(
     presentationPlayer: PresentationPlayer
   ): {
     name: string;
