@@ -23,12 +23,16 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import { useEffect, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Scoreboard } from '@/presentation/components/Scoreboard';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
 import { useGameStore } from '@/presentation/stores/gameStore';
 import { BattingResult } from '@/domain';
 
 export default function ScoringPage() {
+  // Use location hook - in test environment, this will be mocked
+  const location = useLocation();
+
   const {
     currentGame,
     teams,
@@ -37,15 +41,15 @@ export default function ScoringPage() {
     isTopInning,
     baserunners,
     currentCount,
+    currentOuts,
     loading,
     error,
     getCurrentGame,
+    startGame,
+    resumeGame,
     recordAtBat,
-    updateScore,
-    advanceInning,
     getTeams,
     getLineup,
-    updateCount,
     suspendGame,
     completeGame,
     clearError,
@@ -72,12 +76,61 @@ export default function ScoringPage() {
   const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
   const mutedColor = useColorModeValue('gray.600', 'gray.400');
 
+  // Helper function for ordinal suffixes
+  const getOrdinalSuffix = useCallback((num: number) => {
+    if (num === 1) return 'st';
+    if (num === 2) return 'nd';
+    if (num === 3) return 'rd';
+    return 'th';
+  }, []);
+
   // Load initial data
   useEffect(() => {
-    getCurrentGame();
-    getTeams();
-    getLineup();
-  }, [getCurrentGame, getTeams, getLineup]);
+    const initializeGame = async () => {
+      await getCurrentGame();
+      await getTeams();
+      await getLineup();
+
+      // Handle game state transitions based on navigation state
+      const navigationState = location.state as {
+        gameId?: string;
+        shouldStart?: boolean;
+        shouldResume?: boolean;
+      };
+
+      if (navigationState?.shouldStart && currentGame) {
+        if (currentGame.status === 'setup' && currentGame.lineupId) {
+          try {
+            await startGame(currentGame.lineupId);
+            setScoreUpdateAnnouncement('Game started! Play ball!');
+            setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
+          } catch (error) {
+            console.error('Failed to start game:', error);
+          }
+        }
+      } else if (navigationState?.shouldResume && currentGame) {
+        if (currentGame.status === 'suspended') {
+          try {
+            await resumeGame();
+            setScoreUpdateAnnouncement("Game resumed! Let's continue!");
+            setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
+          } catch (error) {
+            console.error('Failed to resume game:', error);
+          }
+        }
+      }
+    };
+
+    initializeGame();
+  }, [
+    getCurrentGame,
+    getTeams,
+    getLineup,
+    startGame,
+    resumeGame,
+    location.state,
+    currentGame,
+  ]);
 
   // Handle at-bat completion
   const handleAtBatComplete = useCallback(
@@ -91,26 +144,31 @@ export default function ScoringPage() {
       try {
         const result = await recordAtBat(atBatResult);
 
+        // Display score update announcement
         if (result.runsScored && result.runsScored > 0) {
-          await updateScore(result.runsScored);
           setScoreUpdateAnnouncement(
             `${result.runsScored} run${result.runsScored > 1 ? 's' : ''} scored!`
           );
           setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
         }
 
-        // Handle automatic count updates for balls/strikes
-        if (
-          atBatResult.result.value === 'BB' ||
-          atBatResult.result.value === 'SO'
-        ) {
-          updateCount({ balls: 0, strikes: 0 });
+        // Display inning advancement announcement
+        if (result.advanceInning) {
+          const newInning = isTopInning ? currentInning : currentInning + 1;
+          const newHalf = !isTopInning ? 'Top' : 'Bottom';
+          setScoreUpdateAnnouncement(
+            `Inning over! Moving to ${newHalf} of the ${newInning}${getOrdinalSuffix(newInning)}`
+          );
+          setTimeout(() => setScoreUpdateAnnouncement(''), 4000);
         }
 
-        // Check if inning should advance (3 outs)
-        if (result.advanceInning) {
-          await advanceInning();
-        }
+        toast({
+          title: 'At-bat recorded',
+          description: `${atBatResult.result.value} recorded for ${currentBatter?.playerName}`,
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
       } catch {
         toast({
           title: 'Error recording at-bat',
@@ -121,7 +179,14 @@ export default function ScoringPage() {
         });
       }
     },
-    [recordAtBat, updateScore, updateCount, advanceInning, toast]
+    [
+      recordAtBat,
+      toast,
+      currentBatter,
+      isTopInning,
+      currentInning,
+      getOrdinalSuffix,
+    ]
   );
 
   // Handle game controls
@@ -170,14 +235,10 @@ export default function ScoringPage() {
   const getInningText = useCallback(() => {
     const half = isTopInning ? 'Top' : 'Bottom';
     const inningNumber = currentInning;
-    let suffix = 'th';
-
-    if (inningNumber === 1) suffix = 'st';
-    else if (inningNumber === 2) suffix = 'nd';
-    else if (inningNumber === 3) suffix = 'rd';
+    const suffix = getOrdinalSuffix(inningNumber);
 
     return `${half} ${inningNumber}${suffix}`;
-  }, [currentInning, isTopInning]);
+  }, [currentInning, isTopInning, getOrdinalSuffix]);
 
   // Loading state
   if (loading && !currentGame) {
@@ -281,6 +342,13 @@ export default function ScoringPage() {
               <Text data-testid="current-inning-info" color={mutedColor}>
                 {getInningText()}
               </Text>
+              <Badge
+                data-testid="current-outs"
+                colorScheme={currentOuts >= 2 ? 'red' : 'gray'}
+                variant="solid"
+              >
+                {currentOuts} {currentOuts === 1 ? 'Out' : 'Outs'}
+              </Badge>
             </HStack>
           </VStack>
         </Box>
