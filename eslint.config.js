@@ -8,7 +8,7 @@ import noUnsanitized from 'eslint-plugin-no-unsanitized'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage'] },
+  { ignores: ['coverage', 'dist', 'docs/**'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

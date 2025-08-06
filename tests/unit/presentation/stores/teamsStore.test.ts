@@ -9,6 +9,11 @@ import {
   PresentationTeam,
   PresentationPlayer,
 } from '@/presentation/types/TeamWithPlayers';
+import {
+  clearZustandPersistence,
+  resetZustandStore,
+  getCleanTeamsStoreState,
+} from '../../../utils/storeTestUtils';
 
 // Mock dependencies
 const mockTeamRepository = {
@@ -56,6 +61,10 @@ const mockRemovePlayerUseCase = {
 // Initialize store with mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
+
+  // Clear Zustand persistent storage and reset store state
+  resetZustandStore(useTeamsStore, getCleanTeamsStoreState());
+
   initializeTeamsStore({
     teamRepository: mockTeamRepository,
     playerRepository: mockPlayerRepository,
@@ -228,7 +237,21 @@ describe('TeamsStore', () => {
       const existingTeam = new Team('team-1', 'Yankees', [], []);
       const updatedTeam = new Team('team-1', 'New Yankees', [], []);
 
+      // Reset and set up mocks specifically for this test
+      jest.clearAllMocks();
       mockTeamRepository.save.mockResolvedValue(updatedTeam);
+      // Mock findAll to return the updated team after save
+      mockTeamRepository.findAll.mockResolvedValue([updatedTeam]);
+      // Mock hydration service to return the updated team
+      mockTeamHydrationService.hydrateTeams.mockResolvedValue([
+        {
+          id: 'team-1',
+          name: 'New Yankees',
+          players: [],
+          seasonIds: [],
+          playerIds: [],
+        },
+      ]);
 
       const { result } = renderHook(() => useTeamsStore());
 

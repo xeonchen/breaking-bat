@@ -219,6 +219,7 @@ npm run commit  # Uses commitizen for guided commit creation
 - **Integration tests** for repository implementations
 - **E2E tests** for complete user workflows
 - **Component tests** for UI behavior
+- **Store tests** following Zustand persistence policies (see `docs/testing-policies.md`)
 
 ## Common Development Tasks
 
@@ -386,7 +387,7 @@ When completing any development phase, ensure:
    # feat(tests): implement comprehensive test infrastructure fixes and achieve 80.5% pass rate
    #
    # - Fix TypeScript JSX namespace issues by removing incompatible JSX.Element return types
-   # - Resolve AtBat repository RBI validation logic and compound index queries  
+   # - Resolve AtBat repository RBI validation logic and compound index queries
    # - Update Game repository date filtering with manual approach vs problematic Dexie between()
    # - Align all Zustand store mocks with actual implementation patterns
    # - Fix Scoreboard component team display logic and CSS custom property assertions
