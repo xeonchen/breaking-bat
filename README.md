@@ -1,3 +1,5 @@
+[![Continuous Integration](https://github.com/xeonchen/breaking-bat/actions/workflows/ci.yml/badge.svg)](https://github.com/xeonchen/breaking-bat/actions/workflows/ci.yml)
+
 # Breaking-Bat 🥎
 
 A Progressive Web App (PWA) for recording slowpitch softball game statistics and scores. Designed for scorekeepers to quickly and accurately track game data during live gameplay, with complete offline functionality and local data storage.
