@@ -87,7 +87,7 @@ entities:
   baserunner_state:
     properties:
       - first_base: player_id | null
-      - second_base: player_id | null  
+      - second_base: player_id | null
       - third_base: player_id | null
   game_statistics:
     properties:
@@ -102,7 +102,7 @@ acceptance_criteria:
   - real-time scoreboard shows both teams scores by inning
   - system automatically selects current batter from lineup
   - quick-action buttons available for all batting results
-  - baserunner advancement automatically suggested with manual override  
+  - baserunner advancement automatically suggested with manual override
   - RBI count automatically calculated with manual confirmation
   - opponent scores can be recorded by inning
   - all scoring actions immediately saved
@@ -126,7 +126,7 @@ business_rules:
 
 auto_calculations:
   baserunner_advancement:
-    single: 
+    single:
       - runners advance one base
       - runner on second scores
     double:

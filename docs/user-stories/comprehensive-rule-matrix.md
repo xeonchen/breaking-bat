@@ -14,8 +14,8 @@ As a softball scoring application, we need a comprehensive rule validation syste
 
 ## User Story 1: Basic Hit Type Validation
 
-**As a scorer recording a live game**  
-**I want the system to show only valid hitting results for the current base situation**  
+**As a scorer recording a live game**
+**I want the system to show only valid hitting results for the current base situation**
 **So that I cannot accidentally record impossible game scenarios**
 
 ### Acceptance Criteria
@@ -35,8 +35,8 @@ As a softball scoring application, we need a comprehensive rule validation syste
 
 ## User Story 2: Outcome Selection with RBI Calculation
 
-**As a scorer**  
-**I want to select from valid outcome scenarios for each hit type**  
+**As a scorer**
+**I want to select from valid outcome scenarios for each hit type**
 **So that I can accurately record what happened without manual RBI calculation**
 
 ### Acceptance Criteria
@@ -59,8 +59,8 @@ Options:
 
 ## User Story 3: Test Data Validation
 
-**As a developer**  
-**I want all test scenarios to follow real softball rules**  
+**As a developer**
+**I want all test scenarios to follow real softball rules**
 **So that the application behavior accurately reflects real-world gameplay**
 
 ### Acceptance Criteria
@@ -81,8 +81,8 @@ Options:
 
 ## User Story 4: Advanced Scenario Handling (Future)
 
-**As a scorer dealing with complex plays**  
-**I want to record aggressive advancement attempts and fielding errors**  
+**As a scorer dealing with complex plays**
+**I want to record aggressive advancement attempts and fielding errors**
 **So that I can capture the complete story of what happened during the play**
 
 ### Acceptance Criteria (Future Implementation)
@@ -108,8 +108,8 @@ Fielding Error:
 
 ## User Story 5: Rule Matrix Performance
 
-**As a user of the scoring interface**  
-**I want instant feedback on available options**  
+**As a user of the scoring interface**
+**I want instant feedback on available options**
 **So that the scoring process doesn't slow down the game**
 
 ### Acceptance Criteria
@@ -123,8 +123,8 @@ Fielding Error:
 
 ## User Story 6: Expert Rule Validation
 
-**As a softball expert**  
-**I want to verify that the rule matrix accurately represents slow-pitch softball**  
+**As a softball expert**
+**I want to verify that the rule matrix accurately represents slow-pitch softball**
 **So that the application provides correct guidance and validation**
 
 ### Acceptance Criteria

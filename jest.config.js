@@ -12,12 +12,15 @@ export default {
     '^@/contracts/(.*)$': '<rootDir>/docs/contracts/$1',
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      useESM: true,
-      tsconfig: {
-        jsx: 'react-jsx',
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+        tsconfig: {
+          jsx: 'react-jsx',
+        },
       },
-    }],
+    ],
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testMatch: [
@@ -43,4 +46,4 @@ export default {
       statements: 70,
     },
   },
-}
+};

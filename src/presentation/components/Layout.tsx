@@ -21,10 +21,10 @@ export function Layout({ children }: LayoutProps) {
     <Box minH="100vh" bg={bg}>
       {/* Header */}
       <Header onMenuClick={onOpen} />
-      
+
       {/* Navigation Drawer (Mobile) */}
       <NavigationDrawer isOpen={isOpen} onClose={onClose} />
-      
+
       {/* Main Content */}
       <Container
         maxW="container.xl"
@@ -34,7 +34,7 @@ export function Layout({ children }: LayoutProps) {
       >
         {children}
       </Container>
-      
+
       {/* Bottom Navigation (Mobile) */}
       <BottomNavigation />
     </Box>

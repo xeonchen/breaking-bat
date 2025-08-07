@@ -29,7 +29,20 @@ inputs:
     type: multi-select
     required: false
     default: [extra-player]
-    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field, short-fielder, extra-player]
+    options:
+      [
+        pitcher,
+        catcher,
+        first-base,
+        second-base,
+        third-base,
+        shortstop,
+        left-field,
+        center-field,
+        right-field,
+        short-fielder,
+        extra-player,
+      ]
 
 actions:
   - type: create

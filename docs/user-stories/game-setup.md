@@ -1,18 +1,23 @@
 # User Story: Game Setup and Lineup Management
 
 ## ID
+
 game-setup
 
 ## As a...
+
 Scorekeeper
 
 ## I want to...
+
 Create new games and set up starting lineups efficiently on the same page
 
 ## So that I can...
+
 Quickly prepare for game recording with proper team selection, opponent details, and batting order
 
 ## Acceptance Criteria
+
 - I can create a new game with game name, opponent, date, season, game type, and home/away designation
 - I can select teams and games from the same interface for streamlined workflow
 - I can quickly create new games when needed
@@ -23,12 +28,15 @@ Quickly prepare for game recording with proper team selection, opponent details,
 - Changes to lineup are saved automatically
 
 ## Priority
+
 High
 
 ## Dependencies
+
 - team-management (requires teams and players to be created first)
 
 ## Notes
+
 - This directly impacts game flow efficiency
 - Interface should be optimized for quick setup
 - Must work reliably on mobile/tablet devices

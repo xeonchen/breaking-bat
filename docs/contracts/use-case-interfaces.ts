@@ -1,6 +1,6 @@
 /**
  * Use Case Interface Contracts
- * 
+ *
  * Application layer use cases that orchestrate business logic.
  * These interfaces define the application's core functionality following
  * Clean Architecture principles. Each use case represents a specific
@@ -20,7 +20,7 @@ import {
   ExportPackage,
   HomeAway,
   ExportFormat,
-  ExportScope
+  ExportScope,
 } from './domain-entities';
 
 // Common result types
@@ -121,7 +121,9 @@ export interface LineupPlayerRequest {
 }
 
 export interface ValidateLineupUseCase {
-  execute(lineupRequest: SetupLineupRequest): Promise<UseCaseResult<LineupValidation>>;
+  execute(
+    lineupRequest: SetupLineupRequest
+  ): Promise<UseCaseResult<LineupValidation>>;
 }
 
 export interface LineupValidation {

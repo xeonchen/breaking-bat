@@ -22,7 +22,7 @@ const colors = {
   },
   softball: {
     field: '#4A7C59', // Green for field
-    dirt: '#D2B48C',   // Tan for infield
+    dirt: '#D2B48C', // Tan for infield
     warning: '#FF8C00', // Orange for warnings
   },
   success: {
@@ -45,15 +45,15 @@ const fonts = {
 };
 
 const fontSizes = {
-  xs: '0.75rem',   // 12px
-  sm: '0.875rem',  // 14px
-  md: '1rem',      // 16px
-  lg: '1.125rem',  // 18px
-  xl: '1.25rem',   // 20px
+  xs: '0.75rem', // 12px
+  sm: '0.875rem', // 14px
+  md: '1rem', // 16px
+  lg: '1.125rem', // 18px
+  xl: '1.25rem', // 20px
   '2xl': '1.5rem', // 24px
   '3xl': '1.875rem', // 30px
-  '4xl': '2.25rem',  // 36px
-  '5xl': '3rem',     // 48px
+  '4xl': '2.25rem', // 36px
+  '5xl': '3rem', // 48px
 };
 
 // Component customizations for better mobile UX
@@ -201,12 +201,12 @@ const space = {
 
 // Breakpoints for responsive design
 const breakpoints = {
-  base: '0em',    // 0px
-  sm: '30em',     // 480px
-  md: '48em',     // 768px
-  lg: '62em',     // 992px
-  xl: '80em',     // 1280px
-  '2xl': '96em',  // 1536px
+  base: '0em', // 0px
+  sm: '30em', // 480px
+  md: '48em', // 768px
+  lg: '62em', // 992px
+  xl: '80em', // 1280px
+  '2xl': '96em', // 1536px
 };
 
 // Custom theme

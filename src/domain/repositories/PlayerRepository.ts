@@ -27,7 +27,10 @@ export interface PlayerRepository {
   /**
    * Find player by jersey number within a team
    */
-  findByJerseyNumber(teamId: string, jerseyNumber: number): Promise<Player | null>;
+  findByJerseyNumber(
+    teamId: string,
+    jerseyNumber: number
+  ): Promise<Player | null>;
 
   /**
    * Create a new player
@@ -52,7 +55,11 @@ export interface PlayerRepository {
   /**
    * Check if jersey number is unique within a team
    */
-  isJerseyNumberUnique(teamId: string, jerseyNumber: number, excludePlayerId?: string): Promise<boolean>;
+  isJerseyNumberUnique(
+    teamId: string,
+    jerseyNumber: number,
+    excludePlayerId?: string
+  ): Promise<boolean>;
 
   /**
    * Search players by name (partial match)
@@ -62,5 +69,8 @@ export interface PlayerRepository {
   /**
    * Get players with statistics for a season
    */
-  getPlayersWithStatistics(teamId: string, seasonId?: string): Promise<Player[]>;
+  getPlayersWithStatistics(
+    teamId: string,
+    seasonId?: string
+  ): Promise<Player[]>;
 }

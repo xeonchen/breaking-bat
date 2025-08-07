@@ -34,7 +34,7 @@ export class AtBat extends BaseEntity {
     updatedAt?: Date
   ) {
     super(id, createdAt, updatedAt);
-    
+
     if (battingPosition < 1 || battingPosition > 15) {
       throw new Error('Batting position must be between 1 and 15');
     }
@@ -87,11 +87,14 @@ export class AtBat extends BaseEntity {
    */
   public getOuts(): number {
     switch (this.result.value) {
-      case 'DP': return 2; // Double play
+      case 'DP':
+        return 2; // Double play
       case 'SO':
       case 'GO':
-      case 'AO': return 1;
-      default: return 0;
+      case 'AO':
+        return 1;
+      default:
+        return 0;
     }
   }
 
@@ -99,8 +102,10 @@ export class AtBat extends BaseEntity {
    * Check if this at-bat advanced any runners
    */
   public advancedRunners(): boolean {
-    return !this.baserunnersBefore.equals(this.baserunnersAfter) || 
-           this.runsScored.length > 0;
+    return (
+      !this.baserunnersBefore.equals(this.baserunnersAfter) ||
+      this.runsScored.length > 0
+    );
   }
 
   /**
@@ -164,17 +169,18 @@ export class AtBat extends BaseEntity {
    * Get a summary of this at-bat for display
    */
   public getSummary(): string {
-    const runsScoredText = this.runsScored.length > 0 
-      ? ` (${this.runsScored.length} run${this.runsScored.length > 1 ? 's' : ''} scored)`
-      : '';
-    
-    const rbisText = this.rbis > 0 
-      ? ` ${this.rbis} RBI${this.rbis > 1 ? 's' : ''}`
-      : '';
+    const runsScoredText =
+      this.runsScored.length > 0
+        ? ` (${this.runsScored.length} run${this.runsScored.length > 1 ? 's' : ''} scored)`
+        : '';
 
-    const runningErrorText = this.runningErrors.length > 0
-      ? ` [${this.runningErrors.length} running error${this.runningErrors.length > 1 ? 's' : ''}]`
-      : '';
+    const rbisText =
+      this.rbis > 0 ? ` ${this.rbis} RBI${this.rbis > 1 ? 's' : ''}` : '';
+
+    const runningErrorText =
+      this.runningErrors.length > 0
+        ? ` [${this.runningErrors.length} running error${this.runningErrors.length > 1 ? 's' : ''}]`
+        : '';
 
     return `${this.result.value}${rbisText}${runsScoredText}${runningErrorText}`;
   }

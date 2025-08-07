@@ -17,7 +17,7 @@ export class Team extends BaseEntity {
     updatedAt?: Date
   ) {
     super(id, createdAt, updatedAt);
-    
+
     if (!name.trim()) {
       throw new Error('Team name cannot be empty');
     }
@@ -49,8 +49,8 @@ export class Team extends BaseEntity {
    * Remove a season from the team
    */
   public removeSeason(seasonId: string): Team {
-    const newSeasonIds = this.seasonIds.filter(id => id !== seasonId);
-    
+    const newSeasonIds = this.seasonIds.filter((id) => id !== seasonId);
+
     return new Team(
       this.id,
       this.name,
@@ -87,8 +87,8 @@ export class Team extends BaseEntity {
    * Remove a player from the team
    */
   public removePlayer(playerId: string): Team {
-    const newPlayerIds = this.playerIds.filter(id => id !== playerId);
-    
+    const newPlayerIds = this.playerIds.filter((id) => id !== playerId);
+
     return new Team(
       this.id,
       this.name,

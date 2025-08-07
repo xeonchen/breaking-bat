@@ -5,7 +5,9 @@ import { BattingResult } from '@/domain/values/BattingResult';
 import { ViolationType } from '@/domain/values/RuleViolation';
 
 describe('CriticalValidationRules', () => {
-  const createBaseScenario = (overrides: Partial<AtBatValidationScenario> = {}): AtBatValidationScenario => ({
+  const createBaseScenario = (
+    overrides: Partial<AtBatValidationScenario> = {}
+  ): AtBatValidationScenario => ({
     beforeState: BaserunnerState.empty(),
     afterState: new BaserunnerState('batter', null, null),
     battingResult: BattingResult.single(),
@@ -17,7 +19,9 @@ describe('CriticalValidationRules', () => {
   });
 
   describe('No Runner Passing Rule', () => {
-    let rule: ReturnType<typeof CriticalValidationRules.createNoRunnerPassingRule>;
+    let rule: ReturnType<
+      typeof CriticalValidationRules.createNoRunnerPassingRule
+    >;
 
     beforeEach(() => {
       rule = CriticalValidationRules.createNoRunnerPassingRule();
@@ -60,7 +64,9 @@ describe('CriticalValidationRules', () => {
       const result = rule.validate(scenario);
       expect(result.isValid).toBe(false);
       expect(result.violations).toHaveLength(1);
-      expect(result.violations[0].type).toBe(ViolationType.RUNNER_ORDER_VIOLATION);
+      expect(result.violations[0].type).toBe(
+        ViolationType.RUNNER_ORDER_VIOLATION
+      );
       expect(result.violations[0].message).toContain('cannot pass');
     });
 
@@ -87,7 +93,9 @@ describe('CriticalValidationRules', () => {
   });
 
   describe('RBI Validation Rule', () => {
-    let rule: ReturnType<typeof CriticalValidationRules.createRbiValidationRule>;
+    let rule: ReturnType<
+      typeof CriticalValidationRules.createRbiValidationRule
+    >;
 
     beforeEach(() => {
       rule = CriticalValidationRules.createRbiValidationRule();
@@ -130,7 +138,9 @@ describe('CriticalValidationRules', () => {
       expect(result.isValid).toBe(false);
       expect(result.violations).toHaveLength(1);
       expect(result.violations[0].type).toBe(ViolationType.INCORRECT_RBI_COUNT);
-      expect(result.violations[0].message).toContain('cannot exceed runs scored');
+      expect(result.violations[0].message).toContain(
+        'cannot exceed runs scored'
+      );
     });
 
     it('should handle zero RBIs correctly', () => {
@@ -157,7 +167,9 @@ describe('CriticalValidationRules', () => {
   });
 
   describe('Max Outs Validation Rule', () => {
-    let rule: ReturnType<typeof CriticalValidationRules.createMaxOutsValidationRule>;
+    let rule: ReturnType<
+      typeof CriticalValidationRules.createMaxOutsValidationRule
+    >;
 
     beforeEach(() => {
       rule = CriticalValidationRules.createMaxOutsValidationRule();
@@ -233,15 +245,15 @@ describe('CriticalValidationRules', () => {
   describe('Rule Factory Methods', () => {
     it('should create all critical rules', () => {
       const rules = CriticalValidationRules.createAllCriticalRules();
-      
+
       expect(rules).toHaveLength(3);
-      expect(rules.map(r => r.id)).toEqual([
+      expect(rules.map((r) => r.id)).toEqual([
         'no-runner-passing',
         'rbi-validation',
         'max-outs-validation',
       ]);
-      
-      rules.forEach(rule => {
+
+      rules.forEach((rule) => {
         expect(rule.category).toBe('critical');
         expect(rule.enabled).toBe(true);
       });
@@ -260,7 +272,8 @@ describe('CriticalValidationRules', () => {
 
   describe('Complex Scenarios', () => {
     it('should handle home run scenario correctly', () => {
-      const noRunnerPassingRule = CriticalValidationRules.createNoRunnerPassingRule();
+      const noRunnerPassingRule =
+        CriticalValidationRules.createNoRunnerPassingRule();
       const rbiRule = CriticalValidationRules.createRbiValidationRule();
       const maxOutsRule = CriticalValidationRules.createMaxOutsValidationRule();
 
@@ -279,7 +292,8 @@ describe('CriticalValidationRules', () => {
     });
 
     it('should handle double play scenario correctly', () => {
-      const noRunnerPassingRule = CriticalValidationRules.createNoRunnerPassingRule();
+      const noRunnerPassingRule =
+        CriticalValidationRules.createNoRunnerPassingRule();
       const rbiRule = CriticalValidationRules.createRbiValidationRule();
       const maxOutsRule = CriticalValidationRules.createMaxOutsValidationRule();
 

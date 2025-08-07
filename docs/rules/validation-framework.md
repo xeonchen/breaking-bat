@@ -11,8 +11,9 @@ This framework has been **fully implemented** with core infrastructure, 3 critic
 **Primary Goal**: Mistake prevention, not rule prescription
 
 The validation framework serves as an enhancement layer that:
+
 - Catches obvious data entry errors
-- Provides warnings for unusual scenarios  
+- Provides warnings for unusual scenarios
 - Allows leagues to configure validation strictness
 - Maintains flexibility for different league rules
 
@@ -22,9 +23,9 @@ The validation framework serves as an enhancement layer that:
 
 ```typescript
 interface ValidationRule {
-  id: string;              // Unique rule identifier
-  name: string;            // Human-readable rule name  
-  enabled: boolean;        // Whether rule is active
+  id: string; // Unique rule identifier
+  name: string; // Human-readable rule name
+  enabled: boolean; // Whether rule is active
   validate: (scenario: AtBatScenario) => ValidationResult;
 }
 
@@ -39,6 +40,7 @@ interface ConfigurableRuleEngine {
 ### Integration with Existing System
 
 The validation framework integrates with the existing parameter-based rule system:
+
 - **Parameter System**: Generates valid outcome variations (aggressive, error, running-error)
 - **Validation Framework**: Checks for fundamental rule violations and data consistency
 - **Combined Results**: Both systems work together to provide comprehensive validation
@@ -46,13 +48,17 @@ The validation framework integrates with the existing parameter-based rule syste
 ## Rule Categories
 
 ### Critical Rules (Always Important)
+
 Rules that prevent impossible game states or mathematical inconsistencies:
+
 - **no-runner-passing**: Trailing runner cannot pass lead runner
 - **rbi-validation**: RBIs ≤ runs scored (mathematical consistency)
 - **max-outs-validation**: ≤ 3 outs per at-bat
 
 ### Future Configurable Rules
+
 Rules that may vary between leagues (planned for future implementation):
+
 - Error vs hit attribution validation
 - Running error tolerance levels
 - Statistical anomaly detection
@@ -62,22 +68,26 @@ Rules that may vary between leagues (planned for future implementation):
 ### ✅ Completed Components
 
 **Core Framework:**
+
 - `ValidationRule` interface with enable/disable support
 - `ConfigurableRuleEngine` service for rule management
 - `AtBatValidationScenario` standardized input format
 - `RuleEngineValidationResult` comprehensive output format
 
 **Critical Validation Rules:**
+
 - `no-runner-passing` - Prevents runner order violations
-- `rbi-validation` - Ensures RBI count ≤ runs scored  
+- `rbi-validation` - Ensures RBI count ≤ runs scored
 - `max-outs-validation` - Validates 0-3 outs per at-bat
 
 **Integration:**
+
 - `RuleMatrixService` integration with dual validation
 - Seamless compatibility with existing parameter-based system
 - Non-breaking integration preserving all existing functionality
 
 **Testing:**
+
 - 38 comprehensive unit tests covering framework and rules
 - Edge case validation for all critical rules
 - Integration testing with existing systems
@@ -86,6 +96,7 @@ Rules that may vary between leagues (planned for future implementation):
 ### API Usage Examples
 
 **Basic Rule Management:**
+
 ```typescript
 // Access via RuleMatrixService
 const ruleService = new RuleMatrixService();
@@ -102,10 +113,16 @@ const rules = ruleService.getAvailableRules();
 ```
 
 **Validation Integration:**
+
 ```typescript
 // Validation happens automatically in validateAtBat
 const result = ruleService.validateAtBat(
-  beforeState, afterState, battingResult, rbis, runsScored, outs
+  beforeState,
+  afterState,
+  battingResult,
+  rbis,
+  runsScored,
+  outs
 );
 
 // Access detailed rule results if needed
@@ -114,10 +131,11 @@ const ruleResult = ruleEngine.validateAtBat(scenario);
 ```
 
 **Custom Rule Engine:**
+
 ```typescript
 // Create engine with custom configuration
-const engine = new ConfigurableRuleEngine({ 
-  defaultEnabled: false 
+const engine = new ConfigurableRuleEngine({
+  defaultEnabled: false,
 });
 
 // Register and manage rules directly
@@ -128,12 +146,14 @@ engine.enableRule('no-runner-passing');
 ## Usage Philosophy
 
 ### What the Framework IS:
+
 - ✅ Mistake prevention system
 - ✅ Configurable validation layer
 - ✅ Data consistency checker
 - ✅ Enhancement to existing parameter system
 
 ### What the Framework IS NOT:
+
 - ❌ Prescriptive rule enforcement
 - ❌ League rule dictation
 - ❌ Replacement for existing parameter system
@@ -142,13 +162,16 @@ engine.enableRule('no-runner-passing');
 ## Future Enhancements
 
 ### Planned Features
+
 - Settings page integration for rule configuration
 - Rule presets for different league types
 - Advanced validation rules for complex scenarios
 - AI-powered suggestions for unusual plays
 
 ### Extensibility
+
 The framework is designed to easily accommodate:
+
 - New validation rules
 - Rule dependency systems
 - Performance optimizations
@@ -157,20 +180,23 @@ The framework is designed to easily accommodate:
 ## Testing Strategy
 
 ### Framework Testing
+
 - Rule registration and management
 - Enable/disable functionality
 - Integration with existing systems
 
-### Rule Implementation Testing  
+### Rule Implementation Testing
+
 - Individual rule validation logic
 - Edge cases and boundary conditions
 - Integration with realistic game scenarios
 
 ### Compatibility Testing
+
 - Existing functionality preservation
 - Parameter-based system integration
 - Performance impact assessment
 
 ---
 
-*This framework provides a foundation for flexible, configurable validation while maintaining the existing parameter-based outcome generation system.*
+_This framework provides a foundation for flexible, configurable validation while maintaining the existing parameter-based outcome generation system._

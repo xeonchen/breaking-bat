@@ -56,15 +56,19 @@ describe('RuleMatrixService', () => {
     const emptyBases = BaserunnerState.empty();
 
     it('should handle single with empty bases', () => {
-      const outcomes = ruleMatrix.getValidOutcomes(emptyBases, BattingResult.single());
+      const outcomes = ruleMatrix.getValidOutcomes(
+        emptyBases,
+        BattingResult.single()
+      );
 
       expect(outcomes.length).toBeGreaterThanOrEqual(1);
 
       // Find standard outcome (no special parameters required)
-      const standardOutcome = outcomes.find((o) => 
-        !o.requiredParameters.runner_is_aggressive && 
-        !o.requiredParameters.has_fielding_error && 
-        !o.requiredParameters.has_running_error
+      const standardOutcome = outcomes.find(
+        (o) =>
+          !o.requiredParameters.runner_is_aggressive &&
+          !o.requiredParameters.has_fielding_error &&
+          !o.requiredParameters.has_running_error
       );
       expect(standardOutcome).toBeDefined();
       expect(standardOutcome?.afterState.firstBase).toBe('batter');
@@ -76,15 +80,19 @@ describe('RuleMatrixService', () => {
     });
 
     it('should handle double with empty bases', () => {
-      const outcomes = ruleMatrix.getValidOutcomes(emptyBases, BattingResult.double());
+      const outcomes = ruleMatrix.getValidOutcomes(
+        emptyBases,
+        BattingResult.double()
+      );
 
       expect(outcomes.length).toBeGreaterThanOrEqual(1);
 
       // Find standard outcome (no special parameters required)
-      const standardOutcome = outcomes.find((o) => 
-        !o.requiredParameters.runner_is_aggressive && 
-        !o.requiredParameters.has_fielding_error && 
-        !o.requiredParameters.has_running_error
+      const standardOutcome = outcomes.find(
+        (o) =>
+          !o.requiredParameters.runner_is_aggressive &&
+          !o.requiredParameters.has_fielding_error &&
+          !o.requiredParameters.has_running_error
       );
       expect(standardOutcome).toBeDefined();
       expect(standardOutcome?.afterState.firstBase).toBeNull();
@@ -95,14 +103,18 @@ describe('RuleMatrixService', () => {
     });
 
     it('should handle triple with empty bases', () => {
-      const outcomes = ruleMatrix.getValidOutcomes(emptyBases, BattingResult.triple());
+      const outcomes = ruleMatrix.getValidOutcomes(
+        emptyBases,
+        BattingResult.triple()
+      );
 
       expect(outcomes.length).toBeGreaterThanOrEqual(1);
       // Get the standard outcome
-      const standardOutcome = outcomes.find((o) => 
-        !o.requiredParameters.runner_is_aggressive && 
-        !o.requiredParameters.has_fielding_error && 
-        !o.requiredParameters.has_running_error
+      const standardOutcome = outcomes.find(
+        (o) =>
+          !o.requiredParameters.runner_is_aggressive &&
+          !o.requiredParameters.has_fielding_error &&
+          !o.requiredParameters.has_running_error
       );
       expect(standardOutcome).toBeDefined();
       expect(standardOutcome?.afterState.firstBase).toBeNull();
@@ -125,7 +137,10 @@ describe('RuleMatrixService', () => {
     });
 
     it('should handle walk with empty bases', () => {
-      const outcomes = ruleMatrix.getValidOutcomes(emptyBases, BattingResult.walk());
+      const outcomes = ruleMatrix.getValidOutcomes(
+        emptyBases,
+        BattingResult.walk()
+      );
 
       expect(outcomes).toHaveLength(1);
       expect(outcomes[0].afterState.firstBase).toBe('batter');
@@ -201,10 +216,11 @@ describe('RuleMatrixService', () => {
       expect(outcomes.length).toBeGreaterThanOrEqual(1);
 
       // Find standard outcome (no special parameters required)
-      const standardOutcome = outcomes.find((o) => 
-        !o.requiredParameters.runner_is_aggressive && 
-        !o.requiredParameters.has_fielding_error && 
-        !o.requiredParameters.has_running_error
+      const standardOutcome = outcomes.find(
+        (o) =>
+          !o.requiredParameters.runner_is_aggressive &&
+          !o.requiredParameters.has_fielding_error &&
+          !o.requiredParameters.has_running_error
       );
       expect(standardOutcome).toBeDefined();
       expect(standardOutcome?.afterState.secondBase).toBe('batter');
@@ -215,7 +231,10 @@ describe('RuleMatrixService', () => {
     });
 
     it('should handle walk with runner on first - forced advancement', () => {
-      const outcomes = ruleMatrix.getValidOutcomes(runnerOnFirst, BattingResult.walk());
+      const outcomes = ruleMatrix.getValidOutcomes(
+        runnerOnFirst,
+        BattingResult.walk()
+      );
 
       expect(outcomes).toHaveLength(1);
       expect(outcomes[0].afterState.firstBase).toBe('batter');
@@ -306,7 +325,6 @@ describe('RuleMatrixService', () => {
       );
     });
   });
-
 
   describe('Error Handling', () => {
     it('should handle unknown hit types gracefully', () => {

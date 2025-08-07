@@ -1,9 +1,9 @@
 # TODO: Breaking-Bat SDLC Compliance & Testing Audit
 
-**Analysis Date**: 2025-08-01  
-**Last Updated**: 2025-08-02  
-**Scope**: Complete SDLC compliance verification and testing coverage audit  
-**Current Phase**: Test Infrastructure Stabilization Complete  
+**Analysis Date**: 2025-08-01
+**Last Updated**: 2025-08-02
+**Scope**: Complete SDLC compliance verification and testing coverage audit
+**Current Phase**: Test Infrastructure Stabilization Complete
 **Overall Status**: 397/493 tests passing (80.5% pass rate) - Major infrastructure fixed
 
 ## ✅ Phase Completed: Comprehensive Test Infrastructure Fixes
@@ -25,21 +25,25 @@
 ### Recent Technical Fixes Completed
 
 #### TypeScript & JSX Issues
+
 - **Problem**: All React components using incompatible `JSX.Element` return types with modern react-jsx transform
 - **Solution**: Removed return type annotations, allowing TypeScript inference
 - **Impact**: Clean compilation across entire codebase
 
-#### AtBat Repository Issues  
+#### AtBat Repository Issues
+
 - **Problem**: RBI validation failures and compound index query errors
 - **Solution**: Fixed RBI validation logic (RBIs ≤ runs scored) and replaced compound index with manual filtering
 - **Impact**: 17/17 AtBat repository tests now passing
 
 #### Game Repository Date Filtering
-- **Problem**: Dexie `between()` method failing with timezone issues  
+
+- **Problem**: Dexie `between()` method failing with timezone issues
 - **Solution**: Implemented manual filtering with proper date handling
 - **Impact**: 25/25 Game repository tests now passing
 
 #### Component Test Alignment
+
 - **Problem**: Mock expectations misaligned with actual Zustand store implementations
 - **Solution**: Updated all store mocks to match current implementation patterns
 - **Impact**: Scoreboard 17/17 tests passing, TeamManagement 29/35 passing
@@ -47,7 +51,7 @@
 ### Remaining Test Issues - IN PROGRESS
 
 - **SetupLineupUseCase**: Business logic clarification needed (9 vs 10 players for slowpitch softball)
-- **ScoringPage**: 7 tests failing due to mock expectation mismatches  
+- **ScoringPage**: 7 tests failing due to mock expectation mismatches
 - **ESLint Violations**: 149 violations preventing clean commits (mostly accessibility modifiers)
 
 ### Missing E2E Test Coverage for Core User Stories
@@ -305,24 +309,27 @@ Target State:
 
 ### Current Focus: Configurable Validation Rules Framework
 
-**Status**: ✅ **COMPLETED** - Framework implemented with 3 critical rules  
-**Goal**: Create flexible rule validation system that can be enabled/disabled  
+**Status**: ✅ **COMPLETED** - Framework implemented with 3 critical rules
+**Goal**: Create flexible rule validation system that can be enabled/disabled
 **Approach**: Framework-first with minimal implementation to validate concept
 
 ### Immediate Implementation (Phase 1) ✅ COMPLETED
 
 #### Framework Infrastructure ✅ COMPLETED
+
 - [x] **ValidationRule interface**: Core rule abstraction with enable/disable support
-- [x] **ConfigurableRuleEngine service**: Rule registration and validation orchestration  
+- [x] **ConfigurableRuleEngine service**: Rule registration and validation orchestration
 - [x] **Integration layer**: Combine with existing parameter-based validation system
 - [x] **Rule categories**: Critical rules (always important) vs configurable rules
 
 #### Critical Validation Rules (Minimal Set) ✅ COMPLETED
+
 - [x] **"no-runner-passing"**: Trailing runner cannot pass lead runner (fundamental game rule)
 - [x] **"rbi-validation"**: RBIs ≤ runs scored (mathematical consistency check)
 - [x] **"max-outs-validation"**: ≤ 3 outs per at-bat (basic game rule enforcement)
 
 #### Framework Testing ✅ COMPLETED
+
 - [x] **Framework tests**: Rule registration, enable/disable, validation orchestration
 - [x] **Integration tests**: Framework + existing parameter-based system
 - [x] **Rule implementation tests**: Each critical rule individually tested
@@ -330,18 +337,21 @@ Target State:
 ### Future Enhancements (Documented for Later)
 
 #### Configurable Validation Rules (Planned)
+
 - [ ] **League-specific rules**: Error vs hit attribution, running error validation
 - [ ] **Optional enhancement rules**: Statistical analysis, anomaly detection
 - [ ] **Settings page integration**: UI for rule enable/disable toggles
 - [ ] **Rule presets**: "Official League", "Casual Play", "Taiwan League", "Custom"
 
 #### Advanced Features (Future Vision)
+
 - [ ] **AI-powered suggestions**: Intelligent recommendations for complex scenarios
 - [ ] **Complex scenario detection**: Multi-parameter validation scenarios
 - [ ] **Statistical reporting**: Rule violation patterns and trends
 - [ ] **Import/export configurations**: Share rule settings between leagues
 
 #### Architecture Expansion (Design Phase)
+
 - [ ] **Rule dependency system**: Rules that depend on other rules being enabled
 - [ ] **Rule conflict resolution**: Handle contradictory rule combinations
 - [ ] **Performance optimization**: Caching and efficient rule evaluation
@@ -350,11 +360,13 @@ Target State:
 ### Technical Integration Points
 
 #### Current System Compatibility
+
 - ✅ **Parameter-based validation**: Existing 3-parameter system (aggressive/error/running-error)
 - ✅ **RuleMatrixService**: Current outcome generation and validation
 - ✅ **ValidOutcome system**: Established validation result framework
 
 #### Framework Design Principles
+
 - **Non-breaking**: Framework integrates with existing system without disruption
 - **Minimal start**: 3 critical rules to validate framework concept
 - **Extensible**: Easy to add new rules and categories later
@@ -370,6 +382,7 @@ Target State:
 - [x] Documentation explains framework purpose and extensibility
 
 **Phase 1 Results:**
+
 - **38 comprehensive unit tests** covering all framework components
 - **TypeScript type safety** verified across all integration points
 - **Non-breaking integration** with existing parameter-based rule system
@@ -387,26 +400,31 @@ Target State:
 ### 📋 Pending Implementation Tasks
 
 #### Architecture & Code Quality
+
 - **Evaluate HitType vs BattingResult.VALID_RESULTS redundancy** - Consider centralized configuration for hit types
 - **Fix RecordAtBatUseCase tests** - Address test failures affected by rule matrix integration
 - **Update existing domain entities** - Integrate remaining entities with rule matrix system
 
-#### Rule Engine Enhancements  
+#### Rule Engine Enhancements
+
 - **Enhance running error variations** - Cover more base configurations and hit types beyond current 1B scenario
 - **Add comprehensive running error scenarios** - Caught stealing, overrunning bases, multiple error types
 - **Create validation framework with user choice** - Allow users to select from multiple valid outcomes
 - **Replace complex scenario tables** - Simplify with parameter-based documentation
 
 #### Player Statistics & Tracking
+
 - **Add player-level running error tracking** - Extend AtBat entity and RecordAtBatUseCase to track which players made running errors
 - **Implement player statistics service** - Service for accumulating and querying running errors per player across games
 
 #### Base Configuration Coverage
+
 - **Implement remaining 6 base configurations** - second_only, third_only, first_second, first_third, second_third, loaded
 - **Add comprehensive tests** - Test coverage for all remaining base configurations
 - **Document advanced scenarios** - Aggressive advancement, errors as future enhancement TODOs
 
 #### UI/UX Enhancements
+
 - **Enhance AtBatForm UI** - Show only valid hit types and outcomes based on current game state
 - **Create settings page integration** - UI for rule configuration and enable/disable toggles
 

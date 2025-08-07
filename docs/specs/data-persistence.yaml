@@ -10,7 +10,7 @@ inputs:
     required: true
     options: [JSON, CSV]
   - name: export_scope
-    type: select  
+    type: select
     required: true
     options: [single_game, team_season, all_data]
   - name: import_file

@@ -25,7 +25,11 @@ describe('SetupLineupUseCase', () => {
     { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
     { battingOrder: 8, playerId: 'player8', position: Position.centerField() },
     { battingOrder: 9, playerId: 'player9', position: Position.rightField() },
-    { battingOrder: 10, playerId: 'player10', position: Position.shortFielder() },
+    {
+      battingOrder: 10,
+      playerId: 'player10',
+      position: Position.shortFielder(),
+    },
   ];
 
   beforeEach(async () => {
@@ -97,7 +101,10 @@ describe('SetupLineupUseCase', () => {
       if (!result.isSuccess) {
         console.log('Setup failed with error:', result.error);
         console.log('Lineup positions count:', lineupPositions.length);
-        console.log('Batting orders:', lineupPositions.map(lp => lp.battingOrder));
+        console.log(
+          'Batting orders:',
+          lineupPositions.map((lp) => lp.battingOrder)
+        );
       }
 
       expect(result.isSuccess).toBe(true);
@@ -140,7 +147,8 @@ describe('SetupLineupUseCase', () => {
 
     it('should fail when lineup has more than 10 players', async () => {
       const lineupPositions: LineupPosition[] = [];
-      for (let i = 1; i <= 11; i++) { // Actually create 11 players
+      for (let i = 1; i <= 11; i++) {
+        // Actually create 11 players
         lineupPositions.push({
           battingOrder: i,
           playerId: `player${i}`,
@@ -164,15 +172,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -206,15 +230,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -266,7 +306,10 @@ describe('SetupLineupUseCase', () => {
     it('should fail when there are duplicate defensive positions', async () => {
       const lineupPositions = createValidLineup();
       // Make the last position a duplicate of the first
-      lineupPositions[9] = { ...lineupPositions[9], position: Position.pitcher() };
+      lineupPositions[9] = {
+        ...lineupPositions[9],
+        position: Position.pitcher(),
+      };
 
       const command: SetupLineupCommand = {
         gameId: 'game1',
@@ -286,15 +329,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -342,15 +401,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -400,15 +475,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -444,15 +535,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -486,15 +593,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -543,15 +666,31 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 4,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 8,
           playerId: 'player8',
@@ -599,15 +738,47 @@ describe('SetupLineupUseCase', () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 1, playerId: 'player1', position: Position.pitcher() },
         { battingOrder: 2, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 3, playerId: 'player3', position: Position.firstBase() },
-        { battingOrder: 4, playerId: 'player4', position: Position.secondBase() },
-        { battingOrder: 5, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 6, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 7, playerId: 'player7', position: Position.leftField() },
-        { battingOrder: 8, playerId: 'player8', position: Position.centerField() },
-        { battingOrder: 9, playerId: 'player9', position: Position.rightField() },
+        {
+          battingOrder: 3,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
+        {
+          battingOrder: 4,
+          playerId: 'player4',
+          position: Position.secondBase(),
+        },
+        {
+          battingOrder: 5,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 6,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
+        {
+          battingOrder: 8,
+          playerId: 'player8',
+          position: Position.centerField(),
+        },
+        {
+          battingOrder: 9,
+          playerId: 'player9',
+          position: Position.rightField(),
+        },
         // Missing shortFielder, add a duplicate pitcher instead
-        { battingOrder: 10, playerId: 'player10', position: Position.pitcher() },
+        {
+          battingOrder: 10,
+          playerId: 'player10',
+          position: Position.pitcher(),
+        },
       ];
 
       const command: SetupLineupCommand = {
@@ -619,7 +790,7 @@ describe('SetupLineupUseCase', () => {
       // Mock game and players exist
       const mockGame = { id: 'game1' };
       mockGameRepository.findById.mockResolvedValue(mockGame as any);
-      
+
       for (let i = 1; i <= 10; i++) {
         mockPlayerRepository.findById.mockResolvedValueOnce({
           id: `player${i}`,
@@ -629,22 +800,40 @@ describe('SetupLineupUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Each position can only be assigned to one player');
+      expect(result.error).toBe(
+        'Each position can only be assigned to one player'
+      );
     });
 
     it('should validate that batting order starts from 1', async () => {
       const lineupPositions: LineupPosition[] = [
         { battingOrder: 2, playerId: 'player1', position: Position.pitcher() }, // Starts from 2
         { battingOrder: 3, playerId: 'player2', position: Position.catcher() },
-        { battingOrder: 4, playerId: 'player3', position: Position.firstBase() },
+        {
+          battingOrder: 4,
+          playerId: 'player3',
+          position: Position.firstBase(),
+        },
         {
           battingOrder: 5,
           playerId: 'player4',
           position: Position.secondBase(),
         },
-        { battingOrder: 6, playerId: 'player5', position: Position.thirdBase() },
-        { battingOrder: 7, playerId: 'player6', position: Position.shortstop() },
-        { battingOrder: 8, playerId: 'player7', position: Position.leftField() },
+        {
+          battingOrder: 6,
+          playerId: 'player5',
+          position: Position.thirdBase(),
+        },
+        {
+          battingOrder: 7,
+          playerId: 'player6',
+          position: Position.shortstop(),
+        },
+        {
+          battingOrder: 8,
+          playerId: 'player7',
+          position: Position.leftField(),
+        },
         {
           battingOrder: 9,
           playerId: 'player8',

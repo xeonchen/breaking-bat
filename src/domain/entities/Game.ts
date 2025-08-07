@@ -48,7 +48,7 @@ export class Game extends BaseEntity {
     updatedAt?: Date
   ) {
     super(id, createdAt, updatedAt);
-    
+
     if (!name.trim()) {
       throw new Error('Game name cannot be empty');
     }
@@ -259,16 +259,17 @@ export class Game extends BaseEntity {
   public getSummary(): string {
     const venueText = this.getVenueText();
     const dateText = this.date.toLocaleDateString();
-    
+
     if (this.finalScore) {
       const { homeScore, awayScore } = this.finalScore;
       const ourScore = this.homeAway === 'home' ? homeScore : awayScore;
       const theirScore = this.homeAway === 'home' ? awayScore : homeScore;
-      const result = ourScore > theirScore ? 'W' : ourScore < theirScore ? 'L' : 'T';
-      
+      const result =
+        ourScore > theirScore ? 'W' : ourScore < theirScore ? 'L' : 'T';
+
       return `${result} ${ourScore}-${theirScore} ${venueText} ${this.opponent} (${dateText})`;
     }
-    
+
     return `${venueText} ${this.opponent} (${dateText}) - ${this.status}`;
   }
 }

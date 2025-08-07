@@ -1,8 +1,8 @@
 /**
  * Domain Entity Interfaces
- * 
+ *
  * Core business entities for the Breaking-Bat slowpitch softball scoring app.
- * These interfaces define the structure of our domain objects following 
+ * These interfaces define the structure of our domain objects following
  * Clean Architecture principles.
  */
 
@@ -193,40 +193,45 @@ export interface DataConflict {
 }
 
 // Enums and type unions
-export type Position = 
-  | 'pitcher' 
-  | 'catcher' 
-  | 'first-base' 
-  | 'second-base' 
-  | 'third-base' 
-  | 'shortstop' 
-  | 'left-field' 
-  | 'center-field' 
+export type Position =
+  | 'pitcher'
+  | 'catcher'
+  | 'first-base'
+  | 'second-base'
+  | 'third-base'
+  | 'shortstop'
+  | 'left-field'
+  | 'center-field'
   | 'right-field';
 
 export type HomeAway = 'home' | 'away';
 
 export type GameStatus = 'setup' | 'in_progress' | 'completed' | 'suspended';
 
-export type BattingResult = 
-  | '1B'  // Single
-  | '2B'  // Double  
-  | '3B'  // Triple
-  | 'HR'  // Home Run
-  | 'BB'  // Base on Balls (Walk)
+export type BattingResult =
+  | '1B' // Single
+  | '2B' // Double
+  | '3B' // Triple
+  | 'HR' // Home Run
+  | 'BB' // Base on Balls (Walk)
   | 'IBB' // Intentional Base on Balls
-  | 'SF'  // Sacrifice Fly
-  | 'E'   // Error
-  | 'FC'  // Fielder's Choice
-  | 'SO'  // Strikeout
-  | 'GO'  // Ground Out
-  | 'AO'  // Air Out
+  | 'SF' // Sacrifice Fly
+  | 'E' // Error
+  | 'FC' // Fielder's Choice
+  | 'SO' // Strikeout
+  | 'GO' // Ground Out
+  | 'AO' // Air Out
   | 'DP'; // Double Play
 
 export type ExportFormat = 'JSON' | 'CSV';
 
 export type ExportScope = 'single_game' | 'team_season' | 'all_data';
 
-export type ImportStatus = 'pending' | 'validating' | 'importing' | 'completed' | 'failed';
+export type ImportStatus =
+  | 'pending'
+  | 'validating'
+  | 'importing'
+  | 'completed'
+  | 'failed';
 
 export type ImportStrategy = 'merge' | 'replace' | 'skip_duplicates';

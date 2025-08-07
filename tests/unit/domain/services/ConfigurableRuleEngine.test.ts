@@ -1,6 +1,13 @@
 import { ConfigurableRuleEngine } from '@/domain/services/ConfigurableRuleEngine';
-import { ValidationRuleFactory, AtBatValidationScenario } from '@/domain/values/ValidationRule';
-import { ValidationResult, RuleViolation, ViolationType } from '@/domain/values/RuleViolation';
+import {
+  ValidationRuleFactory,
+  AtBatValidationScenario,
+} from '@/domain/values/ValidationRule';
+import {
+  ValidationResult,
+  RuleViolation,
+  ViolationType,
+} from '@/domain/values/RuleViolation';
 import { BaserunnerState } from '@/domain/values/BaserunnerState';
 import { BattingResult } from '@/domain/values/BattingResult';
 
@@ -43,8 +50,10 @@ describe('ConfigurableRuleEngine', () => {
     });
 
     it('should respect default enabled configuration', () => {
-      const ruleEngineDisabled = new ConfigurableRuleEngine({ defaultEnabled: false });
-      
+      const ruleEngineDisabled = new ConfigurableRuleEngine({
+        defaultEnabled: false,
+      });
+
       const rule = ValidationRuleFactory.create(
         'test-rule',
         'Test Rule',
@@ -101,7 +110,7 @@ describe('ConfigurableRuleEngine', () => {
         'critical',
         () => ValidationResult.valid()
       );
-      
+
       const configurableRule = ValidationRuleFactory.create(
         'configurable-rule',
         'Configurable Rule',
@@ -124,10 +133,10 @@ describe('ConfigurableRuleEngine', () => {
     it('should get rules by category', () => {
       const criticalRules = ruleEngine.getRulesByCategory('critical');
       const configurableRules = ruleEngine.getRulesByCategory('configurable');
-      
+
       expect(criticalRules).toHaveLength(1);
       expect(criticalRules[0].id).toBe('critical-rule');
-      
+
       expect(configurableRules).toHaveLength(1);
       expect(configurableRules[0].id).toBe('configurable-rule');
     });
@@ -156,7 +165,7 @@ describe('ConfigurableRuleEngine', () => {
       ruleEngine.registerRule(passingRule);
 
       const result = ruleEngine.validateAtBat(createTestScenario());
-      
+
       expect(result.isValid).toBe(true);
       expect(result.ruleResults.size).toBe(1);
       expect(result.allViolations).toHaveLength(0);
@@ -168,19 +177,20 @@ describe('ConfigurableRuleEngine', () => {
         'Failing Rule',
         'Always fails',
         'critical',
-        () => ValidationResult.invalid(
-          new RuleViolation(
-            ViolationType.INVALID_BASE_ADVANCEMENT,
-            'Test violation',
-            createTestScenario()
+        () =>
+          ValidationResult.invalid(
+            new RuleViolation(
+              ViolationType.INVALID_BASE_ADVANCEMENT,
+              'Test violation',
+              createTestScenario()
+            )
           )
-        )
       );
 
       ruleEngine.registerRule(failingRule);
 
       const result = ruleEngine.validateAtBat(createTestScenario());
-      
+
       expect(result.isValid).toBe(false);
       expect(result.allViolations).toHaveLength(1);
       expect(result.allViolations[0].message).toBe('Test violation');
@@ -223,7 +233,7 @@ describe('ConfigurableRuleEngine', () => {
       ruleEngine.disableRule('failing-rule');
 
       const result = ruleEngine.validateAtBat(createTestScenario());
-      
+
       expect(result.isValid).toBe(true);
       expect(passRuleCalled).toBe(true);
       expect(failRuleCalled).toBe(false);
@@ -243,10 +253,12 @@ describe('ConfigurableRuleEngine', () => {
       ruleEngine.registerRule(errorRule);
 
       const result = ruleEngine.validateAtBat(createTestScenario());
-      
+
       expect(result.isValid).toBe(false);
       expect(result.allViolations).toHaveLength(1);
-      expect(result.allViolations[0].message).toContain('Rule execution failed');
+      expect(result.allViolations[0].message).toContain(
+        'Rule execution failed'
+      );
     });
   });
 
@@ -261,7 +273,7 @@ describe('ConfigurableRuleEngine', () => {
       );
 
       ruleEngine.registerRule(rule);
-      
+
       const config = ruleEngine.getConfig();
       expect(config.defaultEnabled).toBe(true);
       expect(config.ruleStates.get('test-rule')).toBe(true);

@@ -1,11 +1,11 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import security from 'eslint-plugin-security'
-import microsoftSdl from '@microsoft/eslint-plugin-sdl'
-import noUnsanitized from 'eslint-plugin-no-unsanitized'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import security from 'eslint-plugin-security';
+import microsoftSdl from '@microsoft/eslint-plugin-sdl';
+import noUnsanitized from 'eslint-plugin-no-unsanitized';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   { ignores: ['coverage', 'dist', 'docs/**'] },
@@ -19,7 +19,7 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      'security': security,
+      security: security,
       '@microsoft/sdl': microsoftSdl,
       'no-unsanitized': noUnsanitized,
     },
@@ -33,22 +33,36 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       // Clean Architecture rules (consistent everywhere)
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
       '@typescript-eslint/explicit-function-return-type': 'off', // Too noisy, TypeScript inference is good
-      '@typescript-eslint/explicit-member-accessibility': ['warn', {
-        accessibility: 'explicit',
-        overrides: {
-          accessors: 'explicit',
-          constructors: 'no-public',
-          methods: 'explicit',
-          properties: 'explicit',
-          parameterProperties: 'explicit'
-        }
-      }],
+      '@typescript-eslint/explicit-member-accessibility': [
+        'warn',
+        {
+          accessibility: 'explicit',
+          overrides: {
+            accessors: 'explicit',
+            constructors: 'no-public',
+            methods: 'explicit',
+            properties: 'explicit',
+            parameterProperties: 'explicit',
+          },
+        },
+      ],
       '@typescript-eslint/no-explicit-any': 'warn', // Allow with warning for gradual cleanup
       '@typescript-eslint/no-non-null-assertion': 'warn', // Allow with warning for gradual cleanup
       'prefer-const': 'error',
       'no-var': 'error',
+      // Whitespace and formatting rules
+      'no-trailing-spaces': [
+        'error',
+        {
+          skipBlankLines: false,
+          ignoreComments: false,
+        },
+      ],
       // Security-specific rules
       'security/detect-object-injection': 'warn',
       'security/detect-non-literal-regexp': 'warn',
@@ -56,5 +70,5 @@ export default tseslint.config(
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
     },
-  },
-)
+  }
+);

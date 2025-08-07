@@ -25,13 +25,13 @@ Players can change their fielding positions during the game, typically there's n
 ### Batting Order
 
 typically 10~11 in the lineup (10 defensive position + an optional EP player), sometimes (especially in unofficial games) there might be more than 1 EP.
+
 - **Extra Player (EP)** - Bats but doesn't play defense. Depending on different rules, it is possible that an EP might switch position with another fielder (e.g. EP <-> 3B)
 - **Jersey numbers** can range 0-999 (expanded from traditional 1-99)
 
 Players cannot change their batting order once the game starts.
 
 a player switch with a bench will be removed from the lineup, and this player can't switch back to the game unless the player is starting players (who plays from the beginning of the game). A starting player can only return to the game once and the batting order must be the same as his starting order.
-
 
 ## Base Running Fundamentals
 
