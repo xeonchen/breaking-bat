@@ -93,7 +93,7 @@ breaking-bat/
 **⏳ In Progress:**
 
 - **Test Infrastructure**: 397/493 tests passing (80.5% pass rate) - Major improvements completed
-- Data Export/Import functionality  
+- Data Export/Import functionality
 - Game Statistics Aggregation
 
 **🧪 Recent Testing Infrastructure Achievements:**
@@ -168,7 +168,7 @@ This project uses [Conventional Commits](https://conventionalcommits.org/):
 npm run commit  # Interactive commit tool
 ```
 
-For detailed commit standards and development workflow, see [CLAUDE.md](CLAUDE.md).
+For detailed development guidance, standards, and workflow, see [docs/development/](docs/development/).
 
 ## 📄 License
 

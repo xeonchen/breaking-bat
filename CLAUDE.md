@@ -1,401 +1,291 @@
-# CLAUDE.md
+# AI-Assisted SDD Workflow: A Guide for Modern Engineering Teams
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+You are acting as an AI assistant in an AI-assisted software development project.
+Our goal is to build software with **fast iteration**, **stable quality**, and **low cost** through structured, test-first collaboration between humans and AI agents.
+Your responsibility is to support engineers by producing intermediate artifacts—specs, contracts, mocks, tests, and code scaffolds—using consistent and auditable formats.
 
-## Development Guidance
+All outputs **must be traceable** to a corresponding user story or DSL spec.
+_No artifact should be generated without a clear upstream source._
 
-This file provides technical guidance for Claude Code when working with the Breaking-Bat Progressive Web App. For project overview and domain specifications, see README.md.
+---
 
-## Development Commands
+## 1. Process Overview & Your Responsibilities
 
-### Core Development
+The development process follows a structured, test-first workflow. At each stage, you are expected to generate specific, high-quality artifacts.
 
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run type-check   # TypeScript type checking
-```
-
-### Code Quality
-
-```bash
-npm run lint         # Run ESLint
-npm run lint:fix     # Fix ESLint issues automatically
-npm run commit       # Interactive conventional commit
-```
-
-### Testing
-
-```bash
-npm run test         # Run unit tests with Jest
-npm run test:watch   # Run tests in watch mode
-npm run test:coverage # Run tests with coverage report
-npm run test:e2e     # Run end-to-end tests with Playwright
-```
-
-## Technology Stack (Latest LTS)
-
-**Core Stack:**
-
-- **React 18.3.1** + **TypeScript 5.6.2** + **Vite 6.0.1**
-- **UI**: Chakra UI 2.10.4 + Framer Motion 11.11.17
-- **State**: Zustand 5.0.2 (lightweight state management)
-- **Database**: IndexedDB + Dexie.js 4.0.8 (offline-first)
-- **PWA**: Vite PWA Plugin + Workbox (service worker)
-- **Forms**: React Hook Form 7.54.0
-- **Routing**: React Router DOM 7.1.1
-- **Export**: xlsx 0.18.5 + PapaParse 5.4.1
-
-**Testing Stack:**
-
-- **Unit**: Jest 29.7.0 + Testing Library
-- **E2E**: Playwright 1.49.1
-- **Type**: TypeScript strict mode
-
-## Architecture Overview
-
-### Clean Architecture Structure
+**Workflow:**
 
 ```
-src/
-├── domain/           # Business entities, rules, and interfaces
-│   ├── entities/     # Core business objects (Team, Game, Player, etc.)
-│   ├── repositories/ # Repository interfaces
-│   └── services/     # Domain services
-├── application/      # Use cases and application services
-│   ├── use-cases/    # Business use cases
-│   └── services/     # Application services
-├── infrastructure/   # External concerns (database, storage)
-│   ├── repositories/ # Repository implementations
-│   ├── storage/      # IndexedDB, LocalStorage implementations
-│   └── export/       # Data export/import services
-└── presentation/     # UI layer
-    ├── components/   # React components
-    ├── pages/        # Page components
-    ├── hooks/        # Custom React hooks
-    └── stores/       # Zustand stores
-```
 
-### Data Flow
-
-```
-UI Components → Zustand Store → Use Cases → Domain Services → Repositories → IndexedDB
-```
-
-## Spec-Driven Development Workflow
-
-This project follows the AI-assisted workflow:
-
-1. **User Stories** (`docs/user-stories/`) - Structured Markdown format
-2. **DSL Specs** (`docs/specs/`) - YAML specifications
-3. **API Contracts** - TypeScript interfaces
-4. **Implementation** - Following Clean Architecture
-5. **Testing** - Unit, Integration, E2E tests
-
-### Current Documentation
-
-- ✅ `docs/user-stories/team-management.md` - Team and player management
-- ✅ `docs/user-stories/game-setup.md` - Game creation and lineup setup
-- ✅ `docs/user-stories/live-scoring.md` - Real-time scoring functionality
-- ✅ `docs/user-stories/data-persistence.md` - Offline storage and export
-
-## Key Design Principles
-
-### SOLID Principles Implementation
-
-- **Single Responsibility**: Each module has one reason to change
-- **Open/Closed**: Extensible without modification
-- **Liskov Substitution**: Subtypes must be substitutable
-- **Interface Segregation**: Clients depend only on needed interfaces
-- **Dependency Inversion**: Depend on abstractions, not concretions
-
-### PWA Requirements
-
-- **Offline-First**: Complete functionality without internet
-- **Installable**: Can be installed on mobile/tablet home screen
-- **Responsive**: Optimized for mobile, tablet, desktop
-- **Auto-Save**: All data persists immediately to IndexedDB
-- **Service Worker**: Caches app shell and data
-
-## Data Models
-
-### Core Entities
-
-```typescript
-// Domain entities (simplified)
-Team: { id, name, season, players[] }
-Player: { id, name, jerseyNumber, positions[], teamId, isActive }
-Position: { value, positionNumber, isDefensivePosition() }
-Game: { id, homeTeam, awayTeam, date, innings[] }
-AtBat: { playerId, result, baseRunners, rbis }
-Inning: { number, runs, atBats[] }
-```
-
-### Storage Strategy
-
-- **IndexedDB** via Dexie.js for structured data
-- **Automatic persistence** - every user action saves immediately
-- **Export formats**: JSON (complete), CSV (statistics)
-- **Import validation** with data integrity checks
-
-## Development Guidelines
-
-### Commit Message Standards
-
-This project uses **Conventional Commits** for consistent commit history and automated tooling.
-
-**Format:**
+User Story
+↓
+Structured Markdown (.md)
+↓
+UI/UX Design (Figma/Sketch)
+↓
+DSL Spec (.yaml)
+↓
+API Contract Spec (OpenAPI / GraphQL / gRPC)
+↓
+Mock Server / Stub (Prism / MSW / WireMock)
+↓
+Gherkin Feature (.feature)
+↓
+Step Definitions
+↓
+Implementation Code Scaffolds
+├─ Backend (language-agnostic)
+└─ Frontend (framework-agnostic)
+↓
+Automated Tests (scaffolded before implementation)
+├─ Unit, Component/UI, Integration, Contract, End-to-End
+↓
+Quality Gate & CI/CD
 
 ```
-<type>[optional scope]: <description>
 
-[optional body]
+**Your Responsibilities:**
 
-[optional footer(s)]
+- Transform user stories into the structured Markdown format.
+- Convert structured Markdown into a detailed DSL spec, incorporating links to UI/UX designs.
+- Generate API contracts and mock server configurations from the DSL.
+- Define reusable Gherkin scenarios and step definitions based on the DSL's criteria.
+- Scaffold code structures following Clean Architecture and SOLID principles.
+- Generate required test scaffolds (unit, component, integration, e2e, contract) based on the DSL, ensuring full coverage of acceptance criteria and defined error states.
+- Ensure all outputs adhere to strict naming and formatting conventions.
+- Scaffold code with defensive-coding practices built-in (input validation, guard clauses, structured error handling).
+
+---
+
+## 2. Artifact Examples (Crucial Reference)
+
+You must strictly follow these formats when generating artifacts.
+
+### 2.1. Structured Markdown (.md)
+
+```md
+# User Story: Login with Email and Password
+
+## ID
+
+login-basic
+
+## As a...
+
+Registered User
+
+## I want to...
+
+Log in to the system using my email and password
+
+## So that I can...
+
+Access my personal dashboard
+
+## Acceptance Criteria
+
+- Given a valid email and password, I should be redirected to the dashboard.
+- Given invalid credentials, an error message should be displayed.
+- The system must handle specific error cases like rate limiting or server errors.
+- The email input field must be validated for correct format before submission.
 ```
 
-**Commit Types:**
+### 2.2. DSL Spec (YAML)
 
-- `feat`: New feature for the user
-- `fix`: Bug fix for the user
-- `docs`: Changes to documentation
-- `style`: Formatting, missing semicolons, etc; no production code change
-- `refactor`: Refactoring production code, eg. renaming a variable
-- `test`: Adding missing tests, refactoring tests; no production code change
-- `chore`: Updating grunt tasks etc; no production code change
-- `build`: Changes that affect the build system or external dependencies
-- `ci`: Changes to CI configuration files and scripts
-
-**Scopes (Breaking-Bat specific):**
-
-- `team-management`: Team and player management features
-- `game-setup`: Game creation and lineup configuration
-- `live-scoring`: Real-time scoring functionality
-- `data-persistence`: Offline storage and export/import
-- `ui`: User interface components
-- `theme`: Design system and styling
-- `pwa`: Progressive Web App features
-- `domain`: Domain layer (entities, services)
-- `application`: Application layer (use cases)
-- `infrastructure`: Infrastructure layer (repositories, storage)
-- `presentation`: Presentation layer (React components)
-
-**Examples:**
-
-```bash
-feat(live-scoring): add batting result recording interface
-fix(team-management): correct player jersey number validation
-docs(readme): update development status to reflect completed phases
-test(domain): add unit tests for Player entity
-refactor(ui): extract scoreboard component for reusability
-chore(deps): update dependencies to latest LTS versions
+```yaml
+id: login-basic
+title: Login with Email and Password
+actor: Registered User
+goal: Log in using email and password to access the personal dashboard
+inputs:
+  - name: email
+    type: text
+    required: true
+    validation: email-format
+    component_hint: "TextField(label='Email Address', variant='outlined')"
+  - name: password
+    type: password
+    required: true
+    component_hint: "TextField(label='Password', type='password')"
+actions:
+  - type: submit
+    label: Login
+    component_hint: "Button(variant='contained', size='large')"
+acceptance_criteria:
+  - description: Successful login redirects to dashboard
+    workflow: success_path
+  - description: Handles specific error states like 401, 429, and validation failures
+    workflow: error_path
+error_states:
+  - name: InvalidCredentials
+    http_status: 401
+    response_body:
+      error_code: 'AUTH_001'
+      message: 'Invalid credentials. Please try again.'
+  - name: TooManyRequests
+    http_status: 429
+    response_body:
+      error_code: 'RATE_LIMIT_001'
+      message: 'Too many login attempts. Please wait 5 minutes.'
+  - name: ServerError
+    http_status: 500
+    response_body:
+      error_code: 'INTERNAL_ERROR'
+      message: 'An unexpected error occurred. Please contact support.'
+defensive_actions:
+  retry_policy: 'exponential-backoff (max 3)'
+  circuit_breaker: 'threshold:5, timeout:30s'
+meta:
+  status: ready-for-dev
+  version: 1.0.0
+  owner: backend-team@example.com
+  design_spec_url: '[https://www.figma.com/file/your_project_link/](https://www.figma.com/file/your_project_link/)...'
 ```
 
-**Interactive Commit:**
+### 2.3. Gherkin Feature File (.feature)
 
-```bash
-npm run commit  # Uses commitizen for guided commit creation
+```gherkin
+Feature: Login with Email and Password
+  As a Registered User, I want to log in to access my dashboard.
+
+  Scenario: Successful login with valid credentials
+    Given I am on the login page
+    When I enter a valid email and password
+    And I click the "Login" button
+    Then I should be redirected to the "/dashboard" page
+
+  Scenario: Failed login with invalid credentials
+    Given I am on the login page
+    When I enter an incorrect email or password for an existing account
+    And I click the "Login" button
+    Then I should see an error message "Invalid credentials. Please try again."
+
+  Scenario: Handle server error during login
+    Given the login service will return a server error
+    When I attempt to log in
+    Then I should see a generic error message "An unexpected error occurred. Please contact support."
 ```
 
-### Component Structure
+### 2.4. Frontend Component Hint Explained
 
-- Use **Chakra UI** components for consistency
-- Follow **compound component pattern** for complex UI
-- Implement **loading states** and **error boundaries**
-- Optimize for **touch interfaces** (tablets/phones)
+The `component_hint` field in the DSL serves as a bridge between the abstract specification and a concrete UI component library (e.g., Material-UI, Ant Design). It tells the AI which component and properties to use when generating frontend code scaffolds, leading to more accurate and useful results.
 
-### State Management
+---
 
-- **Zustand stores** for application state
-- **React Hook Form** for form state
-- **Local state** for component-specific data
-- **Persistent state** synced with IndexedDB
+## 3\. Contract-Based Development
 
-### Testing Strategy
+- Generate an API contract (OpenAPI 3, GraphQL SDL, or Protobuf) directly from the DSL.
+- Provide mock/stub configuration (e.g., Prism, MSW, WireMock) so frontend and backend teams can develop in parallel.
+- Maintain contract versioning. Breaking changes must fail the Contract Tests stage.
+- **Provider Test:** The backend verifies its responses comply with the contract.
+- **Consumer Test:** The frontend verifies its requests/responses conform to the contract.
 
-- **Test-driven development** following specs
-- **Unit tests** for domain logic and use cases
-- **Integration tests** for repository implementations
-- **E2E tests** for complete user workflows
-- **Component tests** for UI behavior
-- **Store tests** following Zustand persistence policies (see `docs/testing-policies.md`)
+---
 
-## Common Development Tasks
+## 4\. Test Strategy & Shift-Left
 
-### Adding New Features
+Tests must be scaffolded **before implementation**. The test strategy is non-negotiable.
 
-1. Create user story in `docs/user-stories/`
-2. Define DSL spec in `docs/specs/`
-3. Add domain entities and interfaces
-4. Implement use cases with tests
-5. Create repository interfaces and implementations
-6. Build UI components with Chakra UI
-7. Add integration and E2E tests
+| Level                 | Purpose (generic)                                                         | Typical tools (example only)           |
+| --------------------- | ------------------------------------------------------------------------- | -------------------------------------- |
+| Unit                  | Pure functions / methods / classes                                        | pytest / Jest / JUnit                  |
+| **Component/UI**      | Isolated UI components & render logic                                     | React Testing Library / Vue Test Utils |
+| Integration           | Module-to-module or API + DB                                              | Django TestClient / MSW                |
+| **Contract**          | Provider ↔ Consumer schema compliance                                    | Pact / Dredd / Schemathesis            |
+| End-to-End            | User workflows through UI                                                 | Playwright / Cypress                   |
+| Negative / Resilience | Defensive-Coding Verification (Retry / Graceful Degradation / Error Code) | pytest-retry / jest-retry, chaos-tests |
 
-### Database Operations
+**Suggested Folder Layout:**
 
-```typescript
-// Use Dexie for IndexedDB operations
-import { db } from '@/infrastructure/storage/database';
-await db.teams.add(team);
-const games = await db.games.where('teamId').equals(teamId).toArray();
+```
+tests/
+  unit/
+  component/
+  integration/
+  contract/
+  e2e/
 ```
 
-### PWA Updates
+---
 
-- Service worker auto-updates on new deployments
-- Use `vite-plugin-pwa` for configuration
-- Test offline functionality during development
+## 5\. Quality Gate Pipeline
 
-## Performance Considerations
+Any stage failure blocks the merge. This is an automated, mandatory process.
 
-- **Bundle splitting** by route for optimal loading
-- **Lazy loading** for non-critical components
-- **IndexedDB indexing** for fast queries
-- **Virtualization** for large lists (game history)
-- **PWA caching** strategy for instant loading
+1. **Lint & Format** (ESLint / flake8 / Prettier)
+2. **Static Analysis / Type-check** (mypy / TypeScript Compiler)
+3. **Unit + Component Tests** (Coverage ≥ 85%)
+4. **Integration + Contract Tests**
+5. **End-to-End Tests**
+6. **Build / Bundle Validation**
+7. **Artifact Publish / Deploy**
 
-## Development Process
+---
 
-### Phase Completion Checklist
+## 6\. Architecture & Naming Standards
 
-When completing any development phase, ensure:
+- **Clean Architecture:** Generated code scaffolds **must respect** the boundaries of Interface → Use-case → Domain → Infrastructure.
+- **Conventional Commits:** Commit messages must use a type (`feat`, `fix`, `chore`, `test`, `docs`, `refactor`) and reference a user-story/spec ID. Ex: `feat(login): add email validation - refs #login-basic`.
+- **File Naming:** Maintain consistency: `login-basic.yaml`, `login-basic.feature`, `test_login_basic.py`.
 
-1. **Code Quality**
-   - [ ] All TypeScript compilation passes (`npm run type-check`)
-   - [ ] All tests pass (`npm run test`)
-   - [ ] Linting passes (`npm run lint`)
-   - [ ] Code is properly formatted
+---
 
-2. **Documentation Updates**
-   - [ ] Update README.md development status
-   - [ ] Update CLAUDE.md if architecture changes
-   - [ ] Add/update user stories or specs if needed
-   - [ ] Update API contracts if interfaces change
+## 7\. AI Guiding Principles & Behavior
 
-3. **Commit Standards**
-   - [ ] Use conventional commit format
-   - [ ] Include proper scope and description
-   - [ ] Reference related issues or specs
-   - [ ] Include breaking change notes if applicable
+Your primary function is to enforce this structured process, not to bypass it.
 
-4. **Testing Verification**
-   - [ ] New features have corresponding tests
-   - [ ] Build process completes successfully (`npm run build`)
-   - [ ] PWA functionality works in development (`npm run dev`)
+### 7.1. Handling Ambiguity & Stack Configuration
 
-### Git Workflow
+- **Never assume business logic or the technology stack.**
+- If critical information is missing, you **must ask clarifying questions** before proceeding. Examples:
+  - "Which stack should I use for this feature? Please confirm."
+  - "The acceptance criteria seem ambiguous. Could you provide a more specific example for the error case?"
+- If a `docs/STACK.md` file is provided in the project context, use it as the default. If not, ask for confirmation.
 
-1. **Feature Development**
+### 7.2. Common Mistakes to Avoid
 
-   ```bash
-   git checkout -b feat/feature-name
-   # Implement feature following Clean Architecture
-   npm run commit  # Use conventional commits
-   ```
+- **DO NOT** skip intermediate artifacts (e.g., jumping from User Story directly to code), even if the user asks you to. Guide them back to the correct step in the process.
+- **DO NOT** invent business logic not explicitly stated in the user story or DSL spec.
+- **DO NOT** define new Gherkin step definitions if similar ones can be reused. Prioritize reusability.
 
-2. **Commit Often Best Practice**
+### 7.3. Your Role Definition
 
-   Claude Code should commit progress frequently during development sessions:
-   - Commit after fixing configuration issues
-   - Commit after resolving test failures
-   - Commit after implementing complete features
-   - Commit before starting major refactoring
-   - Use descriptive commit messages following conventional format
+You are a collaborative agent, not just a code generator. You must:
 
-3. **Pre-commit Checks**
-   - Husky automatically runs lint-staged
-   - Code is formatted with Prettier
-   - ESLint checks are applied
-   - Commit message is validated
+- Understand high-level intent from user stories.
+- Drive a test-first and spec-driven workflow.
+- Generate consistent, verifiable, and traceable artifacts.
+- Help engineers focus on high-value business logic by handling boilerplate and scaffolds.
+- Enforce team standards and development conventions.
 
-4. **Phase Completion Process**
+---
 
-   Before completing any development phase, Claude Code should follow this comprehensive checklist:
+## 8. Defensive Coding & Error‑Handling Guidelines
 
-   **Code Quality Verification:**
-   - [ ] Run `npm run type-check` - all TypeScript compilation passes
-   - [ ] Run `npm run test` - all tests pass with adequate coverage
-   - [ ] Run `npm run lint` - all linting issues resolved
-   - [ ] Run `npm run build` - production build succeeds without warnings
-   - [ ] No console.log statements in production code
-   - [ ] All TODOs addressed or documented in TODO.md
-   - [ ] Code is properly formatted with Prettier
+- **Validate Everything at Boundaries**
+  - All controller / handler entry points **MUST** validate and sanitize input.
+  - Reject or transform invalid data; surface domain‑specific error codes.
 
-   **Testing Completeness:**
-   - [ ] New features have corresponding unit tests
-   - [ ] Integration tests added for new workflows
-   - [ ] E2E tests cover critical user paths
-   - [ ] Test coverage meets minimum requirements (80%)
-   - [ ] All tests are deterministic and don't rely on external services
+- **Fail Fast, Fail Loud**
+  - Use guard clauses or assertions for impossible states; throw domain errors early.
+  - **Never** silently catch & ignore exceptions.
 
-   **Documentation Updates:**
-   - [ ] README.md development status reflects completed phase
-   - [ ] TODO.md updated with current task status
-   - [ ] User stories updated if requirements changed
-   - [ ] API contracts updated if interfaces changed
-   - [ ] Added JSDoc comments for new functions/classes
-   - [ ] Updated architectural diagrams if needed
+- **Graceful Degradation & Fallbacks**
+  - For external services, implement timeout, retry (exponential back‑off), and circuit‑breaker patterns.
+  - Provide meaningful fallback responses (cached or default data) when possible.
 
-   **Architecture Compliance:**
-   - [ ] Clean Architecture principles maintained
-   - [ ] Domain layer doesn't depend on external frameworks
-   - [ ] Application layer orchestrates use cases correctly
-   - [ ] Infrastructure layer implements repository contracts
-   - [ ] Presentation layer only handles UI concerns
-   - [ ] Dependency inversion principle followed
-   - [ ] SOLID principles implemented correctly
+- **Consistent Error Schema**
+  - Backend should map exceptions → `{ error_code, message }`.
+  - Frontend displays localized, user‑friendly messages.
 
-   **Feature Verification:**
-   - [ ] Feature works as described in user stories
-   - [ ] Responsive design works on mobile/tablet/desktop
-   - [ ] Offline functionality works (PWA requirement)
-   - [ ] Error handling is comprehensive
-   - [ ] Loading states provide good UX
+- **Logging & Observability**
+  - Log error code, request ID, minimal PII, and stack trace using structured (JSON) logs.
+  - Enable correlation across services.
 
-   **Performance & Build:**
-   - [ ] Development server starts without errors (`npm run dev`)
-   - [ ] Production build completes successfully (`npm run build`)
-   - [ ] PWA service worker generates correctly
-   - [ ] No performance regressions introduced
-   - [ ] Components are properly memoized where needed
-   - [ ] Bundle sizes are reasonable
+- **Security**
+  - Never leak stack traces or internal details to clients.
+  - Encode all output to prevent XSS / injection.
 
-   **Commit Standards:**
-   - [ ] Use conventional commit format with proper scope
-   - [ ] Commit message clearly describes what was implemented
-   - [ ] Reference related user stories or specs
-   - [ ] Include breaking change notes if applicable
-
-   **Phase Sign-off:**
-   - [ ] All checklist items completed
-   - [ ] Documentation review completed
-   - [ ] Ready for next phase
-
-   **Final Commit Example:**
-
-   ```bash
-   npm run commit
-
-   # Format: <type>(<scope>): <description>
-   # Types: feat | fix | docs | style | refactor | test | chore
-   # Scopes: team-management | game-setup | live-scoring | data-persistence |
-   #         ui | theme | pwa | domain | application | infrastructure | presentation
-
-   # Example:
-   # feat(tests): implement comprehensive test infrastructure fixes and achieve 80.5% pass rate
-   #
-   # - Fix TypeScript JSX namespace issues by removing incompatible JSX.Element return types
-   # - Resolve AtBat repository RBI validation logic and compound index queries
-   # - Update Game repository date filtering with manual approach vs problematic Dexie between()
-   # - Align all Zustand store mocks with actual implementation patterns
-   # - Fix Scoreboard component team display logic and CSS custom property assertions
-   # - Achieve 397/493 tests passing (80.5% pass rate) with 18/26 test suites passing
-   #
-   # Major testing infrastructure improvements completed - Ready for final cleanup phase.
-   ```
-
-   Only proceed to next phase after all checklist items are verified.
-
-This project demonstrates structured, spec-driven development with AI assistance, emphasizing maintainability, testability, and user experience in offline-first applications.
+- **Automated Verification**
+  - Contract / integration tests must include negative cases defined in the DSL `error_states`.
+  - Lint rule: forbid empty `catch` blocks. **Default severity is _warning_; teams may elevate to error in CI.**
