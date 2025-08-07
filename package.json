@@ -94,7 +94,7 @@
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.0",
     "vite": "^7.0.6",
-    "vite-bundle-analyzer": "^1.1.0",
+    "vite-bundle-analyzer": "^1.2.0",
     "vite-plugin-pwa": "^1.0.2",
     "workbox-window": "^7.3.0"
   },
