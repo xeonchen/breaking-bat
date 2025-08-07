@@ -109,14 +109,19 @@ breaking-bat/
 
 ### Available Pages & Features
 
-- **🏠 Home** (`/`) - Dashboard with quick access to core features
+- **⚾ Games** (`/games`) - Game creation, lineup setup, and management (Default landing page)
 - **👥 Teams** (`/teams`) - Complete team and player roster management
-- **📅 Seasons** (`/seasons`) - Season creation and management with date tracking
-- **🎯 Game Types** (`/game-types`) - Define game categories (Regular, Playoffs, etc.)
-- **⚾ Games** (`/games`) - Game creation, lineup setup, and management
-- **🎯 Live Scoring** (`/scoring/:gameId`) - Real-time game scoring interface
 - **📊 Stats** (`/stats`) - Game statistics and analytics (basic implementation)
 - **⚙️ Settings** (`/settings`) - App configuration and data management
+  - **General Tab**: Theme preferences, data export/import, and app settings
+  - **Game Configuration Tab**: Season and game type management
+- **🎯 Live Scoring** (`/scoring/:gameId`) - Real-time game scoring interface
+
+### Legacy Routes (Automatic Redirects)
+
+- **🏠 Home** (`/`) - Redirects to `/games`
+- **📅 Seasons** (`/seasons`) - Redirects to `/settings#game-config`
+- **🎯 Game Types** (`/game-types`) - Redirects to `/settings#game-config`
 
 ## 📋 User Stories
 

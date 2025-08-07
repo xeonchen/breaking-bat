@@ -144,7 +144,7 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Season ID is required');
+      expect(result.error).toBe('Season ID cannot be empty when provided');
     });
 
     it('should fail when game type ID is empty', async () => {
@@ -163,7 +163,7 @@ describe('CreateGameUseCase', () => {
       const result = await useCase.execute(command);
 
       expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe('Game type ID is required');
+      expect(result.error).toBe('Game type ID cannot be empty when provided');
     });
 
     it('should fail when game date is in the past', async () => {
@@ -431,6 +431,114 @@ describe('CreateGameUseCase', () => {
           afterTime.getTime()
         );
       }
+    });
+  });
+
+  describe('optional fields support', () => {
+    it('should create game successfully with null season ID', async () => {
+      const command: CreateGameCommand = {
+        name: 'Quick Game',
+        teamId: 'team1',
+        seasonId: null,
+        gameTypeId: 'regular',
+        opponent: 'Red Sox',
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
+      };
+
+      mockGameRepository.save.mockImplementation(async (game) => game);
+
+      const result = await useCase.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      if (result.value) {
+        expect(result.value.seasonId).toBeNull();
+        expect(result.value.gameTypeId).toBe('regular');
+      }
+    });
+
+    it('should create game successfully with null game type ID', async () => {
+      const command: CreateGameCommand = {
+        name: 'Quick Game',
+        teamId: 'team1',
+        seasonId: 'season1',
+        gameTypeId: null,
+        opponent: 'Red Sox',
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
+      };
+
+      mockGameRepository.save.mockImplementation(async (game) => game);
+
+      const result = await useCase.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      if (result.value) {
+        expect(result.value.seasonId).toBe('season1');
+        expect(result.value.gameTypeId).toBeNull();
+      }
+    });
+
+    it('should create game successfully with both season ID and game type ID null', async () => {
+      const command: CreateGameCommand = {
+        name: 'Pickup Game',
+        teamId: 'team1',
+        seasonId: null,
+        gameTypeId: null,
+        opponent: 'Red Sox',
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
+      };
+
+      mockGameRepository.save.mockImplementation(async (game) => game);
+
+      const result = await useCase.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      if (result.value) {
+        expect(result.value.seasonId).toBeNull();
+        expect(result.value.gameTypeId).toBeNull();
+        expect(result.value.name).toBe('Pickup Game');
+        expect(result.value.opponent).toBe('Red Sox');
+      }
+    });
+
+    it('should not require season ID validation when null', async () => {
+      const command: CreateGameCommand = {
+        name: 'Test Game',
+        teamId: 'team1',
+        seasonId: null,
+        gameTypeId: 'regular',
+        opponent: 'Red Sox',
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
+      };
+
+      mockGameRepository.save.mockImplementation(async (game) => game);
+
+      const result = await useCase.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      expect(mockGameRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not require game type ID validation when null', async () => {
+      const command: CreateGameCommand = {
+        name: 'Test Game',
+        teamId: 'team1',
+        seasonId: 'season1',
+        gameTypeId: null,
+        opponent: 'Red Sox',
+        date: new Date('2025-12-01'),
+        homeAway: 'home',
+      };
+
+      mockGameRepository.save.mockImplementation(async (game) => game);
+
+      const result = await useCase.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      expect(mockGameRepository.save).toHaveBeenCalledTimes(1);
     });
   });
 });

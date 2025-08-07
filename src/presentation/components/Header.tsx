@@ -22,10 +22,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Home', path: '/', testId: 'home-tab' },
     { label: 'Teams', path: '/teams', testId: 'teams-tab' },
-    { label: 'Seasons', path: '/seasons', testId: 'seasons-tab' },
-    { label: 'Game Types', path: '/game-types', testId: 'game-types-tab' },
     { label: 'Games', path: '/games', testId: 'games-tab' },
     { label: 'Stats', path: '/stats', testId: 'stats-tab' },
     { label: 'Settings', path: '/settings', testId: 'settings-tab' },
@@ -66,7 +63,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           color="brand.500"
           fontWeight="bold"
           as={RouterLink}
-          to="/"
+          to="/games"
           _hover={{ textDecoration: 'none', color: 'brand.600' }}
         >
           ⚾ Breaking-Bat
@@ -81,8 +78,18 @@ export function Header({ onMenuClick }: HeaderProps) {
                 as={RouterLink}
                 to={item.path}
                 data-testid={item.testId}
-                variant={location.pathname === item.path ? 'solid' : 'ghost'}
-                colorScheme={location.pathname === item.path ? 'brand' : 'gray'}
+                variant={
+                  location.pathname === item.path ||
+                  (item.path === '/games' && location.pathname === '/')
+                    ? 'solid'
+                    : 'ghost'
+                }
+                colorScheme={
+                  location.pathname === item.path ||
+                  (item.path === '/games' && location.pathname === '/')
+                    ? 'brand'
+                    : 'gray'
+                }
                 size="sm"
                 fontWeight="medium"
               >

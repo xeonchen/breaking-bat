@@ -15,11 +15,15 @@ export function BottomNavigation() {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Home', path: '/', icon: '🏠', testId: 'home-tab' },
     { label: 'Teams', path: '/teams', icon: '👥', testId: 'teams-tab' },
-    { label: 'Seasons', path: '/seasons', icon: '📅', testId: 'seasons-tab' },
-    { label: 'Game', path: '/games', icon: '⚾', testId: 'games-tab' },
+    { label: 'Games', path: '/games', icon: '⚾', testId: 'games-tab' },
     { label: 'Stats', path: '/stats', icon: '📊', testId: 'stats-tab' },
+    {
+      label: 'Settings',
+      path: '/settings',
+      icon: '⚙️',
+      testId: 'settings-tab',
+    },
   ];
 
   return (
@@ -45,8 +49,18 @@ export function BottomNavigation() {
               data-testid={item.testId}
               aria-label={item.label}
               variant="ghost"
-              colorScheme={location.pathname === item.path ? 'brand' : 'gray'}
-              color={location.pathname === item.path ? 'brand.500' : 'gray.500'}
+              colorScheme={
+                location.pathname === item.path ||
+                (item.path === '/games' && location.pathname === '/')
+                  ? 'brand'
+                  : 'gray'
+              }
+              color={
+                location.pathname === item.path ||
+                (item.path === '/games' && location.pathname === '/')
+                  ? 'brand.500'
+                  : 'gray.500'
+              }
               size="lg"
               h="auto"
               flexDirection="column"

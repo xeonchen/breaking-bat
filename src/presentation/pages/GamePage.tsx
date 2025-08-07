@@ -111,8 +111,7 @@ export default function GamePage() {
     if (!formData.opponent.trim()) errors.opponent = 'Opponent is required';
     if (!formData.date) errors.date = 'Date is required';
     if (!formData.teamId) errors.teamId = 'Team is required';
-    if (!formData.seasonId) errors.seasonId = 'Season is required';
-    if (!formData.gameTypeId) errors.gameTypeId = 'Game type is required';
+    // Season and Game Type are now optional
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -125,8 +124,8 @@ export default function GamePage() {
         opponent: formData.opponent,
         date: new Date(formData.date),
         teamId: formData.teamId,
-        seasonId: formData.seasonId,
-        gameTypeId: formData.gameTypeId,
+        seasonId: formData.seasonId || null,
+        gameTypeId: formData.gameTypeId || null,
         homeAway: formData.homeAway,
       });
 

@@ -11,17 +11,10 @@ import {
   GameTypeRepository,
   TeamRepository,
 } from '@/domain';
-import { CreateGameUseCase } from '@/application/use-cases/CreateGameUseCase';
-
-interface CreateGameCommand {
-  name: string;
-  opponent: string;
-  date: Date;
-  teamId: string;
-  seasonId: string;
-  gameTypeId: string;
-  homeAway: 'home' | 'away';
-}
+import {
+  CreateGameUseCase,
+  CreateGameCommand,
+} from '@/application/use-cases/CreateGameUseCase';
 
 interface CreateSeasonCommand {
   name: string;
