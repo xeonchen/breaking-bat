@@ -10,7 +10,6 @@ import {
   PresentationPlayer,
 } from '@/presentation/types/TeamWithPlayers';
 import {
-  clearZustandPersistence,
   resetZustandStore,
   getCleanTeamsStoreState,
 } from '../../../utils/storeTestUtils';

@@ -5,7 +5,6 @@ import {
   initializeGameStore,
 } from '@/presentation/stores/gameStore';
 import {
-  clearZustandPersistence,
   resetZustandStore,
   getCleanGameStoreState,
 } from '../../../utils/storeTestUtils';
@@ -424,7 +423,7 @@ describe('GameStore', () => {
       await act(async () => {
         try {
           await result.current.recordAtBat(atBatResult);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });

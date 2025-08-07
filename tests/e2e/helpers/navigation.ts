@@ -3,7 +3,7 @@ import { Page, expect } from '@playwright/test';
 export class NavigationHelpers {
   constructor(private page: Page) {}
 
-  async navigateToSeasonsManagement() {
+  public async navigateToSeasonsManagement() {
     // Navigate to Settings page
     await this.page.goto('/settings');
     await expect(
@@ -21,7 +21,7 @@ export class NavigationHelpers {
     return this;
   }
 
-  async navigateToGameTypesManagement() {
+  public async navigateToGameTypesManagement() {
     // Navigate to Settings page
     await this.page.goto('/settings');
     await expect(
@@ -39,7 +39,7 @@ export class NavigationHelpers {
     return this;
   }
 
-  async waitForSeasonsGridToLoad() {
+  public async waitForSeasonsGridToLoad() {
     // Wait for either the no seasons message or the seasons grid to be visible
     await Promise.race([
       expect(
@@ -51,7 +51,7 @@ export class NavigationHelpers {
     return this;
   }
 
-  async waitForGameTypesGridToLoad() {
+  public async waitForGameTypesGridToLoad() {
     // Wait for either the no game types message or the game types grid to be visible
     await Promise.race([
       expect(
@@ -65,7 +65,7 @@ export class NavigationHelpers {
     return this;
   }
 
-  async expectSeasonsPageElements() {
+  public async expectSeasonsPageElements() {
     await expect(
       this.page.locator('[data-testid="seasons-section"]')
     ).toBeVisible();
@@ -76,7 +76,7 @@ export class NavigationHelpers {
     return this;
   }
 
-  async expectGameTypesPageElements() {
+  public async expectGameTypesPageElements() {
     await expect(
       this.page.locator('[data-testid="game-types-section"]')
     ).toBeVisible();

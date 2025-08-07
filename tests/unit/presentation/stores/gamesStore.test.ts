@@ -1,12 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
-import { Game, Season, GameType, Team, GameStatus } from '@/domain';
+import { Game, Season, GameType, Team } from '@/domain';
 import { Result } from '@/application/common/Result';
 import {
   useGamesStore,
   initializeGamesStore,
 } from '@/presentation/stores/gamesStore';
 import {
-  clearZustandPersistence,
   resetZustandStore,
   getCleanGamesStoreState,
 } from '../../../utils/storeTestUtils';
@@ -354,7 +353,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.createGame(createCommand);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -385,7 +384,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.createGame(createCommand);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });

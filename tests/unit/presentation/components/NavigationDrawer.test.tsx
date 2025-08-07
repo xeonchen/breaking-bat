@@ -293,7 +293,7 @@ describe('NavigationDrawer Component', () => {
   describe('Edge Cases', () => {
     it('should handle onClose being undefined', () => {
       // This would be a development error, but test graceful handling
-      const { rerender } = render(
+      render(
         <ChakraProvider theme={theme}>
           <MemoryRouter>
             <NavigationDrawer isOpen={true} onClose={undefined as any} />
@@ -305,10 +305,10 @@ describe('NavigationDrawer Component', () => {
     });
 
     it('should handle rapid open/close state changes', () => {
-      const { rerender } = renderNavigationDrawer({ isOpen: true });
+      renderNavigationDrawer({ isOpen: true });
       expect(screen.getByText('⚾ Breaking-Bat')).toBeInTheDocument();
 
-      rerender(
+      render(
         <ChakraProvider theme={theme}>
           <MemoryRouter>
             <NavigationDrawer isOpen={false} onClose={mockOnClose} />

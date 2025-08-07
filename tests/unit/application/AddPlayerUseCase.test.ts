@@ -9,35 +9,34 @@ import {
   TeamRepository,
   Position,
 } from '@/domain';
-import { Result } from '@/application/common/Result';
 
 // Mock the repositories
 class MockPlayerRepository implements PlayerRepository {
   private players: Map<string, Player> = new Map();
 
-  async create(player: Player): Promise<Player> {
+  public async create(player: Player): Promise<Player> {
     this.players.set(player.id, player);
     return player;
   }
 
-  async findById(id: string): Promise<Player | null> {
+  public async findById(id: string): Promise<Player | null> {
     return this.players.get(id) || null;
   }
 
-  async findByTeamId(teamId: string): Promise<Player[]> {
+  public async findByTeamId(teamId: string): Promise<Player[]> {
     return Array.from(this.players.values()).filter((p) => p.teamId === teamId);
   }
 
-  async update(player: Player): Promise<Player> {
+  public async update(player: Player): Promise<Player> {
     this.players.set(player.id, player);
     return player;
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     this.players.delete(id);
   }
 
-  async isJerseyNumberUnique(
+  public async isJerseyNumberUnique(
     teamId: string,
     jerseyNumber: number
   ): Promise<boolean> {
@@ -51,30 +50,30 @@ class MockPlayerRepository implements PlayerRepository {
 class MockTeamRepository implements TeamRepository {
   private teams: Map<string, Team> = new Map();
 
-  async save(team: Team): Promise<Team> {
+  public async save(team: Team): Promise<Team> {
     this.teams.set(team.id, team);
     return team;
   }
 
-  async findById(id: string): Promise<Team | null> {
+  public async findById(id: string): Promise<Team | null> {
     return this.teams.get(id) || null;
   }
 
-  async findByName(name: string): Promise<Team | null> {
+  public async findByName(name: string): Promise<Team | null> {
     return Array.from(this.teams.values()).find((t) => t.name === name) || null;
   }
 
-  async findAll(): Promise<Team[]> {
+  public async findAll(): Promise<Team[]> {
     return Array.from(this.teams.values());
   }
 
-  async findBySeasonId(seasonId: string): Promise<Team[]> {
+  public async findBySeasonId(seasonId: string): Promise<Team[]> {
     return Array.from(this.teams.values()).filter((t) =>
       t.seasonIds.includes(seasonId)
     );
   }
 
-  async delete(id: string): Promise<void> {
+  public async delete(id: string): Promise<void> {
     this.teams.delete(id);
   }
 }
