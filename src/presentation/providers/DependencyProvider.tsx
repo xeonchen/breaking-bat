@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { initializeTeamsStore } from '@/presentation/stores/teamsStore';
 import { initializeGamesStore } from '@/presentation/stores/gamesStore';
+import { initializeGameStore } from '@/presentation/stores/gameStore';
 import { CreateTeamUseCase } from '@/application/use-cases/CreateTeamUseCase';
 import { CreateGameUseCase } from '@/application/use-cases/CreateGameUseCase';
 import { AddPlayerUseCase } from '@/application/use-cases/AddPlayerUseCase';
@@ -12,14 +13,13 @@ import { IndexedDBGameRepository } from '@/infrastructure/repositories/IndexedDB
 import { IndexedDBSeasonRepository } from '@/infrastructure/repositories/IndexedDBSeasonRepository';
 import { IndexedDBGameTypeRepository } from '@/infrastructure/repositories/IndexedDBGameTypeRepository';
 import { TeamHydrationService } from '@/presentation/services/TeamHydrationService';
+import { ScoringService } from '@/domain/services/ScoringService';
 
 interface DependencyProviderProps {
   children: ReactNode;
 }
 
-export function DependencyProvider({
-  children,
-}: DependencyProviderProps) {
+export function DependencyProvider({ children }: DependencyProviderProps) {
   useEffect(() => {
     // Initialize repositories
     const teamRepository = new IndexedDBTeamRepository();
@@ -30,6 +30,7 @@ export function DependencyProvider({
 
     // Initialize services
     const teamHydrationService = new TeamHydrationService(playerRepository);
+    const scoringService = new ScoringService();
 
     // Initialize use cases
     const createTeamUseCase = new CreateTeamUseCase(teamRepository);
@@ -61,6 +62,13 @@ export function DependencyProvider({
       gameTypeRepository,
       teamRepository,
       createGameUseCase,
+    });
+
+    initializeGameStore({
+      gameRepository,
+      teamRepository,
+      playerRepository,
+      scoringService,
     });
   }, []);
 

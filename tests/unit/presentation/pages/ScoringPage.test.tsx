@@ -5,6 +5,17 @@ import ScoringPage from '@/presentation/pages/ScoringPage';
 import { Game, Team, Position } from '@/domain';
 import theme from '@/presentation/theme';
 
+// Mock React Router
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useLocation: () => ({
+    pathname: '/scoring/game-1',
+    search: '',
+    hash: '',
+    state: null,
+  }),
+}));
+
 // Mock dependencies
 const mockUpdateGame = jest.fn();
 const mockGetCurrentGame = jest.fn();
@@ -109,6 +120,7 @@ const mockGameStoreState = {
     third: null,
   },
   currentCount: { balls: 2, strikes: 1 },
+  currentOuts: 0,
   loading: false,
   error: null,
   updateGame: mockUpdateGame,
@@ -122,6 +134,8 @@ const mockGameStoreState = {
   setCurrentBatter: jest.fn(),
   updateBaserunners: jest.fn(),
   updateCount: jest.fn(),
+  updateOuts: jest.fn(),
+  advanceToNextBatter: jest.fn(),
   suspendGame: jest.fn(),
   completeGame: jest.fn(),
 };
@@ -185,11 +199,11 @@ describe('ScoringPage Component', () => {
     mockGetCurrentGame.mockResolvedValue(mockGame);
     mockGetTeams.mockResolvedValue([mockTeam]);
     mockGetLineup.mockResolvedValue(mockLineup);
-    mockRecordAtBat.mockResolvedValue({ 
-      runsScored: 0, 
-      nextBatter: null, 
+    mockRecordAtBat.mockResolvedValue({
+      runsScored: 0,
+      nextBatter: null,
       advanceInning: false,
-      newBaserunners: null
+      newBaserunners: null,
     });
     mockUpdateScore.mockResolvedValue(undefined);
     mockAdvanceInning.mockResolvedValue(undefined);
@@ -272,7 +286,9 @@ describe('ScoringPage Component', () => {
 
       const homeScore = screen.getByTestId('home-score');
       // Check for the CSS custom property that Chakra UI uses
-      expect(homeScore).toHaveStyle({ color: 'var(--chakra-colors-brand-500)' });
+      expect(homeScore).toHaveStyle({
+        color: 'var(--chakra-colors-brand-500)',
+      });
     });
 
     it('should update scoreboard when scores change', async () => {
@@ -365,7 +381,12 @@ describe('ScoringPage Component', () => {
   describe('Real-time Score Updates', () => {
     it('should record at-bat and update score automatically', async () => {
       const user = userEvent.setup();
-      mockRecordAtBat.mockResolvedValue({ runsScored: 1 });
+      // New recordAtBat returns enhanced result with runsScored
+      mockRecordAtBat.mockResolvedValue({
+        runsScored: 1,
+        newBaserunners: { first: null, second: null, third: null },
+        advanceInning: false,
+      });
 
       renderWithChakra(<ScoringPage />);
 
@@ -374,7 +395,11 @@ describe('ScoringPage Component', () => {
 
       await waitFor(() => {
         expect(mockRecordAtBat).toHaveBeenCalled();
-        expect(mockUpdateScore).toHaveBeenCalledWith(1);
+        // Score updates are now handled internally by recordAtBat
+        // Verify the score announcement appears
+        expect(
+          screen.getByTestId('score-update-announcement')
+        ).toHaveTextContent('1 run scored!');
       });
     });
 
@@ -399,7 +424,12 @@ describe('ScoringPage Component', () => {
 
     it('should advance inning when needed', async () => {
       const user = userEvent.setup();
-      mockRecordAtBat.mockResolvedValue({ advanceInning: true });
+      // New recordAtBat handles inning advancement internally
+      mockRecordAtBat.mockResolvedValue({
+        advanceInning: true,
+        runsScored: 0,
+        newBaserunners: { first: null, second: null, third: null },
+      });
 
       renderWithChakra(<ScoringPage />);
 
@@ -407,13 +437,21 @@ describe('ScoringPage Component', () => {
       await user.click(groundOutButton);
 
       await waitFor(() => {
-        expect(mockAdvanceInning).toHaveBeenCalled();
+        expect(mockRecordAtBat).toHaveBeenCalled();
+        // Verify inning advancement announcement appears
+        expect(
+          screen.getByTestId('score-update-announcement')
+        ).toHaveTextContent(/Inning over!/);
       });
     });
 
     it('should handle scoring plays with multiple runners', async () => {
       const user = userEvent.setup();
-      mockRecordAtBat.mockResolvedValue({ runsScored: 3 });
+      mockRecordAtBat.mockResolvedValue({
+        runsScored: 3,
+        newBaserunners: { first: null, second: null, third: null },
+        advanceInning: false,
+      });
 
       renderWithChakra(<ScoringPage />);
 
@@ -430,10 +468,14 @@ describe('ScoringPage Component', () => {
       const confirmButton = screen.getByTestId('confirm-advancement');
       await user.click(confirmButton);
 
-      // Now the mockRecordAtBat should be called
+      // Now the mockRecordAtBat should be called and score announcement should appear
       await waitFor(() => {
         expect(mockRecordAtBat).toHaveBeenCalled();
-        expect(mockUpdateScore).toHaveBeenCalledWith(3);
+        // Score updates are now handled internally by recordAtBat
+        // Verify the score announcement appears
+        expect(
+          screen.getByTestId('score-update-announcement')
+        ).toHaveTextContent('3 runs scored!');
       });
     });
   });
@@ -650,9 +692,9 @@ describe('ScoringPage Component', () => {
 
       // Check that buttons are focusable (tabIndex 0 is default for buttons)
       expect(ballButton).toBeVisible();
-      expect(strikeButton).toBeVisible(); 
+      expect(strikeButton).toBeVisible();
       expect(singleButton).toBeVisible();
-      
+
       // Button elements are focusable by default - check that they're interactive
       expect(ballButton).not.toBeDisabled();
       expect(strikeButton).not.toBeDisabled();

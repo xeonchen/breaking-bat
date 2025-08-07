@@ -29,10 +29,22 @@ const mockTeamRepository = {
   removePlayer: jest.fn(),
 };
 
+const mockPlayerRepository = {
+  findById: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+  findAll: jest.fn(),
+  findByTeamId: jest.fn(),
+  isJerseyNumberUnique: jest.fn(),
+  save: jest.fn(),
+};
+
 const mockScoringService = {
   calculateBaserunnerAdvancement: jest.fn(),
   recordAtBat: jest.fn(),
   calculateFinalScore: jest.fn(),
+  calculateOuts: jest.fn().mockReturnValue(1), // Default to 1 out
 };
 
 // Test data
@@ -82,6 +94,7 @@ beforeEach(() => {
   initializeGameStore({
     gameRepository: mockGameRepository,
     teamRepository: mockTeamRepository,
+    playerRepository: mockPlayerRepository,
     scoringService: mockScoringService,
   });
 });
@@ -242,7 +255,23 @@ describe('GameStore', () => {
 
   describe('Lineup Management', () => {
     it('should load lineup successfully', async () => {
-      mockGameRepository.getLineup.mockResolvedValue(mockLineup);
+      // Mock getLineup to return player IDs
+      mockGameRepository.getLineup.mockResolvedValue(['player-1', 'player-2']);
+
+      // Mock findById to return player objects
+      mockPlayerRepository.findById
+        .mockResolvedValueOnce({
+          id: 'player-1',
+          name: 'Ted Williams',
+          jerseyNumber: 9,
+          positions: [Position.leftField()],
+        })
+        .mockResolvedValueOnce({
+          id: 'player-2',
+          name: 'David Ortiz',
+          jerseyNumber: 34,
+          positions: [Position.firstBase()],
+        });
 
       const { result } = renderHook(() => useGameStore());
 
@@ -256,7 +285,13 @@ describe('GameStore', () => {
       });
 
       expect(result.current.lineup).toHaveLength(2);
-      expect(result.current.currentBatter).toEqual(mockLineup[0]);
+      expect(result.current.currentBatter).toEqual({
+        playerId: 'player-1',
+        playerName: 'Ted Williams',
+        jerseyNumber: '9',
+        position: Position.leftField(),
+        battingOrder: 1,
+      });
       expect(result.current.error).toBeNull();
     });
 
@@ -337,11 +372,21 @@ describe('GameStore', () => {
         result: BattingResult.single(),
         finalCount: { balls: 1, strikes: 2 },
         runsScored: 0,
+        advanceInning: false,
+        newBaserunners: {
+          first: null,
+          second: null,
+          third: null,
+        },
       };
 
       const advancement = {
         runsScored: [],
-        newBaserunners: { first: null, second: null, third: null },
+        newState: {
+          firstBase: null,
+          secondBase: null,
+          thirdBase: null,
+        },
       };
 
       mockScoringService.calculateBaserunnerAdvancement.mockReturnValue(

@@ -73,7 +73,8 @@ const mockGame = new Game(
   'gametype-1',
   'home',
   'team-1',
-  'setup' as GameStatus
+  'setup' as GameStatus,
+  'lineup-1' // Add lineup ID so the game can be started
 );
 
 const mockActiveGame = new Game(
@@ -732,7 +733,7 @@ describe('GamePage', () => {
       );
 
       expect(mockNavigate).toHaveBeenCalledWith('/scoring', {
-        state: { gameId: 'game-1' },
+        state: { gameId: 'game-1', shouldStart: true },
       });
     });
 

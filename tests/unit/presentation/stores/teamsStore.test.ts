@@ -65,6 +65,37 @@ beforeEach(() => {
   // Clear Zustand persistent storage and reset store state
   resetZustandStore(useTeamsStore, getCleanTeamsStoreState());
 
+  // Reset all mock implementations to avoid test contamination
+  mockTeamRepository.findAll.mockReset();
+  mockTeamRepository.save.mockReset();
+  mockTeamRepository.delete.mockReset();
+  mockTeamRepository.findById.mockReset();
+  mockTeamRepository.addPlayer.mockReset();
+  mockTeamRepository.removePlayer.mockReset();
+
+  mockPlayerRepository.save.mockReset();
+  mockPlayerRepository.delete.mockReset();
+  mockPlayerRepository.findById.mockReset();
+
+  mockTeamHydrationService.hydrateTeams.mockReset();
+  mockTeamHydrationService.convertPresentationPlayerToDomain.mockReset();
+
+  mockCreateTeamUseCase.execute.mockReset();
+  mockAddPlayerUseCase.execute.mockReset();
+  mockUpdatePlayerUseCase.execute.mockReset();
+  mockRemovePlayerUseCase.execute.mockReset();
+
+  // Restore default implementations
+  mockTeamHydrationService.hydrateTeams.mockImplementation(
+    async (domainTeams: Team[]) => {
+      return domainTeams.map((team) => ({
+        id: team.id,
+        name: team.name,
+        players: [], // Default empty players array
+      }));
+    }
+  );
+
   initializeTeamsStore({
     teamRepository: mockTeamRepository,
     playerRepository: mockPlayerRepository,
@@ -237,10 +268,8 @@ describe('TeamsStore', () => {
       const existingTeam = new Team('team-1', 'Yankees', [], []);
       const updatedTeam = new Team('team-1', 'New Yankees', [], []);
 
-      // Reset and set up mocks specifically for this test
-      jest.clearAllMocks();
+      // Mock save and findAll to return updated data after save
       mockTeamRepository.save.mockResolvedValue(updatedTeam);
-      // Mock findAll to return the updated team after save
       mockTeamRepository.findAll.mockResolvedValue([updatedTeam]);
       // Mock hydration service to return the updated team
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([

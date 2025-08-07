@@ -158,11 +158,28 @@ export default function GamePage() {
 
   const handleGameAction = (game: Game) => {
     if (game.status === 'setup') {
-      navigate('/scoring', { state: { gameId: game.id } });
+      // Check if game has a lineup before starting
+      if (!game.lineupId) {
+        toast({
+          title: 'Lineup Required',
+          description: 'Please set up a lineup before starting the game.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Navigate to scoring page - the ScoringPage will handle starting the game
+      navigate('/scoring', { state: { gameId: game.id, shouldStart: true } });
     } else if (game.status === 'in_progress') {
       navigate('/scoring', { state: { gameId: game.id } });
+    } else if (game.status === 'suspended') {
+      navigate('/scoring', { state: { gameId: game.id, shouldResume: true } });
+    } else if (game.status === 'completed') {
+      // Navigate to results/stats page when implemented
+      navigate('/stats', { state: { gameId: game.id } });
     }
-    // For completed games, could navigate to results page
   };
 
   const getStatusBadge = (status: GameStatus) => {
@@ -188,6 +205,7 @@ export default function GamePage() {
           size="sm"
           colorScheme="green"
           onClick={() => handleGameAction(game)}
+          isDisabled={!game.lineupId}
         >
           Start Game
         </Button>
@@ -200,6 +218,16 @@ export default function GamePage() {
           onClick={() => handleGameAction(game)}
         >
           Continue Game
+        </Button>
+      );
+    } else if (game.status === 'suspended') {
+      return (
+        <Button
+          size="sm"
+          colorScheme="orange"
+          onClick={() => handleGameAction(game)}
+        >
+          Resume Game
         </Button>
       );
     } else if (game.status === 'completed') {
