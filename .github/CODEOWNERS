@@ -1,0 +1,16 @@
+# Important documentation and AI instructions
+CLAUDE.md @xeonchen
+README.md @xeonchen
+
+# Critical configuration files
+package.json @xeonchen
+tsconfig.json @xeonchen
+.github/dependabot.yml @xeonchen
+
+# Build and quality configuration
+vite.config.ts @xeonchen
+eslint.config.js @xeonchen
+jest.config.js @xeonchen
+playwright.config.ts @xeonchen
+commitlint.config.cjs @xeonchen
+audit-ci.json @xeonchen
