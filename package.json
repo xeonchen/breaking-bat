@@ -35,7 +35,9 @@
     "licenses:detailed": "license-checker --csv --out licenses.csv",
     "deps:check": "npm outdated",
     "deps:update": "ncu -u --target minor",
-    "bundle:analyze": "npm run build && npx vite-bundle-analyzer dist"
+    "bundle:analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "check:trailing-spaces": "git ls-files | grep -E '\\.(md|ts|tsx|js|json|yml|yaml|cjs|css)$' | xargs grep -l '[ \\t]$' || echo 'No trailing spaces found'",
+    "fix:trailing-spaces": "git ls-files | grep -E '\\.(md|ts|tsx|js|json|yml|yaml|cjs|css)$' | xargs node -e \"const fs=require('fs'); process.argv.slice(1).forEach(f => {try{const c=fs.readFileSync(f,'utf8'); fs.writeFileSync(f,c.replace(/[ \\t]+$/gm,''))}catch(e){}})\""
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
@@ -122,7 +124,8 @@
       "eslint --fix --max-warnings 50",
       "prettier --write"
     ],
-    "*.{md,json,yml,yaml}": [
+    "*.{md,json,yml,yaml,js,cjs,css}": [
+      "node -e \"const fs=require('fs'); process.argv.slice(1).forEach(f => fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/[ \\t]+$/gm, '')))\"",
       "prettier --write"
     ]
   }

@@ -83,8 +83,12 @@ describe('PlayerRepository', () => {
 
   describe('findByTeamId', () => {
     it('should find all players for a team', async () => {
-      const player2 = new Player('player2', 'Jane Doe', 24, 'team1', [Position.extraPlayer()]);
-      const player3 = new Player('player3', 'Bob Smith', 25, 'team2', [Position.extraPlayer()]);
+      const player2 = new Player('player2', 'Jane Doe', 24, 'team1', [
+        Position.extraPlayer(),
+      ]);
+      const player3 = new Player('player3', 'Bob Smith', 25, 'team2', [
+        Position.extraPlayer(),
+      ]);
 
       await repository.save(testPlayer);
       await repository.save(player2);
@@ -199,8 +203,12 @@ describe('PlayerRepository', () => {
 
   describe('search', () => {
     it('should search players by name', async () => {
-      const player2 = new Player('player2', 'Jane Doe', 24, 'team1', [Position.extraPlayer()]);
-      const player3 = new Player('player3', 'John Smith', 25, 'team1', [Position.extraPlayer()]);
+      const player2 = new Player('player2', 'Jane Doe', 24, 'team1', [
+        Position.extraPlayer(),
+      ]);
+      const player3 = new Player('player3', 'John Smith', 25, 'team1', [
+        Position.extraPlayer(),
+      ]);
 
       await repository.save(testPlayer);
       await repository.save(player2);

@@ -1,7 +1,7 @@
 /**
  * Service Interface Contracts
- * 
- * Domain and application services that provide business logic and 
+ *
+ * Domain and application services that provide business logic and
  * cross-cutting concerns. These services encapsulate complex business
  * rules and coordinate between multiple entities and use cases.
  */
@@ -15,7 +15,7 @@ import {
   Game,
   Lineup,
   ExportPackage,
-  ExportScope
+  ExportScope,
 } from './domain-entities';
 
 // Domain Services (Business Logic)
@@ -24,25 +24,25 @@ export interface ScoringService {
     result: BattingResult,
     currentState: BaserunnerState
   ): BaserunnerAdvancementCalculation;
-  
+
   calculateRBIs(
     result: BattingResult,
     baserunnersBefore: BaserunnerState,
     baserunnersAfter: BaserunnerState
   ): number;
-  
+
   updatePlayerStatistics(player: Player, atBat: AtBat): Player['statistics'];
-  
+
   calculateBattingAverage(hits: number, atBats: number): number;
-  
+
   calculateOnBasePercentage(
-    hits: number, 
-    walks: number, 
-    hitByPitch: number, 
-    atBats: number, 
+    hits: number,
+    walks: number,
+    hitByPitch: number,
+    atBats: number,
     sacrificeFlies: number
   ): number;
-  
+
   calculateSluggingPercentage(
     singles: number,
     doubles: number,
@@ -50,7 +50,7 @@ export interface ScoringService {
     homeRuns: number,
     atBats: number
   ): number;
-  
+
   isValidBattingResult(result: BattingResult): boolean;
 }
 
@@ -63,24 +63,24 @@ export interface BaserunnerAdvancementCalculation {
 
 export interface LineupService {
   validateLineup(lineup: Lineup): LineupValidationResult;
-  
+
   getNextBatter(lineup: Lineup, currentBattingPosition: number): NextBatterInfo;
-  
+
   canMakeSubstitution(
-    lineup: Lineup, 
-    playerOut: string, 
+    lineup: Lineup,
+    playerOut: string,
     playerIn: string
   ): SubstitutionValidation;
-  
+
   processSubstitution(
     lineup: Lineup,
     playerOut: string,
     playerIn: string,
     newBattingPosition?: number
   ): Lineup;
-  
+
   getDefensivePositions(lineup: Lineup): DefensiveAssignments;
-  
+
   getBattingOrder(lineup: Lineup): BattingOrderInfo[];
 }
 
@@ -130,20 +130,17 @@ export interface ValidationError {
 
 export interface GameFlowService {
   startGame(game: Game): GameFlowResult;
-  
-  processInningChange(
-    game: Game, 
-    scoreboard: Scoreboard
-  ): InningChangeResult;
-  
+
+  processInningChange(game: Game, scoreboard: Scoreboard): InningChangeResult;
+
   checkForGameEnd(game: Game, scoreboard: Scoreboard): GameEndCheck;
-  
+
   calculateGameDuration(game: Game): GameDuration;
-  
+
   getGameProgress(game: Game): GameProgress;
-  
+
   canUndoLastAction(game: Game): UndoValidation;
-  
+
   processUndoAction(game: Game, actionId: string): UndoResult;
 }
 
@@ -216,14 +213,14 @@ export interface DataExportService {
     scope: ExportScope,
     filters?: ExportFilters
   ): Promise<ExportPackage>;
-  
+
   exportToCSV(
     scope: ExportScope,
     filters?: ExportFilters
   ): Promise<ExportPackage>;
-  
+
   generateExportFile(exportPackage: ExportPackage): Promise<Blob>;
-  
+
   validateExportData(exportPackage: ExportPackage): ValidationResult;
 }
 
@@ -248,14 +245,14 @@ export interface ValidationResult {
 
 export interface DataImportService {
   validateImportFile(file: File): Promise<ImportValidationResult>;
-  
+
   parseImportFile(file: File): Promise<ParsedImportData>;
-  
+
   processImport(
     importData: ParsedImportData,
     strategy: ImportStrategy
   ): Promise<ImportProcessResult>;
-  
+
   resolveConflicts(
     conflicts: DataConflict[],
     resolutions: ConflictResolution[]
@@ -332,15 +329,15 @@ export interface ImportDataPreview {
 
 export interface StorageService {
   getStorageInfo(): Promise<StorageInfo>;
-  
+
   optimizeStorage(): Promise<StorageOptimizationResult>;
-  
+
   createBackup(): Promise<BackupResult>;
-  
+
   restoreFromBackup(backupFile: File): Promise<RestoreResult>;
-  
+
   clearAllData(): Promise<void>;
-  
+
   migrateData(fromVersion: string, toVersion: string): Promise<MigrationResult>;
 }
 
@@ -402,22 +399,19 @@ export interface MigrationResult {
 
 export interface NotificationService {
   showSuccess(message: string, options?: NotificationOptions): void;
-  
+
   showError(message: string, options?: NotificationOptions): void;
-  
+
   showWarning(message: string, options?: NotificationOptions): void;
-  
+
   showInfo(message: string, options?: NotificationOptions): void;
-  
+
   showConfirmation(
-    message: string, 
+    message: string,
     options?: ConfirmationOptions
   ): Promise<boolean>;
-  
-  showProgress(
-    operation: string, 
-    progress: ProgressInfo
-  ): ProgressHandle;
+
+  showProgress(operation: string, progress: ProgressInfo): ProgressHandle;
 }
 
 export interface NotificationOptions {

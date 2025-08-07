@@ -9,7 +9,9 @@ describe('BattingResult', () => {
     });
 
     it('should throw error for invalid results', () => {
-      expect(() => new BattingResult('INVALID')).toThrow('Invalid batting result: INVALID');
+      expect(() => new BattingResult('INVALID')).toThrow(
+        'Invalid batting result: INVALID'
+      );
     });
   });
 
@@ -19,7 +21,7 @@ describe('BattingResult', () => {
       expect(BattingResult.double().isHit()).toBe(true);
       expect(BattingResult.triple().isHit()).toBe(true);
       expect(BattingResult.homeRun().isHit()).toBe(true);
-      
+
       expect(BattingResult.walk().isHit()).toBe(false);
       expect(BattingResult.strikeout().isHit()).toBe(false);
     });
@@ -29,7 +31,7 @@ describe('BattingResult', () => {
       expect(BattingResult.groundOut().isOut()).toBe(true);
       expect(BattingResult.airOut().isOut()).toBe(true);
       expect(BattingResult.doublePlay().isOut()).toBe(true);
-      
+
       expect(BattingResult.single().isOut()).toBe(false);
       expect(BattingResult.walk().isOut()).toBe(false);
     });
@@ -49,7 +51,7 @@ describe('BattingResult', () => {
       expect(BattingResult.single().reachesBase()).toBe(true);
       expect(BattingResult.walk().reachesBase()).toBe(true);
       expect(BattingResult.error().reachesBase()).toBe(true);
-      
+
       expect(BattingResult.strikeout().reachesBase()).toBe(false);
       expect(BattingResult.groundOut().reachesBase()).toBe(false);
     });

@@ -20,7 +20,9 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -49,7 +51,7 @@ body {
     color: #213547;
     background-color: #ffffff;
   }
-  
+
   body {
     background-color: #f7fafc;
     color: #1a202c;
@@ -57,7 +59,9 @@ body {
 }
 
 /* Disable selection on UI elements for better touch experience */
-button, .button, .chakra-button {
+button,
+.button,
+.chakra-button {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -69,7 +73,8 @@ button, .button, .chakra-button {
 
 /* Improve touch targets for mobile */
 @media (max-width: 768px) {
-  button, .chakra-button {
+  button,
+  .chakra-button {
     min-height: 44px;
     min-width: 44px;
   }

@@ -26,8 +26,9 @@ export default function HomePage() {
           Welcome to Breaking-Bat
         </Heading>
         <Text fontSize="lg" color="gray.600" maxW="2xl" mx="auto">
-          Your comprehensive slowpitch softball scoring and statistics tracking application.
-          Record games, manage teams, and analyze performance - all offline-ready.
+          Your comprehensive slowpitch softball scoring and statistics tracking
+          application. Record games, manage teams, and analyze performance - all
+          offline-ready.
         </Text>
       </Box>
 
@@ -42,7 +43,7 @@ export default function HomePage() {
             </Stat>
           </CardBody>
         </Card>
-        
+
         <Card bg={cardBg}>
           <CardBody>
             <Stat>
@@ -52,7 +53,7 @@ export default function HomePage() {
             </Stat>
           </CardBody>
         </Card>
-        
+
         <Card bg={cardBg}>
           <CardBody>
             <Stat>
@@ -62,7 +63,7 @@ export default function HomePage() {
             </Stat>
           </CardBody>
         </Card>
-        
+
         <Card bg={cardBg}>
           <CardBody>
             <Stat>
@@ -79,7 +80,7 @@ export default function HomePage() {
         <Heading size="lg" color="brand.500">
           Quick Actions
         </Heading>
-        
+
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w="full">
           <Button
             as={RouterLink}
@@ -91,15 +92,19 @@ export default function HomePage() {
             py={6}
             flexDirection="column"
           >
-            <Text fontSize="2xl" mb={2}>👥</Text>
+            <Text fontSize="2xl" mb={2}>
+              👥
+            </Text>
             <VStack spacing={1}>
-              <Text fontSize="lg" fontWeight="bold">Manage Teams</Text>
+              <Text fontSize="lg" fontWeight="bold">
+                Manage Teams
+              </Text>
               <Text fontSize="sm" color="gray.500">
                 Add teams, players, and create lineups
               </Text>
             </VStack>
           </Button>
-          
+
           <Button
             as={RouterLink}
             to="/games"
@@ -109,9 +114,13 @@ export default function HomePage() {
             py={6}
             flexDirection="column"
           >
-            <Text fontSize="2xl" mb={2}>⚾</Text>
+            <Text fontSize="2xl" mb={2}>
+              ⚾
+            </Text>
             <VStack spacing={1}>
-              <Text fontSize="lg" fontWeight="bold">Start New Game</Text>
+              <Text fontSize="lg" fontWeight="bold">
+                Start New Game
+              </Text>
               <Text fontSize="sm" color="white" opacity={0.8}>
                 Begin recording a new softball game
               </Text>

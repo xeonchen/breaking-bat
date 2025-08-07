@@ -43,7 +43,19 @@ inputs:
   - name: defensive_position
     type: select
     required: true
-    options: [pitcher, catcher, first-base, second-base, third-base, shortstop, left-field, center-field, right-field, short-fielder]
+    options:
+      [
+        pitcher,
+        catcher,
+        first-base,
+        second-base,
+        third-base,
+        shortstop,
+        left-field,
+        center-field,
+        right-field,
+        short-fielder,
+      ]
 
 actions:
   - type: create
@@ -115,7 +127,7 @@ validation_rules:
 
 business_rules:
   - starting lineup determines initial batting order
-  - substitutes cannot be in batting order initially  
+  - substitutes cannot be in batting order initially
   - defensive positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF, SF (short fielder) for slowpitch
   - extra player (EP) bats but does not play defense
   - batting order starts at position 1

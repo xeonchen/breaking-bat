@@ -16,10 +16,7 @@ interface NavigationDrawerProps {
   onClose: () => void;
 }
 
-export function NavigationDrawer({
-  isOpen,
-  onClose,
-}: NavigationDrawerProps) {
+export function NavigationDrawer({ isOpen, onClose }: NavigationDrawerProps) {
   const location = useLocation();
 
   const navigationItems = [

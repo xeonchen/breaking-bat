@@ -3,19 +3,19 @@
  */
 export class BattingResult {
   private static readonly VALID_RESULTS = [
-    '1B',  // Single
-    '2B',  // Double  
-    '3B',  // Triple
-    'HR',  // Home Run
-    'BB',  // Base on Balls (Walk)
+    '1B', // Single
+    '2B', // Double
+    '3B', // Triple
+    'HR', // Home Run
+    'BB', // Base on Balls (Walk)
     'IBB', // Intentional Base on Balls
-    'SF',  // Sacrifice Fly
-    'E',   // Error
-    'FC',  // Fielder's Choice
-    'SO',  // Strikeout
-    'GO',  // Ground Out
-    'AO',  // Air Out
-    'DP'   // Double Play
+    'SF', // Sacrifice Fly
+    'E', // Error
+    'FC', // Fielder's Choice
+    'SO', // Strikeout
+    'GO', // Ground Out
+    'AO', // Air Out
+    'DP', // Double Play
   ] as const;
 
   public readonly value: string;
@@ -104,7 +104,9 @@ export class BattingResult {
    * Check if this result allows the batter to reach base
    */
   public reachesBase(): boolean {
-    return ['1B', '2B', '3B', 'HR', 'BB', 'IBB', 'E', 'FC'].includes(this.value);
+    return ['1B', '2B', '3B', 'HR', 'BB', 'IBB', 'E', 'FC'].includes(
+      this.value
+    );
   }
 
   /**
@@ -112,15 +114,21 @@ export class BattingResult {
    */
   public basesAdvanced(): number {
     switch (this.value) {
-      case '1B': return 1;
-      case '2B': return 2;
-      case '3B': return 3;
-      case 'HR': return 4;
+      case '1B':
+        return 1;
+      case '2B':
+        return 2;
+      case '3B':
+        return 3;
+      case 'HR':
+        return 4;
       case 'BB':
       case 'IBB':
       case 'E':
-      case 'FC': return 1;
-      default: return 0;
+      case 'FC':
+        return 1;
+      default:
+        return 0;
     }
   }
 

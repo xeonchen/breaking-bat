@@ -40,7 +40,7 @@ describe('BaserunnerState', () => {
     it('should advance all runners', () => {
       const state = new BaserunnerState('player1', 'player2', 'player3');
       const result = state.advanceAll();
-      
+
       expect(result.runsScored).toEqual(['player3']);
       expect(result.newState.firstBase).toBe(null);
       expect(result.newState.secondBase).toBe('player1');
@@ -50,7 +50,7 @@ describe('BaserunnerState', () => {
     it('should handle forced advancement', () => {
       const state = new BaserunnerState('player1', 'player2', 'player3');
       const result = state.advanceForced();
-      
+
       expect(result.runsScored).toEqual(['player3']);
       expect(result.newState.firstBase).toBe(null); // Will be filled by new batter
       expect(result.newState.secondBase).toBe('player1');
@@ -60,7 +60,7 @@ describe('BaserunnerState', () => {
     it('should handle custom advancement', () => {
       const state = new BaserunnerState('player1', null, 'player3');
       const result = state.withAdvancement(true, false, true);
-      
+
       expect(result.runsScored).toEqual(['player3']);
       expect(result.newState.firstBase).toBe(null);
       expect(result.newState.secondBase).toBe('player1');
@@ -69,7 +69,7 @@ describe('BaserunnerState', () => {
 
     it('should throw error for invalid advancement', () => {
       const state = new BaserunnerState('player1', 'player2', 'player3');
-      
+
       expect(() => {
         state.withAdvancement(true, false, false); // Try to move first to occupied second
       }).toThrow('Cannot advance runner to occupied second base');
@@ -80,7 +80,7 @@ describe('BaserunnerState', () => {
     it('should add runner to first base', () => {
       const empty = BaserunnerState.empty();
       const withRunner = empty.addRunnerToFirst('player1');
-      
+
       expect(withRunner.firstBase).toBe('player1');
       expect(withRunner.secondBase).toBe(null);
       expect(withRunner.thirdBase).toBe(null);

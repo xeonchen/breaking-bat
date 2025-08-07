@@ -70,7 +70,9 @@ export default function TeamsPage() {
     name: '',
   });
   const [editingTeam, setEditingTeam] = useState<PresentationTeam | null>(null);
-  const [deletingTeam, setDeletingTeam] = useState<PresentationTeam | null>(null);
+  const [deletingTeam, setDeletingTeam] = useState<PresentationTeam | null>(
+    null
+  );
 
   // Modal states
   const {
@@ -168,7 +170,7 @@ export default function TeamsPage() {
         id: editingTeam.id,
         name: teamForm.name.trim(),
         seasonIds: [], // Empty for now until seasons are implemented
-        playerIds: editingTeam.players.map(player => player.id),
+        playerIds: editingTeam.players.map((player) => player.id),
       });
       setEditingTeam(null);
       setTeamForm({ name: '' });
@@ -542,7 +544,7 @@ export default function TeamsPage() {
                     id: teamData.id,
                     name: teamData.name,
                     seasonIds: [], // Empty for now until seasons are implemented
-                    playerIds: teamData.players.map(player => player.id),
+                    playerIds: teamData.players.map((player) => player.id),
                   })
                 }
                 isEditable={true}
@@ -569,13 +571,7 @@ interface TeamCardProps {
   onDelete: () => void;
 }
 
-function TeamCard({
-  team,
-  isMobile,
-  onView,
-  onEdit,
-  onDelete,
-}: TeamCardProps) {
+function TeamCard({ team, isMobile, onView, onEdit, onDelete }: TeamCardProps) {
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 

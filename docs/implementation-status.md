@@ -45,7 +45,7 @@ This document tracks the current implementation status of the Breaking-Bat rule 
 
 ### 2. Runner on First Only (`first_only`) ✅ COMPLETE
 
-**Status**: 13/13 hit types implemented and tested  
+**Status**: 13/13 hit types implemented and tested
 **Test Coverage**: 100%
 **Last Updated**: Current implementation
 
@@ -131,7 +131,7 @@ This document tracks the current implementation status of the Breaking-Bat rule 
 
 ### 6. Runners on First and Second (`first_second`) ❌ NOT IMPLEMENTED
 
-**Status**: 0/13 hit types implemented  
+**Status**: 0/13 hit types implemented
 **Priority**: Medium (common situation)
 
 | Hit Type | Status | Priority     | Expected Outcome                |
@@ -275,5 +275,5 @@ RBIs: 1, Runs: [player3]
 
 ---
 
-_Last Updated: [Current Date]_  
+_Last Updated: [Current Date]_
 _Next Review: After first_third validation completion_

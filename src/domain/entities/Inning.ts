@@ -25,7 +25,7 @@ export class Inning extends BaseEntity {
     updatedAt?: Date
   ) {
     super(id, createdAt, updatedAt);
-    
+
     if (number < 1 || number > 15) {
       throw new Error('Inning number must be between 1 and 15');
     }
@@ -103,11 +103,15 @@ export class Inning extends BaseEntity {
    */
   public getDisplayText(): string {
     const half = this.isTop() ? 'Top' : 'Bottom';
-    const inningText = this.number === 1 ? '1st' 
-      : this.number === 2 ? '2nd'
-      : this.number === 3 ? '3rd'
-      : `${this.number}th`;
-    
+    const inningText =
+      this.number === 1
+        ? '1st'
+        : this.number === 2
+          ? '2nd'
+          : this.number === 3
+            ? '3rd'
+            : `${this.number}th`;
+
     return `${half} ${inningText}`;
   }
 

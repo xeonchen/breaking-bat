@@ -1,6 +1,6 @@
 /**
  * Repository Interface Contracts
- * 
+ *
  * Repository interfaces for data persistence following Clean Architecture.
  * These define the contracts for data access without specifying implementation details.
  * Implementations can use IndexedDB, LocalStorage, or other storage mechanisms.
@@ -21,7 +21,7 @@ import {
   HomeAway,
   GameStatus,
   ExportFormat,
-  ExportScope
+  ExportScope,
 } from './domain-entities';
 
 // Base repository interface with common CRUD operations
@@ -45,10 +45,16 @@ export interface TeamRepository extends BaseRepository<Team> {
 
 export interface PlayerRepository extends BaseRepository<Player> {
   findByTeamId(teamId: string): Promise<Player[]>;
-  findByJerseyNumber(teamId: string, jerseyNumber: number): Promise<Player | null>;
+  findByJerseyNumber(
+    teamId: string,
+    jerseyNumber: number
+  ): Promise<Player | null>;
   findActiveByTeamId(teamId: string): Promise<Player[]>;
   updateStatistics(playerId: string, atBat: AtBat): Promise<void>;
-  getPlayerStatistics(playerId: string, seasonId?: string): Promise<Player['statistics']>;
+  getPlayerStatistics(
+    playerId: string,
+    seasonId?: string
+  ): Promise<Player['statistics']>;
 }
 
 export interface GameRepository extends BaseRepository<Game> {
@@ -74,7 +80,10 @@ export interface GameTypeRepository extends BaseRepository<GameType> {
 
 export interface LineupRepository extends BaseRepository<Lineup> {
   findByGameId(gameId: string): Promise<Lineup | null>;
-  updateBattingOrder(lineupId: string, battingOrder: Lineup['battingOrder']): Promise<void>;
+  updateBattingOrder(
+    lineupId: string,
+    battingOrder: Lineup['battingOrder']
+  ): Promise<void>;
   addSubstitute(lineupId: string, playerId: string): Promise<void>;
   removeSubstitute(lineupId: string, playerId: string): Promise<void>;
   validateLineup(lineup: Lineup): Promise<ValidationError[]>;
@@ -82,7 +91,10 @@ export interface LineupRepository extends BaseRepository<Lineup> {
 
 export interface InningRepository extends BaseRepository<Inning> {
   findByGameId(gameId: string): Promise<Inning[]>;
-  findByGameAndNumber(gameId: string, inningNumber: number): Promise<Inning | null>;
+  findByGameAndNumber(
+    gameId: string,
+    inningNumber: number
+  ): Promise<Inning | null>;
   getCurrentInning(gameId: string): Promise<Inning | null>;
   addAtBat(inningId: string, atBat: AtBat): Promise<void>;
   completeInning(inningId: string): Promise<void>;
@@ -98,39 +110,54 @@ export interface AtBatRepository extends BaseRepository<AtBat> {
 
 export interface ScoreboardRepository {
   findByGameId(gameId: string): Promise<Scoreboard | null>;
-  updateScore(gameId: string, homeScore: number, awayScore: number): Promise<void>;
-  updateCurrentInning(gameId: string, inning: number, teamAtBat: HomeAway): Promise<void>;
-  updateCurrentBatter(gameId: string, playerId: string, battingPosition: number): Promise<void>;
-  updateBaserunners(gameId: string, baserunners: Scoreboard['baserunners']): Promise<void>;
+  updateScore(
+    gameId: string,
+    homeScore: number,
+    awayScore: number
+  ): Promise<void>;
+  updateCurrentInning(
+    gameId: string,
+    inning: number,
+    teamAtBat: HomeAway
+  ): Promise<void>;
+  updateCurrentBatter(
+    gameId: string,
+    playerId: string,
+    battingPosition: number
+  ): Promise<void>;
+  updateBaserunners(
+    gameId: string,
+    baserunners: Scoreboard['baserunners']
+  ): Promise<void>;
   calculateLiveScore(gameId: string): Promise<Scoreboard>;
 }
 
 // Export/Import repository interfaces
 export interface ExportRepository {
   createExport(
-    format: ExportFormat, 
-    scope: ExportScope, 
+    format: ExportFormat,
+    scope: ExportScope,
     filters?: ExportFilters
   ): Promise<ExportPackage>;
-  
+
   exportToFile(exportPackage: ExportPackage): Promise<Blob>;
-  
+
   getExportHistory(): Promise<ExportPackage[]>;
-  
+
   deleteExport(exportId: string): Promise<void>;
 }
 
 export interface ImportRepository {
   validateImportFile(file: File): Promise<ValidationResult>;
-  
+
   createImportSession(file: File): Promise<ImportSession>;
-  
+
   processImport(
-    sessionId: string, 
-    strategy: ImportStrategy, 
+    sessionId: string,
+    strategy: ImportStrategy,
     conflictResolutions?: ConflictResolution[]
   ): Promise<ImportResult>;
-  
+
   getImportHistory(): Promise<ImportSession[]>;
 }
 

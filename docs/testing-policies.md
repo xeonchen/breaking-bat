@@ -206,6 +206,6 @@ This document will be updated as new patterns emerge or when additional stores w
 
 ---
 
-**Last Updated**: 2025-08-05  
-**Policy Version**: 1.0  
+**Last Updated**: 2025-08-05
+**Policy Version**: 1.0
 **Applies To**: All Zustand stores with `persist` middleware

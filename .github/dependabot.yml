@@ -1,67 +1,67 @@
 version: 2
 updates:
   # Enable version updates for npm
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     open-pull-requests-limit: 10
     reviewers:
-      - "xeon"
+      - 'xeon'
     assignees:
-      - "xeon"
+      - 'xeon'
     commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
+      prefix: 'chore(deps)'
+      include: 'scope'
     # Security updates get priority
     labels:
-      - "dependencies"
-      - "security"
+      - 'dependencies'
+      - 'security'
     # Group related updates
     groups:
       dev-dependencies:
         patterns:
-          - "@types/*"
-          - "eslint*"
-          - "prettier"
-          - "typescript*"
-          - "jest*"
-          - "playwright*"
-          - "husky"
-          - "lint-staged"
-          - "commitlint*"
-          - "commitizen"
+          - '@types/*'
+          - 'eslint*'
+          - 'prettier'
+          - 'typescript*'
+          - 'jest*'
+          - 'playwright*'
+          - 'husky'
+          - 'lint-staged'
+          - 'commitlint*'
+          - 'commitizen'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       react-ecosystem:
         patterns:
-          - "react*"
-          - "@vitejs/*"
-          - "vite*"
+          - 'react*'
+          - '@vitejs/*'
+          - 'vite*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       ui-dependencies:
         patterns:
-          - "@chakra-ui/*"
-          - "framer-motion"
+          - '@chakra-ui/*'
+          - 'framer-motion'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
   # Enable version updates for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     commit-message:
-      prefix: "chore(ci)"
-      include: "scope"
+      prefix: 'chore(ci)'
+      include: 'scope'
     labels:
-      - "github-actions"
-      - "dependencies"
+      - 'github-actions'
+      - 'dependencies'

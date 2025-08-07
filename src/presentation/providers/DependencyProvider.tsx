@@ -17,9 +17,7 @@ interface DependencyProviderProps {
   children: ReactNode;
 }
 
-export function DependencyProvider({
-  children,
-}: DependencyProviderProps) {
+export function DependencyProvider({ children }: DependencyProviderProps) {
   useEffect(() => {
     // Initialize repositories
     const teamRepository = new IndexedDBTeamRepository();

@@ -44,7 +44,11 @@ export class ValidOutcome {
       runsScored,
       runsScored, // All runs earned by hit in standard case
       description,
-      { runner_is_aggressive: false, has_fielding_error: false, has_running_error: false }
+      {
+        runner_is_aggressive: false,
+        has_fielding_error: false,
+        has_running_error: false,
+      }
     );
   }
 
@@ -65,7 +69,11 @@ export class ValidOutcome {
       runsScored,
       runsScored, // All runs earned by hit in standard case
       description,
-      { runner_is_aggressive: false, has_fielding_error: false, has_running_error: false }
+      {
+        runner_is_aggressive: false,
+        has_fielding_error: false,
+        has_running_error: false,
+      }
     );
   }
 
@@ -106,9 +114,12 @@ export class ValidOutcome {
         (runner, index) => runner === other.runsEarnedByHit[index]
       ) &&
       this.description === other.description &&
-      this.requiredParameters.runner_is_aggressive === other.requiredParameters.runner_is_aggressive &&
-      this.requiredParameters.has_fielding_error === other.requiredParameters.has_fielding_error &&
-      this.requiredParameters.has_running_error === other.requiredParameters.has_running_error
+      this.requiredParameters.runner_is_aggressive ===
+        other.requiredParameters.runner_is_aggressive &&
+      this.requiredParameters.has_fielding_error ===
+        other.requiredParameters.has_fielding_error &&
+      this.requiredParameters.has_running_error ===
+        other.requiredParameters.has_running_error
     );
   }
 
@@ -116,14 +127,18 @@ export class ValidOutcome {
     const rbiText = this.rbis === 1 ? '1 RBI' : `${this.rbis} RBIs`;
     const outText =
       this.outs === 0 ? '' : `, ${this.outs} out${this.outs > 1 ? 's' : ''}`;
-    
+
     const parameterParts: string[] = [];
-    if (this.requiredParameters.runner_is_aggressive) parameterParts.push('Aggressive');
-    if (this.requiredParameters.has_fielding_error) parameterParts.push('Error');
-    if (this.requiredParameters.has_running_error) parameterParts.push('Running Error');
-    
-    const parameterText = parameterParts.length > 0 ? ` [${parameterParts.join(', ')}]` : '';
-    
+    if (this.requiredParameters.runner_is_aggressive)
+      parameterParts.push('Aggressive');
+    if (this.requiredParameters.has_fielding_error)
+      parameterParts.push('Error');
+    if (this.requiredParameters.has_running_error)
+      parameterParts.push('Running Error');
+
+    const parameterText =
+      parameterParts.length > 0 ? ` [${parameterParts.join(', ')}]` : '';
+
     return `${this.description} (${rbiText}${outText})${parameterText}`;
   }
 
@@ -132,16 +147,25 @@ export class ValidOutcome {
    */
   public isValidWithParameters(providedParameters: OutcomeParameters): boolean {
     // All required parameters must be enabled in the provided parameters
-    if (this.requiredParameters.runner_is_aggressive && !providedParameters.runner_is_aggressive) {
+    if (
+      this.requiredParameters.runner_is_aggressive &&
+      !providedParameters.runner_is_aggressive
+    ) {
       return false;
     }
-    if (this.requiredParameters.has_fielding_error && !providedParameters.has_fielding_error) {
+    if (
+      this.requiredParameters.has_fielding_error &&
+      !providedParameters.has_fielding_error
+    ) {
       return false;
     }
-    if (this.requiredParameters.has_running_error && !providedParameters.has_running_error) {
+    if (
+      this.requiredParameters.has_running_error &&
+      !providedParameters.has_running_error
+    ) {
       return false;
     }
-    
+
     return true;
   }
 }

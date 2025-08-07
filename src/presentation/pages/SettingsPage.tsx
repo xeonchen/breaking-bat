@@ -13,11 +13,15 @@ export default function SettingsPage() {
       <VStack spacing={6} align="stretch">
         <Box>
           <Heading mb={4}>Settings</Heading>
-          <Text>Application settings and preferences will be managed here.</Text>
+          <Text>
+            Application settings and preferences will be managed here.
+          </Text>
         </Box>
 
         <Box>
-          <Heading size="md" mb={4}>Data Management</Heading>
+          <Heading size="md" mb={4}>
+            Data Management
+          </Heading>
           <Button
             data-testid="export-data-button"
             leftIcon={<DownloadIcon />}

@@ -16,7 +16,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
         .register('/sw.js')
         .then((registration) => {
           console.log('SW registered: ', registration);
-          
+
           // Check for app updates
           registration.addEventListener('updatefound', () => {
             toast({

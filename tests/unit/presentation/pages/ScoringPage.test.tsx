@@ -185,11 +185,11 @@ describe('ScoringPage Component', () => {
     mockGetCurrentGame.mockResolvedValue(mockGame);
     mockGetTeams.mockResolvedValue([mockTeam]);
     mockGetLineup.mockResolvedValue(mockLineup);
-    mockRecordAtBat.mockResolvedValue({ 
-      runsScored: 0, 
-      nextBatter: null, 
+    mockRecordAtBat.mockResolvedValue({
+      runsScored: 0,
+      nextBatter: null,
       advanceInning: false,
-      newBaserunners: null
+      newBaserunners: null,
     });
     mockUpdateScore.mockResolvedValue(undefined);
     mockAdvanceInning.mockResolvedValue(undefined);
@@ -272,7 +272,9 @@ describe('ScoringPage Component', () => {
 
       const homeScore = screen.getByTestId('home-score');
       // Check for the CSS custom property that Chakra UI uses
-      expect(homeScore).toHaveStyle({ color: 'var(--chakra-colors-brand-500)' });
+      expect(homeScore).toHaveStyle({
+        color: 'var(--chakra-colors-brand-500)',
+      });
     });
 
     it('should update scoreboard when scores change', async () => {
@@ -650,9 +652,9 @@ describe('ScoringPage Component', () => {
 
       // Check that buttons are focusable (tabIndex 0 is default for buttons)
       expect(ballButton).toBeVisible();
-      expect(strikeButton).toBeVisible(); 
+      expect(strikeButton).toBeVisible();
       expect(singleButton).toBeVisible();
-      
+
       // Button elements are focusable by default - check that they're interactive
       expect(ballButton).not.toBeDisabled();
       expect(strikeButton).not.toBeDisabled();

@@ -59,9 +59,11 @@ export class BaserunnerState {
    * Check if a specific runner is on base
    */
   public hasRunner(playerId: string): boolean {
-    return this.firstBase === playerId || 
-           this.secondBase === playerId || 
-           this.thirdBase === playerId;
+    return (
+      this.firstBase === playerId ||
+      this.secondBase === playerId ||
+      this.thirdBase === playerId
+    );
   }
 
   /**
@@ -86,7 +88,7 @@ export class BaserunnerState {
    */
   public advanceAll(): { newState: BaserunnerState; runsScored: string[] } {
     const runsScored: string[] = [];
-    
+
     // Runner on third scores
     if (this.thirdBase) {
       runsScored.push(this.thirdBase);
@@ -94,11 +96,11 @@ export class BaserunnerState {
 
     return {
       newState: new BaserunnerState(
-        null,           // First base empty after advancement
+        null, // First base empty after advancement
         this.firstBase, // Runner from first to second
         this.secondBase // Runner from second to third
       ),
-      runsScored
+      runsScored,
     };
   }
 
@@ -127,7 +129,7 @@ export class BaserunnerState {
 
     return {
       newState: new BaserunnerState(newFirst, newSecond, newThird),
-      runsScored
+      runsScored,
     };
   }
 
@@ -150,7 +152,7 @@ export class BaserunnerState {
       newThird = null;
     }
 
-    // Apply second to third advancement  
+    // Apply second to third advancement
     if (secondToThird && this.secondBase) {
       if (!thirdToHome && this.thirdBase) {
         throw new Error('Cannot advance runner to occupied third base');
@@ -170,14 +172,16 @@ export class BaserunnerState {
 
     return {
       newState: new BaserunnerState(newFirst, newSecond, newThird),
-      runsScored
+      runsScored,
     };
   }
 
   public equals(other: BaserunnerState): boolean {
-    return this.firstBase === other.firstBase &&
-           this.secondBase === other.secondBase &&
-           this.thirdBase === other.thirdBase;
+    return (
+      this.firstBase === other.firstBase &&
+      this.secondBase === other.secondBase &&
+      this.thirdBase === other.thirdBase
+    );
   }
 
   public toString(): string {

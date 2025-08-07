@@ -52,10 +52,10 @@ describe('AtBat Entity', () => {
     it('should create defensive copy of running errors array', () => {
       const originalErrors = ['player2'];
       const atBat = createTestAtBat(originalErrors);
-      
+
       // Modify original array
       originalErrors.push('player3');
-      
+
       // AtBat should still have only the original error
       expect(atBat.runningErrors).toEqual(['player2']);
       expect(atBat.getRunningErrorCount()).toBe(1);
@@ -97,7 +97,7 @@ describe('AtBat Entity', () => {
   describe('updateResult with Running Errors', () => {
     it('should update running errors when correcting at-bat', () => {
       const originalAtBat = createTestAtBat(['player2']);
-      
+
       const updatedAtBat = originalAtBat.updateResult(
         BattingResult.double(),
         'Corrected to double',
@@ -115,7 +115,7 @@ describe('AtBat Entity', () => {
 
     it('should clear running errors when correcting at-bat', () => {
       const originalAtBat = createTestAtBat(['player2']);
-      
+
       const updatedAtBat = originalAtBat.updateResult(
         BattingResult.triple(),
         'Corrected to triple',

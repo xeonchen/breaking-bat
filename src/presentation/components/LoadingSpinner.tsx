@@ -1,9 +1,9 @@
-import { 
-  Spinner, 
-  VStack, 
-  Text, 
+import {
+  Spinner,
+  VStack,
+  Text,
   useColorModeValue,
-  Box 
+  Box,
 } from '@chakra-ui/react';
 
 interface LoadingSpinnerProps {
@@ -12,10 +12,10 @@ interface LoadingSpinnerProps {
   fullScreen?: boolean;
 }
 
-export function LoadingSpinner({ 
-  message = 'Loading...', 
+export function LoadingSpinner({
+  message = 'Loading...',
   size = 'lg',
-  fullScreen = false 
+  fullScreen = false,
 }: LoadingSpinnerProps) {
   const bg = useColorModeValue('white', 'gray.800');
   const color = useColorModeValue('gray.600', 'gray.300');
