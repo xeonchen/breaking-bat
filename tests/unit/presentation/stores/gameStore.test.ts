@@ -118,6 +118,33 @@ describe('GameStore', () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
+
+    it('should handle store without initialization', () => {
+      // Clear store dependencies
+      resetZustandStore(useGameStore, {
+        ...getCleanGameStoreState(),
+        dependencies: null,
+      });
+
+      const { result } = renderHook(() => useGameStore());
+
+      expect(result.current.currentGame).toBeNull();
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('should handle partial dependency initialization', () => {
+      resetZustandStore(useGameStore, getCleanGameStoreState());
+
+      initializeGameStore({
+        gameRepository: mockGameRepository,
+        teamRepository: null as any,
+        playerRepository: null as any,
+        scoringService: null as any,
+      });
+
+      const { result } = renderHook(() => useGameStore());
+      expect(result.current.currentGame).toBeNull();
+    });
   });
 
   describe('Game Loading', () => {
@@ -608,6 +635,214 @@ describe('GameStore', () => {
       });
 
       expect(result.current.error).toBeNull();
+    });
+
+    it('should handle undefined dependencies', async () => {
+      // Reset store state only, don't re-initialize dependencies
+      // (overrides the beforeEach dependency initialization)
+      resetZustandStore(useGameStore, getCleanGameStoreState());
+
+      // Override the beforeEach setup by explicitly clearing the gameRepository mock
+      mockGameRepository.findCurrent.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useGameStore());
+
+      await act(async () => {
+        await result.current.getCurrentGame();
+      });
+
+      // When gameRepository.findCurrent() returns undefined, it gets set as currentGame
+      expect(result.current.error).toBe(null);
+      expect(result.current.currentGame).toBeUndefined();
+    });
+
+    it('should handle operations without scoring service', async () => {
+      resetZustandStore(useGameStore, getCleanGameStoreState());
+
+      initializeGameStore({
+        gameRepository: mockGameRepository,
+        teamRepository: mockTeamRepository,
+        playerRepository: mockPlayerRepository,
+        scoringService: null as any,
+      });
+
+      const { result } = renderHook(() => useGameStore());
+
+      const atBatResult = {
+        batterId: 'player-1',
+        result: BattingResult.single(),
+        finalCount: { balls: 1, strikes: 2 },
+      };
+
+      act(() => {
+        result.current.currentGame = mockGame;
+        result.current.currentBatter = mockBatter;
+      });
+
+      await act(async () => {
+        try {
+          await result.current.recordAtBat(atBatResult);
+        } catch (error) {
+          // Expected to throw when scoring service is not available
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to record at-bat: Game not loaded or scoring service not available'
+      );
+    });
+
+    it('should handle operations without current batter', async () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const atBatResult = {
+        batterId: 'player-1',
+        result: BattingResult.single(),
+        finalCount: { balls: 1, strikes: 2 },
+      };
+
+      act(() => {
+        result.current.currentGame = mockGame;
+        result.current.currentBatter = null;
+      });
+
+      // The recordAtBat function doesn't check for currentBatter, only currentGame and scoringService
+      // Since both are available, the operation will succeed (current batter is not required)
+      await act(async () => {
+        await result.current.recordAtBat(atBatResult);
+      });
+
+      // No error should occur since game and scoring service are available
+      expect(result.current.error).toBe(null);
+    });
+
+    it('should handle complete game without final score', async () => {
+      const gameWithoutScore = new Game(
+        mockGame.id,
+        mockGame.name,
+        mockGame.opponent,
+        mockGame.date,
+        mockGame.seasonId,
+        mockGame.gameTypeId,
+        mockGame.homeAway,
+        mockGame.teamId,
+        mockGame.status,
+        mockGame.lineupId,
+        mockGame.inningIds,
+        undefined, // No final score
+        mockGame.createdAt,
+        mockGame.updatedAt
+      );
+
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => {
+        result.current.currentGame = gameWithoutScore;
+      });
+
+      await act(async () => {
+        await result.current.completeGame();
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to complete game: No current game or score'
+      );
+    });
+
+    it('should handle suspend game with repository error', async () => {
+      mockGameRepository.save.mockRejectedValue(new Error('Save failed'));
+
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => {
+        result.current.currentGame = mockGame;
+      });
+
+      await act(async () => {
+        await result.current.suspendGame();
+      });
+
+      // The suspendGame calls updateGame internally, which sets "Failed to update game" error
+      expect(result.current.error).toBe('Failed to update game: Save failed');
+    });
+
+    it('should handle complete game with repository error', async () => {
+      mockGameRepository.save.mockRejectedValue(new Error('Save failed'));
+
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => {
+        result.current.currentGame = mockGame;
+      });
+
+      await act(async () => {
+        await result.current.completeGame();
+      });
+
+      // The completeGame calls updateGame internally, which sets "Failed to update game" error
+      expect(result.current.error).toBe('Failed to update game: Save failed');
+    });
+
+    it('should handle update game with repository error', async () => {
+      mockGameRepository.save.mockRejectedValue(new Error('Update failed'));
+
+      const { result } = renderHook(() => useGameStore());
+
+      const updatedGame = new Game(
+        mockGame.id,
+        'Updated Name',
+        mockGame.opponent,
+        mockGame.date,
+        mockGame.seasonId,
+        mockGame.gameTypeId,
+        mockGame.homeAway,
+        mockGame.teamId,
+        mockGame.status,
+        mockGame.lineupId,
+        mockGame.inningIds,
+        mockGame.finalScore,
+        mockGame.createdAt,
+        new Date()
+      );
+
+      await act(async () => {
+        await result.current.updateGame(updatedGame);
+      });
+
+      expect(result.current.error).toBe('Failed to update game: Update failed');
+    });
+
+    it('should handle recordAtBat with scoring service error', async () => {
+      mockScoringService.calculateBaserunnerAdvancement.mockImplementation(
+        () => {
+          throw new Error('Scoring error');
+        }
+      );
+
+      const { result } = renderHook(() => useGameStore());
+
+      const atBatResult = {
+        batterId: 'player-1',
+        result: BattingResult.single(),
+        finalCount: { balls: 1, strikes: 2 },
+      };
+
+      act(() => {
+        result.current.currentGame = mockGame;
+        result.current.currentBatter = mockBatter;
+      });
+
+      await act(async () => {
+        try {
+          await result.current.recordAtBat(atBatResult);
+        } catch (error) {
+          // Expected to throw when scoring service has error
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to record at-bat: Scoring error'
+      );
     });
   });
 
