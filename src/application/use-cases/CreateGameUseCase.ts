@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 export interface CreateGameCommand {
   name: string;
   teamId: string;
-  seasonId: string;
-  gameTypeId: string;
+  seasonId: string | null;
+  gameTypeId: string | null;
   opponent: string;
   date: Date;
   homeAway: HomeAway;
@@ -70,14 +70,20 @@ export class CreateGameUseCase {
       return Result.failure('Team ID is required');
     }
 
-    // Validate season ID
-    if (!command.seasonId || command.seasonId.trim().length === 0) {
-      return Result.failure('Season ID is required');
+    // Validate season ID (only if provided)
+    if (
+      command.seasonId !== null &&
+      (!command.seasonId || command.seasonId.trim().length === 0)
+    ) {
+      return Result.failure('Season ID cannot be empty when provided');
     }
 
-    // Validate game type ID
-    if (!command.gameTypeId || command.gameTypeId.trim().length === 0) {
-      return Result.failure('Game type ID is required');
+    // Validate game type ID (only if provided)
+    if (
+      command.gameTypeId !== null &&
+      (!command.gameTypeId || command.gameTypeId.trim().length === 0)
+    ) {
+      return Result.failure('Game type ID cannot be empty when provided');
     }
 
     // Validate opponent

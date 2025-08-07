@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { NavigationHelpers } from './helpers/navigation';
 
 test.describe('Seasons Management', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,12 +7,14 @@ test.describe('Seasons Management', () => {
   });
 
   test('should create and manage seasons', async ({ page }) => {
-    // Navigate to seasons page
-    await page.goto('/seasons');
+    const navigation = new NavigationHelpers(page);
 
-    // Verify seasons page loads
-    await expect(page.locator('[data-testid="seasons-page"]')).toBeVisible();
-    await expect(page.locator('h1')).toContainText('Seasons');
+    // Navigate to seasons management
+    await navigation.navigateToSeasonsManagement();
+
+    // Verify seasons page elements
+    await navigation.expectSeasonsPageElements();
+    await navigation.waitForSeasonsGridToLoad();
 
     // Verify empty state when no seasons exist
     await expect(
@@ -25,7 +28,9 @@ test.describe('Seasons Management', () => {
     await page.click('[data-testid="create-season-button"]');
 
     // Verify create season modal opens
-    await expect(page.locator('h2')).toContainText('Create New Season');
+    await expect(page.locator('[role="dialog"] h2')).toContainText(
+      'Create New Season'
+    );
 
     // Fill in season details
     await page.fill('[data-testid="season-name-input"]', '2024 Regular Season');
@@ -49,8 +54,8 @@ test.describe('Seasons Management', () => {
   });
 
   test('should validate season form fields', async ({ page }) => {
-    // Navigate to seasons page
-    await page.goto('/seasons');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToSeasonsManagement();
 
     // Create a new season
     await page.click('[data-testid="create-season-button"]');
@@ -63,8 +68,8 @@ test.describe('Seasons Management', () => {
   });
 
   test('should validate date range', async ({ page }) => {
-    // Navigate to seasons page
-    await page.goto('/seasons');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToSeasonsManagement();
 
     // Create a new season
     await page.click('[data-testid="create-season-button"]');
@@ -84,8 +89,8 @@ test.describe('Seasons Management', () => {
   });
 
   test('should edit season', async ({ page }) => {
-    // Navigate to seasons page and create a season first
-    await page.goto('/seasons');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToSeasonsManagement();
     await page.click('[data-testid="create-season-button"]');
     await page.fill('[data-testid="season-name-input"]', 'Original Season');
     await page.fill('[data-testid="season-start-date"]', '2024-04-01');
@@ -101,7 +106,9 @@ test.describe('Seasons Management', () => {
     await editButton.click();
 
     // Verify edit modal opens
-    await expect(page.locator('h2')).toContainText('Edit Season');
+    await expect(page.locator('[role="dialog"] h2')).toContainText(
+      'Edit Season'
+    );
 
     // Update season name
     await page.fill('[data-testid="season-name-input"]', 'Updated Season');
@@ -117,8 +124,8 @@ test.describe('Seasons Management', () => {
   });
 
   test('should delete season', async ({ page }) => {
-    // Navigate to seasons page and create a season first
-    await page.goto('/seasons');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToSeasonsManagement();
     await page.click('[data-testid="create-season-button"]');
     await page.fill('[data-testid="season-name-input"]', 'Season To Delete');
     await page.fill('[data-testid="season-start-date"]', '2024-04-01');
@@ -141,8 +148,8 @@ test.describe('Seasons Management', () => {
   });
 
   test('should show season status badges', async ({ page }) => {
-    // Navigate to seasons page
-    await page.goto('/seasons');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToSeasonsManagement();
 
     // Create a future season
     await page.click('[data-testid="create-season-button"]');

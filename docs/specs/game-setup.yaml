@@ -19,12 +19,14 @@ inputs:
     validation: not-past-date
   - name: season_id
     type: select
-    required: true
+    required: false
     source: seasons
+    default: null
   - name: game_type_id
     type: select
-    required: true
+    required: false
     source: game_types
+    default: null
   - name: home_away
     type: radio
     required: true
@@ -87,8 +89,8 @@ entities:
       - name: string
       - opponent: string
       - date: datetime
-      - season_id: uuid
-      - game_type_id: uuid
+      - season_id: uuid | null
+      - game_type_id: uuid | null
       - home_away: enum
       - team_id: uuid
       - status: enum [setup, in_progress, completed]
@@ -107,7 +109,9 @@ entities:
       - is_starting: boolean
 
 acceptance_criteria:
-  - games can be created with complete metadata
+  - games can be created with essential metadata only (name, opponent, date, team)
+  - games can be created with complete metadata including season and game type
+  - season and game type fields are optional for quick game creation
   - teams and games can be selected from same interface
   - new games can be created quickly when needed
   - starting lineup must have 10 players minimum for slowpitch softball

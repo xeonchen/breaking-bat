@@ -22,8 +22,8 @@ export class Game extends BaseEntity {
   public readonly name: string;
   public readonly opponent: string;
   public readonly date: Date;
-  public readonly seasonId: string;
-  public readonly gameTypeId: string;
+  public readonly seasonId: string | null;
+  public readonly gameTypeId: string | null;
   public readonly homeAway: HomeAway;
   public readonly teamId: string;
   public readonly status: GameStatus;
@@ -36,8 +36,8 @@ export class Game extends BaseEntity {
     name: string,
     opponent: string,
     date: Date,
-    seasonId: string,
-    gameTypeId: string,
+    seasonId: string | null,
+    gameTypeId: string | null,
     homeAway: HomeAway,
     teamId: string,
     status: GameStatus = 'setup',

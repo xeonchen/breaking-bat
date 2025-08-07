@@ -20,15 +20,7 @@ export function NavigationDrawer({ isOpen, onClose }: NavigationDrawerProps) {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Home', path: '/', icon: '🏠', testId: 'home-tab' },
     { label: 'Teams', path: '/teams', icon: '👥', testId: 'teams-tab' },
-    { label: 'Seasons', path: '/seasons', icon: '📅', testId: 'seasons-tab' },
-    {
-      label: 'Game Types',
-      path: '/game-types',
-      icon: '🎯',
-      testId: 'game-types-tab',
-    },
     { label: 'Games', path: '/games', icon: '⚾', testId: 'games-tab' },
     { label: 'Stats', path: '/stats', icon: '📊', testId: 'stats-tab' },
     {
@@ -59,8 +51,18 @@ export function NavigationDrawer({ isOpen, onClose }: NavigationDrawerProps) {
                 to={item.path}
                 data-testid={item.testId}
                 onClick={onClose}
-                variant={location.pathname === item.path ? 'solid' : 'ghost'}
-                colorScheme={location.pathname === item.path ? 'brand' : 'gray'}
+                variant={
+                  location.pathname === item.path ||
+                  (item.path === '/games' && location.pathname === '/')
+                    ? 'solid'
+                    : 'ghost'
+                }
+                colorScheme={
+                  location.pathname === item.path ||
+                  (item.path === '/games' && location.pathname === '/')
+                    ? 'brand'
+                    : 'gray'
+                }
                 justifyContent="flex-start"
                 leftIcon={<span>{item.icon}</span>}
                 borderRadius={0}

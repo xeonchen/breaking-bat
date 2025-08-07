@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { NavigationHelpers } from './helpers/navigation';
 
 test.describe('Game Types Management', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,12 +7,14 @@ test.describe('Game Types Management', () => {
   });
 
   test('should create and manage game types', async ({ page }) => {
-    // Navigate to game types page
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
 
-    // Verify game types page loads
-    await expect(page.locator('[data-testid="game-types-page"]')).toBeVisible();
-    await expect(page.locator('h1')).toContainText('Game Types');
+    // Navigate to game types management
+    await navigation.navigateToGameTypesManagement();
+
+    // Verify game types page elements
+    await navigation.expectGameTypesPageElements();
+    await navigation.waitForGameTypesGridToLoad();
 
     // Verify empty state when no game types exist
     await expect(
@@ -25,7 +28,9 @@ test.describe('Game Types Management', () => {
     await page.click('[data-testid="create-game-type-button"]');
 
     // Verify create game type modal opens
-    await expect(page.locator('h2')).toContainText('Create New Game Type');
+    await expect(page.locator('[role="dialog"] h2')).toContainText(
+      'Create New Game Type'
+    );
 
     // Fill in game type details
     await page.fill('[data-testid="game-type-name-input"]', 'Regular Season');
@@ -50,8 +55,8 @@ test.describe('Game Types Management', () => {
   });
 
   test('should create game type without description', async ({ page }) => {
-    // Navigate to game types page
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToGameTypesManagement();
 
     // Create a new game type
     await page.click('[data-testid="create-game-type-button"]');
@@ -72,8 +77,8 @@ test.describe('Game Types Management', () => {
   });
 
   test('should validate game type name is required', async ({ page }) => {
-    // Navigate to game types page
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToGameTypesManagement();
 
     // Create a new game type
     await page.click('[data-testid="create-game-type-button"]');
@@ -86,8 +91,8 @@ test.describe('Game Types Management', () => {
   });
 
   test('should validate character limits', async ({ page }) => {
-    // Navigate to game types page
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToGameTypesManagement();
 
     // Create a new game type
     await page.click('[data-testid="create-game-type-button"]');
@@ -124,8 +129,8 @@ test.describe('Game Types Management', () => {
   });
 
   test('should edit game type', async ({ page }) => {
-    // Navigate to game types page and create a game type first
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToGameTypesManagement();
     await page.click('[data-testid="create-game-type-button"]');
     await page.fill('[data-testid="game-type-name-input"]', 'Original Type');
     await page.fill(
@@ -145,7 +150,9 @@ test.describe('Game Types Management', () => {
     await editButton.click();
 
     // Verify edit modal opens
-    await expect(page.locator('h2')).toContainText('Edit Game Type');
+    await expect(page.locator('[role="dialog"] h2')).toContainText(
+      'Edit Game Type'
+    );
 
     // Update game type details
     await page.fill('[data-testid="game-type-name-input"]', 'Updated Type');
@@ -168,8 +175,8 @@ test.describe('Game Types Management', () => {
   });
 
   test('should delete game type', async ({ page }) => {
-    // Navigate to game types page and create a game type first
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToGameTypesManagement();
     await page.click('[data-testid="create-game-type-button"]');
     await page.fill('[data-testid="game-type-name-input"]', 'Type To Delete');
     await page.click('[data-testid="confirm-create-game-type"]');
@@ -194,8 +201,8 @@ test.describe('Game Types Management', () => {
   });
 
   test('should create multiple game types', async ({ page }) => {
-    // Navigate to game types page
-    await page.goto('/game-types');
+    const navigation = new NavigationHelpers(page);
+    await navigation.navigateToGameTypesManagement();
 
     const gameTypes = [
       { name: 'Regular Season', description: 'Standard league games' },
