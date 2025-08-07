@@ -5,8 +5,10 @@ import theme from '@/presentation/theme';
 
 // Mock window.location.reload
 const mockReload = jest.fn();
-delete (window as any).location;
-(window as any).location = { reload: mockReload };
+delete (window as unknown as { location?: unknown }).location;
+(window as unknown as { location: { reload: jest.Mock } }).location = {
+  reload: mockReload,
+};
 
 // Mock console.error to avoid noise in tests
 const originalConsoleError = console.error;

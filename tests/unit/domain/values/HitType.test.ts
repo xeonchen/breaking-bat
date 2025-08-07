@@ -189,7 +189,7 @@ describe('HitTypeInfo', () => {
       });
 
       it('should throw error for null hit type', () => {
-        const nullHitType = null as any;
+        const nullHitType = null as unknown as HitType;
 
         expect(() => HitTypeInfo.getInfo(nullHitType)).toThrow(
           'Unknown hit type: null'
@@ -197,7 +197,7 @@ describe('HitTypeInfo', () => {
       });
 
       it('should throw error for undefined hit type', () => {
-        const undefinedHitType = undefined as any;
+        const undefinedHitType = undefined as unknown as HitType;
 
         expect(() => HitTypeInfo.getInfo(undefinedHitType)).toThrow(
           'Unknown hit type: undefined'

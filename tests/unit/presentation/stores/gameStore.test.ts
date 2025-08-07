@@ -137,9 +137,9 @@ describe('GameStore', () => {
 
       initializeGameStore({
         gameRepository: mockGameRepository,
-        teamRepository: null as any,
-        playerRepository: null as any,
-        scoringService: null as any,
+        teamRepository: null as unknown as typeof mockTeamRepository,
+        playerRepository: null as unknown as typeof mockPlayerRepository,
+        scoringService: null as unknown as typeof mockScoringService,
       });
 
       const { result } = renderHook(() => useGameStore());
@@ -663,7 +663,7 @@ describe('GameStore', () => {
         gameRepository: mockGameRepository,
         teamRepository: mockTeamRepository,
         playerRepository: mockPlayerRepository,
-        scoringService: null as any,
+        scoringService: null as unknown as typeof mockScoringService,
       });
 
       const { result } = renderHook(() => useGameStore());
@@ -682,7 +682,7 @@ describe('GameStore', () => {
       await act(async () => {
         try {
           await result.current.recordAtBat(atBatResult);
-        } catch (error) {
+        } catch {
           // Expected to throw when scoring service is not available
         }
       });
@@ -835,7 +835,7 @@ describe('GameStore', () => {
       await act(async () => {
         try {
           await result.current.recordAtBat(atBatResult);
-        } catch (error) {
+        } catch {
           // Expected to throw when scoring service has error
         }
       });

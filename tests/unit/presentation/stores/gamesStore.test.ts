@@ -852,7 +852,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await hookResult.current.createGame(command);
-        } catch (error) {
+        } catch {
           // Expected to throw when result is null
         }
       });
@@ -897,7 +897,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.createSeason(command);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -916,7 +916,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.updateSeason(mockSeason);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -935,7 +935,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.deleteSeason('season-1');
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -958,7 +958,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.createGameType(command);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -976,7 +976,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.updateGameType(mockGameType);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -994,7 +994,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.deleteGameType('type-1');
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -1012,7 +1012,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.updateGame(mockGame);
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });
@@ -1028,7 +1028,7 @@ describe('GamesStore', () => {
       await act(async () => {
         try {
           await result.current.deleteGame('game-1');
-        } catch (error) {
+        } catch {
           // Expected to throw
         }
       });

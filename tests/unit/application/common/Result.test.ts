@@ -259,7 +259,7 @@ describe('Result', () => {
     it('should flatMap successful result to failure', () => {
       const result = Result.success(5);
 
-      const flatMappedResult = result.flatMap((x) =>
+      const flatMappedResult = result.flatMap((_x) =>
         Result.failure<number>('flatMap error')
       );
 
@@ -433,7 +433,7 @@ describe('Result', () => {
 
     it('should chain flatMap operations with intermediate failure', () => {
       const result = Result.success(5)
-        .flatMap((x) => Result.failure<number>('intermediate error'))
+        .flatMap((_x) => Result.failure<number>('intermediate error'))
         .flatMap((x) => Result.success(`Value: ${x}`));
 
       expect(result.isSuccess).toBe(false);
