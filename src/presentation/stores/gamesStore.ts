@@ -5,16 +5,22 @@ import {
   Season,
   GameType,
   Team,
+  Player,
   GameStatus,
   GameRepository,
   SeasonRepository,
   GameTypeRepository,
   TeamRepository,
+  PlayerRepository,
 } from '@/domain';
 import {
   CreateGameUseCase,
   CreateGameCommand,
 } from '@/application/use-cases/CreateGameUseCase';
+import {
+  LoadDefaultDataUseCase,
+  LoadDefaultDataResult,
+} from '@/application/use-cases/LoadDefaultDataUseCase';
 
 interface CreateSeasonCommand {
   name: string;
@@ -45,6 +51,7 @@ interface GamesState {
   loadSeasons: () => Promise<void>;
   loadGameTypes: () => Promise<void>;
   loadTeams: () => Promise<void>;
+  loadPlayersForTeam: (teamId: string) => Promise<Player[]>;
   createGame: (command: CreateGameCommand) => Promise<Game>;
   updateGame: (game: Game) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
@@ -60,6 +67,7 @@ interface GamesState {
   searchGames: (query: string) => void;
   filterGamesByStatus: (status: GameStatus | 'all') => void;
   filterGamesByTeam: (teamId: string) => void;
+  loadDefaultData: () => Promise<LoadDefaultDataResult>;
 }
 
 // Repository interfaces - will be injected in production
@@ -67,7 +75,9 @@ let gameRepository: GameRepository;
 let seasonRepository: SeasonRepository;
 let gameTypeRepository: GameTypeRepository;
 let teamRepository: TeamRepository;
+let playerRepository: PlayerRepository;
 let createGameUseCase: CreateGameUseCase;
+let loadDefaultDataUseCase: LoadDefaultDataUseCase;
 
 // Initialize function for dependency injection
 export const initializeGamesStore = (deps: {
@@ -75,21 +85,27 @@ export const initializeGamesStore = (deps: {
   seasonRepository: SeasonRepository;
   gameTypeRepository: GameTypeRepository;
   teamRepository: TeamRepository;
+  playerRepository: PlayerRepository;
   createGameUseCase: CreateGameUseCase;
+  loadDefaultDataUseCase: LoadDefaultDataUseCase;
 }): void => {
   console.log('🔧 Initializing GamesStore with dependencies:', {
     gameRepository: !!deps.gameRepository,
     seasonRepository: !!deps.seasonRepository,
     gameTypeRepository: !!deps.gameTypeRepository,
     teamRepository: !!deps.teamRepository,
+    playerRepository: !!deps.playerRepository,
     createGameUseCase: !!deps.createGameUseCase,
+    loadDefaultDataUseCase: !!deps.loadDefaultDataUseCase,
   });
 
   gameRepository = deps.gameRepository;
   seasonRepository = deps.seasonRepository;
   gameTypeRepository = deps.gameTypeRepository;
   teamRepository = deps.teamRepository;
+  playerRepository = deps.playerRepository;
   createGameUseCase = deps.createGameUseCase;
+  loadDefaultDataUseCase = deps.loadDefaultDataUseCase;
 
   console.log('✅ GamesStore dependencies initialized successfully');
 };
@@ -201,6 +217,55 @@ export const useGamesStore = create<GamesState>()(
               error: `Failed to load teams: ${message}`,
               teams: [],
             });
+          }
+        },
+
+        loadPlayersForTeam: async (teamId: string) => {
+          try {
+            console.log(`👥 Loading players for team: ${teamId}`);
+
+            // First find the team to get player IDs
+            const team = await teamRepository?.findById(teamId);
+            if (!team) {
+              console.log(`❌ Team ${teamId} not found`);
+              return [];
+            }
+
+            let validPlayers: Player[] = [];
+
+            // If team has playerIds, use those
+            if (team.playerIds && team.playerIds.length > 0) {
+              // Load all players for the team using player IDs
+              const players = await Promise.all(
+                team.playerIds.map(async (playerId) => {
+                  const player = await playerRepository?.findById(playerId);
+                  return player;
+                })
+              );
+
+              // Filter out any null/undefined players
+              validPlayers = players.filter(
+                (player): player is Player =>
+                  player !== null && player !== undefined
+              );
+            } else {
+              // Team has no playerIds - try to find players by teamId (fallback)
+              console.log(
+                `🔍 Team ${team.name} has no playerIds, searching by teamId...`
+              );
+              validPlayers =
+                (await playerRepository?.findByTeamId(teamId)) || [];
+            }
+
+            console.log(
+              `✅ Loaded ${validPlayers.length} players for team ${teamId} (${team.name})`
+            );
+            return validPlayers;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to load players:', message);
+            return [];
           }
         },
 
@@ -377,6 +442,57 @@ export const useGamesStore = create<GamesState>()(
             (game: Game) => game.teamId === teamId
           );
           set({ games: filteredGames });
+        },
+
+        loadDefaultData: async (): Promise<LoadDefaultDataResult> => {
+          set({ loading: true, error: null });
+          try {
+            console.log('🔄 Loading sample data...');
+            console.log('🔧 Dependencies check:', {
+              loadDefaultDataUseCase: !!loadDefaultDataUseCase,
+              playerRepository: !!playerRepository,
+              teamRepository: !!teamRepository,
+              seasonRepository: !!seasonRepository,
+              gameTypeRepository: !!gameTypeRepository,
+            });
+
+            if (!loadDefaultDataUseCase) {
+              console.error('❌ LoadDefaultDataUseCase not initialized');
+              throw new Error('LoadDefaultDataUseCase not initialized');
+            }
+
+            if (!playerRepository) {
+              console.error('❌ PlayerRepository not initialized');
+              throw new Error('PlayerRepository not initialized');
+            }
+
+            const result = await loadDefaultDataUseCase.execute();
+
+            if (result.isSuccess && result.value) {
+              console.log('✅ Default data loaded successfully:', result.value);
+
+              // Reload all data to reflect the changes
+              await Promise.all([
+                get().loadTeams(),
+                get().loadSeasons(),
+                get().loadGameTypes(),
+              ]);
+
+              set({ loading: false });
+              return result.value;
+            } else {
+              throw new Error(result.error || 'Failed to load default data');
+            }
+          } catch (error) {
+            console.error('❌ Failed to load default data:', error);
+            const errorMessage =
+              error instanceof Error ? error.message : 'Unknown error occurred';
+            set({
+              loading: false,
+              error: `Failed to load default data: ${errorMessage}`,
+            });
+            throw error;
+          }
         },
 
         createSeason: async (command: CreateSeasonCommand) => {

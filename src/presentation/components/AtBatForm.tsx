@@ -320,11 +320,15 @@ export function AtBatForm({
     >
       <VStack spacing={6}>
         {/* Current Batter Info */}
-        <Box data-testid="current-batter-info" textAlign="center" w="full">
+        <Box data-testid="current-batter" textAlign="center" w="full">
           <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight="bold">
             #{currentBatter.jerseyNumber} {currentBatter.playerName}
           </Text>
-          <Text color={mutedColor} fontSize="sm">
+          <Text
+            data-testid="batting-order-display"
+            color={mutedColor}
+            fontSize="sm"
+          >
             {currentBatter.battingOrder}rd Batter
           </Text>
         </Box>

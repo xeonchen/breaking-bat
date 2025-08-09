@@ -247,6 +247,32 @@ export class Game extends BaseEntity {
   }
 
   /**
+   * Set the lineup for this game
+   */
+  public setLineup(lineupId: string): Game {
+    if (this.status !== 'setup') {
+      throw new Error('Lineup can only be set for games in setup status');
+    }
+
+    return new Game(
+      this.id,
+      this.name,
+      this.opponent,
+      this.date,
+      this.seasonId,
+      this.gameTypeId,
+      this.homeAway,
+      this.teamId,
+      this.status,
+      lineupId,
+      this.inningIds,
+      this.finalScore,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  /**
    * Get display text for home/away
    */
   public getVenueText(): string {

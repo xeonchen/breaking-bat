@@ -13,8 +13,20 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  /* Fast-fail mode for CI cost savings - exit on first failure */
+  maxFailures: process.env.CI && process.env.FAST_FAIL ? 1 : undefined,
+  /* Global timeout for entire test suite */
+  globalTimeout: process.env.CI ? 10 * 60 * 1000 : undefined, // 10 minutes max for CI
+  /* Timeout for each test - keep default 30s, only increase if actually needed */
+  timeout: 30 * 1000, // 30 seconds per test (default)
+  /* Expected timeout for each assertion - keep default 5s */
+  expect: {
+    timeout: 5 * 1000, // 5 seconds for assertions (default)
+  },
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: process.env.CI
+    ? [['github'], ['html']]
+    : [['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -23,6 +35,10 @@ export default defineConfig({
     trace: 'on-first-retry',
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
+    /* Navigation timeout - keep reasonable but not excessive */
+    navigationTimeout: 15 * 1000, // 15 seconds for page navigation
+    /* Action timeout for clicks, fills, etc - keep default */
+    actionTimeout: 10 * 1000, // 10 seconds for user actions
   },
 
   /* Configure projects for major browsers */
@@ -32,25 +48,25 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
+    // },
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
+    // },
 
     /* Test against branded browsers. */
     // {

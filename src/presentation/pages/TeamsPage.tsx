@@ -524,7 +524,7 @@ export default function TeamsPage() {
         <ModalOverlay />
         <ModalContent data-testid="team-details-modal">
           <ModalHeader>{selectedTeam?.name} - Team Management</ModalHeader>
-          <ModalCloseButton />
+          <ModalCloseButton data-testid="close-modal-button" />
           <ModalBody>
             {selectedTeam && (
               <TeamManagement

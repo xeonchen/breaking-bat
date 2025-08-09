@@ -153,9 +153,51 @@ workflows:
       - add_substitutes
       - validate_lineup
 
+error_states:
+  - name: IncompleteLineup
+    http_status: 400
+    response_body:
+      error_code: 'LINEUP_INCOMPLETE'
+      message: 'Lineup must have at least 9 batting positions and all defensive positions assigned'
+  - name: InvalidBattingOrder
+    http_status: 400
+    response_body:
+      error_code: 'BATTING_ORDER_INVALID'
+      message: 'Batting order must be sequential starting from 1'
+  - name: DuplicatePosition
+    http_status: 400
+    response_body:
+      error_code: 'POSITION_DUPLICATE'
+      message: 'Each defensive position can only be assigned to one player'
+  - name: PlayerNotOnTeam
+    http_status: 400
+    response_body:
+      error_code: 'PLAYER_NOT_ON_TEAM'
+      message: 'Selected player is not on the chosen team'
+  - name: NoPlayersAvailable
+    http_status: 400
+    response_body:
+      error_code: 'NO_PLAYERS_AVAILABLE'
+      message: 'Selected team has no active players available for lineup'
+
+defensive_actions:
+  retry_policy: 'manual-user-correction (no automatic retry for user input errors)'
+  validation: 'real-time validation as user makes lineup changes'
+  fallback: 'preserve partial lineup progress if modal is closed accidentally'
+  error_recovery: 'highlight specific lineup issues and guide user to resolution'
+
+component_hints:
+  setup_lineup_button: "Button(leftIcon=<EditIcon />, colorScheme='blue', variant='outline', data-testid='setup-lineup-button')"
+  lineup_modal: "Modal(isOpen={isOpen}, onClose={onClose}, size='xl', data-testid='lineup-setup-modal')"
+  batting_order_input: "NumberInput(min={1}, max={15}, data-testid='batting-order-input')"
+  position_select: "Select(placeholder='Select Position', data-testid='defensive-position-select')"
+  player_select: "Select(placeholder='Select Player', data-testid='player-select')"
+  start_game_button: "Button(colorScheme='green', isDisabled={!lineupComplete}, data-testid='start-game-button')"
+
 meta:
   status: active
-  version: 1.0.0
+  version: 2.0.0
   priority: high
   dependencies: [team-management]
   created_by: breaking-bat-team
+  design_spec_url: 'lineup-setup-modal-wireframe.md'

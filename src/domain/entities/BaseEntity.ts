@@ -24,6 +24,12 @@ export abstract class BaseEntity {
    * Update the entity's timestamp
    */
   protected touch(): void {
-    (this as any).updatedAt = new Date();
+    // Since updatedAt is readonly, we need to use Object.defineProperty
+    Object.defineProperty(this, 'updatedAt', {
+      value: new Date(),
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    });
   }
 }

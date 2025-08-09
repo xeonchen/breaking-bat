@@ -4,6 +4,7 @@ import { initializeGamesStore } from '@/presentation/stores/gamesStore';
 import { initializeGameStore } from '@/presentation/stores/gameStore';
 import { CreateTeamUseCase } from '@/application/use-cases/CreateTeamUseCase';
 import { CreateGameUseCase } from '@/application/use-cases/CreateGameUseCase';
+import { LoadDefaultDataUseCase } from '@/application/use-cases/LoadDefaultDataUseCase';
 import { AddPlayerUseCase } from '@/application/use-cases/AddPlayerUseCase';
 import { UpdatePlayerUseCase } from '@/application/use-cases/UpdatePlayerUseCase';
 import { RemovePlayerUseCase } from '@/application/use-cases/RemovePlayerUseCase';
@@ -44,6 +45,12 @@ export function DependencyProvider({ children }: DependencyProviderProps) {
       playerRepository,
       teamRepository
     );
+    const loadDefaultDataUseCase = new LoadDefaultDataUseCase(
+      teamRepository,
+      playerRepository,
+      seasonRepository,
+      gameTypeRepository
+    );
 
     // Initialize stores with dependencies
     initializeTeamsStore({
@@ -61,7 +68,9 @@ export function DependencyProvider({ children }: DependencyProviderProps) {
       seasonRepository,
       gameTypeRepository,
       teamRepository,
+      playerRepository,
       createGameUseCase,
+      loadDefaultDataUseCase,
     });
 
     initializeGameStore({
