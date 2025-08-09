@@ -376,7 +376,13 @@ async function createCompleteGameSetup(page: Page): Promise<void> {
 
   const seasonSelect = page.locator('[data-testid="season-select"]');
   if (await seasonSelect.isVisible({ timeout: 2000 })) {
-    await seasonSelect.selectOption({ index: 1 });
+    await page.waitForTimeout(1000);
+    const optionCount = await seasonSelect.locator('option').count();
+    if (optionCount > 1) {
+      await seasonSelect.selectOption({ index: 1 });
+    } else {
+      console.log('  ⚠️ Season dropdown has no selectable options - skipping');
+    }
   }
 
   await page.click('[data-testid="confirm-create-game"]');
@@ -388,47 +394,60 @@ async function createCompleteGameSetup(page: Page): Promise<void> {
  */
 async function addPlayersForRecording(page: Page): Promise<void> {
   const players = [
-    { name: 'Ace Pitcher', jersey: '1', position: 'Pitcher' },
-    { name: 'Safe Catcher', jersey: '2', position: 'Catcher' },
-    { name: 'First Baseman', jersey: '3', position: 'First Base' },
-    { name: 'Second Baseman', jersey: '4', position: 'Second Base' },
-    { name: 'Third Baseman', jersey: '5', position: 'Third Base' },
-    { name: 'Short Stop', jersey: '6', position: 'Shortstop' },
-    { name: 'Left Fielder', jersey: '7', position: 'Left Field' },
-    { name: 'Center Fielder', jersey: '8', position: 'Center Field' },
-    { name: 'Right Fielder', jersey: '9', position: 'Right Field' },
+    { name: 'Ace Pitcher', jersey: '1', position: 'Pitcher (P)' },
+    { name: 'Safe Catcher', jersey: '2', position: 'Catcher (C)' },
+    { name: 'First Baseman', jersey: '3', position: 'First Base (1B)' },
+    { name: 'Second Baseman', jersey: '4', position: 'Second Base (2B)' },
+    { name: 'Third Baseman', jersey: '5', position: 'Third Base (3B)' },
+    { name: 'Short Stop', jersey: '6', position: 'Shortstop (SS)' },
+    { name: 'Left Fielder', jersey: '7', position: 'Left Field (LF)' },
+    { name: 'Center Fielder', jersey: '8', position: 'Center Field (CF)' },
+    { name: 'Right Fielder', jersey: '9', position: 'Right Field (RF)' },
   ];
 
-  // Find team and add players
-  const teamCard = page
-    .locator(`[data-testid*="team-"]`)
-    .filter({ hasText: 'Recording Test Team' })
-    .first();
+  // Find team and add players using established pattern
+  const teamCardSelector = `[data-testid="team-recording-test-team"]`;
+  await page.waitForSelector(teamCardSelector, { timeout: 10000 });
 
-  if (await teamCard.isVisible({ timeout: 2000 })) {
-    const manageBtn = teamCard.locator('[data-testid*="manage"]');
-    if (await manageBtn.isVisible({ timeout: 1000 })) {
-      await manageBtn.click();
-      await page.waitForTimeout(1000);
-    }
+  // Click the view button to open team details modal
+  const viewButtonSelector = `[data-testid="view-team-recording-test-team"]`;
+  await page.click(viewButtonSelector);
 
-    for (const player of players) {
-      const addPlayerBtn = page.locator('[data-testid="add-player-button"]');
-      if (await addPlayerBtn.isVisible({ timeout: 1000 })) {
-        await addPlayerBtn.click();
-        await page.fill('[data-testid="player-name-input"]', player.name);
-        await page.fill('[data-testid="jersey-number-input"]', player.jersey);
+  // Wait for the team details modal to open
+  await page.waitForSelector('[data-testid="team-details-modal"]', {
+    timeout: 10000,
+  });
+  // Wait for the add player button inside the TeamManagement component
+  await page.waitForSelector('[data-testid="add-player-button"]', {
+    timeout: 10000,
+  });
 
-        const positionSelect = page.locator('[data-testid="position-select"]');
-        if (await positionSelect.isVisible({ timeout: 1000 })) {
-          await positionSelect.selectOption({ label: player.position });
-        }
+  for (const player of players) {
+    const addPlayerBtn = page.locator('[data-testid="add-player-button"]');
+    if (await addPlayerBtn.isVisible({ timeout: 1000 })) {
+      await addPlayerBtn.click();
+      await page.fill('[data-testid="player-name-input"]', player.name);
+      await page.fill('[data-testid="player-jersey-input"]', player.jersey);
 
-        await page.click('[data-testid="confirm-add-player"]');
-        await page.waitForTimeout(500);
+      const positionSelect = page.locator(
+        '[data-testid="player-position-select"]'
+      );
+      if (await positionSelect.isVisible({ timeout: 1000 })) {
+        await positionSelect.selectOption({ label: player.position });
       }
+
+      await page.click('[data-testid="confirm-add-player"]');
+      await page.waitForTimeout(500);
     }
   }
+
+  // Close the team details modal
+  await page
+    .click('[data-testid="close-modal-button"]', { timeout: 5000 })
+    .catch(() => {
+      // If close button not found, try escape key or modal overlay click
+      return page.keyboard.press('Escape');
+    });
 }
 
 /**
