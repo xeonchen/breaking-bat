@@ -128,48 +128,41 @@ test.describe('Game State Transitions', () => {
       .filter({ hasText: 'Error Test Game' })
       .first();
 
-    // Try to start without setting up lineup
+    // Check that start game button is disabled without lineup (this is correct behavior)
     const startBtn = gameCard.locator('[data-testid="start-game-button"]');
-    if (await startBtn.isVisible({ timeout: 2000 })) {
-      await startBtn.click();
-      await page.waitForTimeout(1000);
+    const startBtnExists = await startBtn.isVisible({ timeout: 2000 });
 
-      // Check for error messages
-      const errorMessages = [
-        'Lineup Required',
-        'Please set up a lineup',
-        'Cannot start without lineup',
-        'Setup required',
-        'Missing lineup',
-      ];
+    if (startBtnExists) {
+      const isEnabled = await startBtn.isEnabled();
 
-      let foundError = false;
-      for (const msg of errorMessages) {
-        if (await page.locator(`text=${msg}`).isVisible({ timeout: 2000 })) {
-          console.log(`✅ Found expected error: ${msg}`);
-          foundError = true;
-          break;
+      if (!isEnabled) {
+        console.log('✅ Start game button correctly disabled without lineup');
+
+        // Check if there's a visual indication of why it's disabled
+        const setupLineupBtn = gameCard.locator(
+          '[data-testid="setup-lineup-button"]'
+        );
+        const setupLineupExists = await setupLineupBtn.isVisible({
+          timeout: 1000,
+        });
+
+        if (setupLineupExists) {
+          console.log('✅ Setup lineup button is available as expected');
+
+          // Verify game is in setup state
+          const gameStatus = await gameCard
+            .locator('.chakra-badge')
+            .textContent();
+          console.log(`Game status: ${gameStatus}`);
+
+          if (gameStatus?.toLowerCase().includes('setup')) {
+            console.log('✅ Game correctly in setup state without lineup');
+          }
+        } else {
+          console.log('⚠️ Setup lineup button not found');
         }
-      }
-
-      if (!foundError) {
-        console.log('⚠️ No clear error message shown for missing lineup');
-
-        // Check if it silently failed or did something unexpected
-        const currentUrl = page.url();
-        console.log(`Current URL after start attempt: ${currentUrl}`);
-
-        // Check if game state changed
-        await page.waitForTimeout(1000);
-        const stillSetup = await gameCard
-          .locator('text=Setup')
-          .isVisible({ timeout: 1000 });
-        const nowInProgress = await gameCard
-          .locator('text=In Progress')
-          .isVisible({ timeout: 1000 });
-
-        console.log(`Still in setup: ${stillSetup}`);
-        console.log(`Now in progress: ${nowInProgress}`);
+      } else {
+        console.log('❌ Start game button should be disabled without lineup');
       }
     } else {
       console.log('❌ No start game button found');
@@ -224,9 +217,9 @@ test.describe('Game State Transitions', () => {
       .filter({ hasText: 'Persistence Game' })
       .first();
 
+    // Get initial game status (using badge which shows the status)
     const initialStatus =
-      (await gameCard.locator('[data-testid*="status"]').textContent()) ||
-      'unknown';
+      (await gameCard.locator('.chakra-badge').textContent()) || 'unknown';
     console.log(`Initial game status: ${initialStatus}`);
 
     // Navigate away and back
@@ -235,8 +228,14 @@ test.describe('Game State Transitions', () => {
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
+    // Re-find the game card after navigation
+    const gameCardAfterNav = page
+      .locator('[data-testid*="game-"]')
+      .filter({ hasText: 'Persistence Game' })
+      .first();
+
     const afterNavigationStatus =
-      (await gameCard.locator('[data-testid*="status"]').textContent()) ||
+      (await gameCardAfterNav.locator('.chakra-badge').textContent()) ||
       'unknown';
     console.log(`Status after navigation: ${afterNavigationStatus}`);
 
@@ -250,8 +249,14 @@ test.describe('Game State Transitions', () => {
     await page.reload();
     await page.waitForTimeout(1000);
 
+    // Re-find the game card after reload
+    const gameCardAfterReload = page
+      .locator('[data-testid*="game-"]')
+      .filter({ hasText: 'Persistence Game' })
+      .first();
+
     const afterReloadStatus =
-      (await gameCard.locator('[data-testid*="status"]').textContent()) ||
+      (await gameCardAfterReload.locator('.chakra-badge').textContent()) ||
       'unknown';
     console.log(`Status after page reload: ${afterReloadStatus}`);
 
@@ -348,31 +353,8 @@ async function attemptGameStart(
   );
   if (await setupLineupBtn.isVisible({ timeout: 2000 })) {
     console.log('✅ Setting up lineup first');
-    await setupLineupBtn.click();
-
-    // Wait for lineup modal to appear
-    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
-      timeout: 5000,
-    });
-
-    // Complete lineup setup for all 9 positions
-    for (let i = 1; i <= 9; i++) {
-      await page
-        .getByTestId(`batting-position-${i}-player`)
-        .selectOption({ index: i });
-      await page
-        .getByTestId(`batting-position-${i}-defensive-position`)
-        .selectOption({ index: i });
-    }
-
-    // Save the lineup
-    await page.getByTestId('save-lineup-button').click();
-
-    // Wait for modal to close
-    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
-      state: 'hidden',
-      timeout: 3000,
-    });
+    // Use the helper function instead of duplicating logic
+    await setupTestLineup(page, gameName);
   }
 
   // Look for start game button (should be enabled now)

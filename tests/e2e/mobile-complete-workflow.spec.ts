@@ -1,4 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
+import {
+  createTestPrerequisites,
+  createTestGame,
+  setupTestLineup,
+} from './helpers/test-data-setup';
 
 /**
  * Mobile Complete Workflow E2E Tests
@@ -37,7 +42,7 @@ test.describe('Mobile Complete Workflow', () => {
     await testGameManagementOnMobile(page, 'Mobile Test Game');
 
     // Step 5: Test lineup setup on mobile (if available)
-    await testLineupSetupOnMobile(page, 'Mobile Test Game');
+    await setupTestLineup(page, 'Mobile Test Game');
 
     // Step 6: Test game starting on mobile
     await testGameStartOnMobile(page, 'Mobile Test Game');
@@ -273,37 +278,15 @@ async function testMobileNavigation(page: Page): Promise<void> {
 async function createPrerequisitesOnMobile(page: Page): Promise<void> {
   console.log('Creating prerequisites on mobile...');
 
-  // Load sample data to get teams and players
-  await page.goto('/settings');
-  await page.getByTestId('load-sample-data-button').click();
-
-  // Wait for success toast to appear
-  await page.waitForSelector('text="Sample Data Loaded Successfully!"', {
-    timeout: 10000,
+  // Use dedicated test setup instead of sample data button
+  await createTestPrerequisites(page, {
+    teamName: 'Mobile Test Team',
+    playerCount: 12,
+    seasonName: 'Mobile Season',
+    gameTypeName: 'Mobile Game Type',
   });
 
-  // Wait a moment for the data to be fully loaded
-  await page.waitForTimeout(1000);
-
-  console.log('  ✅ Sample data loaded on mobile');
-
-  // Create additional season on mobile if needed
-  await page.goto('/seasons');
-  await page.waitForTimeout(1000);
-
-  const createSeasonBtn = page.locator('[data-testid="create-season-button"]');
-  if (await createSeasonBtn.isVisible({ timeout: 2000 })) {
-    await createSeasonBtn.click();
-
-    await page.fill('[data-testid="season-name-input"]', 'Mobile Season');
-    await page.fill('[data-testid="season-year-input"]', '2025');
-    await page.fill('[data-testid="season-start-date"]', '2025-04-01');
-    await page.fill('[data-testid="season-end-date"]', '2025-09-30');
-    await page.click('[data-testid="confirm-create-season"]');
-    await page.waitForTimeout(1000);
-
-    console.log('  ✅ Season created on mobile');
-  }
+  console.log('  ✅ Prerequisites created on mobile');
 }
 
 /**

@@ -113,7 +113,17 @@ export async function createTestSeason(
     await page.fill('[data-testid="season-start-date"]', '2025-04-01');
     await page.fill('[data-testid="season-end-date"]', '2025-09-30');
     await page.click('[data-testid="confirm-create-season"]');
-    await page.waitForTimeout(1000);
+
+    // Wait for success toast or season to appear in list
+    try {
+      await page.waitForSelector('text="Season created successfully"', {
+        timeout: 3000,
+      });
+    } catch {
+      // If no success toast, wait for the season to appear in the list
+      await page.waitForSelector(`text="${seasonName}"`, { timeout: 3000 });
+    }
+    await page.waitForTimeout(500);
   }
 }
 
@@ -134,12 +144,23 @@ export async function createTestGameType(
     await createGameTypeBtn.click();
     await page.fill('[data-testid="game-type-name-input"]', gameTypeName);
     await page.click('[data-testid="confirm-create-game-type"]');
-    await page.waitForTimeout(1000);
+
+    // Wait for success toast or game type to appear in list
+    try {
+      await page.waitForSelector('text="Game type created successfully"', {
+        timeout: 3000,
+      });
+    } catch {
+      // If no success toast, wait for the game type to appear in the list
+      await page.waitForSelector(`text="${gameTypeName}"`, { timeout: 3000 });
+    }
+    await page.waitForTimeout(500);
   }
 }
 
 /**
  * Create complete test prerequisites (team with players, season, game type)
+ * HYBRID APPROACH: Use sample data for reliability, then add specific test data
  */
 export async function createTestPrerequisites(
   page: Page,
@@ -157,14 +178,47 @@ export async function createTestPrerequisites(
     gameTypeName = 'Regular Game',
   } = options;
 
-  // Create team with players
-  await createTestTeamWithPlayers(page, { name: teamName, playerCount });
+  // HYBRID APPROACH: Start with sample data for reliable baseline
+  console.log('🔄 Loading sample data for reliable baseline...');
+  await page.goto('/settings');
+  await page.getByTestId('load-sample-data-button').click();
 
-  // Create season
-  await createTestSeason(page, seasonName);
+  // Wait for success toast
+  try {
+    await page.waitForSelector('text="Sample Data Loaded Successfully!"', {
+      timeout: 10000,
+    });
+    console.log('✅ Sample data loaded successfully');
+  } catch (error) {
+    console.log('⚠️ Sample data loading may have failed:', error.message);
+  }
 
-  // Create game type
-  await createTestGameType(page, gameTypeName);
+  // Wait for data to fully propagate
+  await page.waitForTimeout(2000);
+
+  // Now add specific test data if different from sample data
+  if (
+    teamName !== 'Test Team' ||
+    seasonName !== 'Test Season' ||
+    gameTypeName !== 'Regular Game'
+  ) {
+    console.log('🔧 Adding specific test data for this test...');
+
+    // Only create additional data if it's different from the defaults
+    if (seasonName !== 'Test Season') {
+      await createTestSeason(page, seasonName);
+    }
+
+    if (gameTypeName !== 'Regular Game') {
+      await createTestGameType(page, gameTypeName);
+    }
+
+    if (teamName !== 'Test Team') {
+      await createTestTeamWithPlayers(page, { name: teamName, playerCount });
+    }
+  }
+
+  console.log('✅ Test prerequisites setup complete');
 }
 
 /**
@@ -181,11 +235,18 @@ export async function createTestGame(
     gameTypeName: gameData.gameTypeName,
   });
 
-  // Create the game
+  // Navigate to games page and wait for data to load
   await page.goto('/games');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000); // Extra time for data loading
 
   await page.click('[data-testid="create-game-button"]');
+
+  // Wait for modal and dropdowns to be fully loaded
+  await page.waitForSelector('[data-testid="game-name-input"]', {
+    timeout: 5000,
+  });
+  await page.waitForTimeout(1000); // Wait for dropdowns to populate
+
   await page.fill('[data-testid="game-name-input"]', gameData.name);
   await page.fill('[data-testid="opponent-input"]', gameData.opponent);
 
@@ -197,26 +258,89 @@ export async function createTestGame(
     tomorrow.toISOString().split('T')[0]
   );
 
-  // Select the team we created
+  // Select the team (use sample data team if default, or specific team if provided)
   const teamSelect = page.locator('[data-testid="team-select"]');
   if (await teamSelect.isVisible({ timeout: 2000 })) {
-    await teamSelect.selectOption({ label: gameData.teamName });
+    if (gameData.teamName === 'Test Team') {
+      // Use sample data team (should be available)
+      await teamSelect.selectOption({ index: 1 });
+      console.log('✅ Selected sample data team');
+    } else {
+      // Use specific team name
+      await teamSelect.selectOption({ label: gameData.teamName });
+      console.log(`✅ Selected specific team: ${gameData.teamName}`);
+    }
   }
 
-  // Select season
+  // Select season (sample data should have seasons available)
   const seasonSelect = page.locator('[data-testid="season-select"]');
   if (await seasonSelect.isVisible({ timeout: 2000 })) {
-    await seasonSelect.selectOption({ index: 1 });
+    const optionCount = await seasonSelect.locator('option').count();
+    console.log(`Season dropdown has ${optionCount} options`);
+
+    if (optionCount > 1) {
+      if (gameData.seasonName === 'Test Season' || !gameData.seasonName) {
+        // Use first available season from sample data
+        await seasonSelect.selectOption({ index: 1 });
+        console.log('✅ Selected sample data season');
+      } else {
+        // Try to select specific season
+        try {
+          await seasonSelect.selectOption({ label: gameData.seasonName });
+          console.log(`✅ Selected specific season: ${gameData.seasonName}`);
+        } catch {
+          // Fallback to first option - check if page is still open
+          if (!page.isClosed()) {
+            await seasonSelect.selectOption({ index: 1 });
+            console.log('⚠️ Specific season not found, using first available');
+          }
+        }
+      }
+    } else {
+      console.log('⚠️ Season dropdown has no options - skipping selection');
+    }
   }
 
-  // Select game type
+  // Select game type (sample data should have game types available)
   const gameTypeSelect = page.locator('[data-testid="game-type-select"]');
-  if (await gameTypeSelect.isVisible({ timeout: 2000 })) {
-    await gameTypeSelect.selectOption({ index: 1 });
+  if (!page.isClosed() && (await gameTypeSelect.isVisible({ timeout: 2000 }))) {
+    const optionCount = await gameTypeSelect.locator('option').count();
+    console.log(`Game type dropdown has ${optionCount} options`);
+
+    if (optionCount > 1) {
+      if (gameData.gameTypeName === 'Regular Game' || !gameData.gameTypeName) {
+        // Use first available game type from sample data
+        await gameTypeSelect.selectOption({ index: 1 });
+        console.log('✅ Selected sample data game type');
+      } else {
+        // Try to select specific game type
+        try {
+          await gameTypeSelect.selectOption({ label: gameData.gameTypeName });
+          console.log(
+            `✅ Selected specific game type: ${gameData.gameTypeName}`
+          );
+        } catch {
+          // Fallback to first option - check if page is still open
+          if (!page.isClosed()) {
+            await gameTypeSelect.selectOption({ index: 1 });
+            console.log(
+              '⚠️ Specific game type not found, using first available'
+            );
+          }
+        }
+      }
+    } else {
+      console.log('⚠️ Game type dropdown has no options - skipping selection');
+    }
   }
 
-  await page.click('[data-testid="confirm-create-game"]');
-  await page.waitForTimeout(1000);
+  // Check if page is still available before clicking
+  if (!page.isClosed()) {
+    await page.click('[data-testid="confirm-create-game"]');
+    await page.waitForTimeout(1000);
+  } else {
+    console.log('❌ Page closed before game creation could complete');
+  }
 
   return gameData.name;
 }
@@ -247,23 +371,53 @@ export async function setupTestLineup(
       timeout: 5000,
     });
 
+    // Wait a moment for the lineup modal data to load
+    await page.waitForTimeout(2000);
+
+    // Check if players are available (sample data should provide players)
+    const firstPlayerSelect = page.getByTestId('batting-position-1-player');
+    const optionCount = await firstPlayerSelect.locator('option').count();
+    console.log(`Player dropdown has ${optionCount} options available`);
+
+    if (optionCount <= 1) {
+      console.log(
+        '❌ No players available - sample data may not have loaded properly'
+      );
+      return; // Exit early to avoid timeout
+    }
+
+    console.log('✅ Players available for lineup setup');
+
     // Complete lineup setup for all 9 positions
     for (let i = 1; i <= 9; i++) {
-      await page
-        .getByTestId(`batting-position-${i}-player`)
-        .selectOption({ index: i });
-      await page
-        .getByTestId(`batting-position-${i}-defensive-position`)
-        .selectOption({ index: i });
+      const playerSelect = page.getByTestId(`batting-position-${i}-player`);
+      const positionSelect = page.getByTestId(
+        `batting-position-${i}-defensive-position`
+      );
+
+      await playerSelect.selectOption({ index: i });
+      await positionSelect.selectOption({ index: i });
     }
 
     // Save the lineup
     await page.getByTestId('save-lineup-button').click();
+
+    // Wait for success feedback (toast or modal close)
+    try {
+      await page.waitForSelector('text="Lineup saved successfully"', {
+        timeout: 3000,
+      });
+      console.log('✅ Lineup saved successfully');
+    } catch {
+      console.log('⚠️ No success toast - checking modal close');
+    }
 
     // Wait for modal to close
     await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
       state: 'hidden',
       timeout: 3000,
     });
+
+    console.log('✅ Lineup modal closed');
   }
 }

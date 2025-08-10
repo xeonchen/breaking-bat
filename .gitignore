@@ -109,3 +109,4 @@ workbox-*.js
 
 # Local development
 .claude/
+CLAUDE.local.md

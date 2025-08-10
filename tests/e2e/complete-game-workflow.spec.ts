@@ -292,19 +292,15 @@ test.describe('Complete Game Workflow', () => {
 async function createCompletePrerequisites(page: Page): Promise<void> {
   console.log('Creating complete prerequisites...');
 
-  // Load sample data to get teams and players (much more reliable than manual creation)
-  await page.goto('/settings');
-  await page.getByTestId('load-sample-data-button').click();
-
-  // Wait for success toast to appear
-  await page.waitForSelector('text="Sample Data Loaded Successfully!"', {
-    timeout: 10000,
+  // Use dedicated test setup instead of sample data button
+  await createTestPrerequisites(page, {
+    teamName: 'Test Team',
+    playerCount: 12,
+    seasonName: 'Test Season',
+    gameTypeName: 'Regular Game',
   });
 
-  // Wait a moment for the data to be fully loaded
-  await page.waitForTimeout(1000);
-
-  console.log('✅ Sample data loaded for complete prerequisites');
+  console.log('✅ Prerequisites created for complete workflow');
 }
 
 /**
