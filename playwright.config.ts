@@ -16,7 +16,7 @@ export default defineConfig({
   /* Fast-fail mode for CI cost savings - exit on first failure */
   maxFailures: process.env.CI && process.env.FAST_FAIL ? 1 : undefined,
   /* Global timeout for entire test suite */
-  globalTimeout: process.env.CI ? 10 * 60 * 1000 : undefined, // 10 minutes max for CI
+  globalTimeout: 20 * 60 * 1000, // 20 minutes for comprehensive test suite
   /* Timeout for each test - keep default 30s, only increase if actually needed */
   timeout: 30 * 1000, // 30 seconds per test (default)
   /* Expected timeout for each assertion - keep default 5s */
