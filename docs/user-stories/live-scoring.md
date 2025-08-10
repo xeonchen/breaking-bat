@@ -37,6 +37,15 @@ Maintain accurate game statistics and scores without missing any plays or making
 - **AC009**: Innings progress automatically and are tracked correctly throughout the game
 - **AC010**: The scoreboard updates in real-time as runs are scored
 
+### Home/Away Innings Management
+
+- **AC029**: Given my team is playing away, I should only record scoring for the top half of each inning
+- **AC030**: Given my team is playing at home, I should only record scoring for the bottom half of each inning
+- **AC031**: Given I am recording an away game, the interface should clearly indicate "Top of [Inning]" when it's our turn to bat
+- **AC032**: Given I am recording a home game, the interface should clearly indicate "Bottom of [Inning]" when it's our turn to bat
+- **AC033**: Given it's the opponent's turn to bat, I should not be able to record at-bats for my team
+- **AC034**: Given the inning switches, the interface should automatically disable my team's batting interface during opponent innings
+
 ### Game Flow Integration (Currently Missing)
 
 - **AC011**: All at-bat data is immediately saved to prevent data loss during live gameplay

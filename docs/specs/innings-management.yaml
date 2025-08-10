@@ -1,0 +1,236 @@
+id: innings-management
+title: Home/Away Innings Management
+actor: Scorekeeper
+goal: Record scoring only for the correct innings based on home/away status with clear interface indicators
+
+inputs:
+  - name: game_home_away_status
+    type: string
+    required: true
+    validation: enum-home-away
+    component_hint: "Badge(colorScheme='blue', text=homeAway)"
+  - name: current_inning
+    type: number
+    required: true
+    validation: positive-integer
+    component_hint: "InningDisplay(inning=number, half='top'|'bottom')"
+  - name: inning_half
+    type: string
+    required: true
+    validation: enum-top-bottom
+    component_hint: 'HalfInningIndicator(isMyTeamBatting=boolean)'
+  - name: team_batting_status
+    type: boolean
+    required: true
+    validation: boolean
+    component_hint: 'BattingIndicator(active=boolean, teamName=string)'
+
+actions:
+  - type: determine_batting_turn
+    label: Determine Team's Batting Turn
+    component_hint: 'LogicGate(homeAway + inningHalf = myTeamBatting)'
+  - type: enable_scoring_interface
+    label: Enable Team Scoring
+    component_hint: 'ScoringPanel(enabled=myTeamBatting)'
+  - type: disable_scoring_interface
+    label: Disable Team Scoring
+    component_hint: "ScoringPanel(disabled=!myTeamBatting, reason='Opponent batting')"
+  - type: switch_inning_half
+    label: Switch Inning Half
+    component_hint: "Button(label='Switch Sides', confirmDialog=true)"
+  - type: advance_inning
+    label: Advance to Next Inning
+    component_hint: "Button(label='Next Inning', enabled=bothSidesBatted)"
+
+acceptance_criteria:
+  - id: AC029
+    description: Away team records scoring only in top half of innings
+    workflow: away_team_batting_workflow
+  - id: AC030
+    description: Home team records scoring only in bottom half of innings
+    workflow: home_team_batting_workflow
+  - id: AC031
+    description: Away game interface shows "Top of [Inning]" when team bats
+    workflow: away_team_interface_display_workflow
+  - id: AC032
+    description: Home game interface shows "Bottom of [Inning]" when team bats
+    workflow: home_team_interface_display_workflow
+  - id: AC033
+    description: Cannot record at-bats during opponent's turn
+    workflow: opponent_batting_restriction_workflow
+  - id: AC034
+    description: Interface automatically disables during opponent innings
+    workflow: automatic_interface_control_workflow
+
+workflows:
+  away_team_batting_workflow:
+    - step: start_away_game
+      action: initialize_game_with_away_status
+      expected: game_marked_as_away_team
+    - step: check_top_inning_batting
+      action: enter_top_of_first_inning
+      expected: scoring_interface_enabled_for_my_team
+    - step: check_bottom_inning_restriction
+      action: switch_to_bottom_of_first_inning
+      expected: scoring_interface_disabled_opponent_batting
+    - step: verify_top_innings_only
+      action: cycle_through_multiple_innings
+      expected: only_top_halves_allow_team_scoring
+
+  home_team_batting_workflow:
+    - step: start_home_game
+      action: initialize_game_with_home_status
+      expected: game_marked_as_home_team
+    - step: check_top_inning_restriction
+      action: enter_top_of_first_inning
+      expected: scoring_interface_disabled_opponent_batting
+    - step: check_bottom_inning_batting
+      action: switch_to_bottom_of_first_inning
+      expected: scoring_interface_enabled_for_my_team
+    - step: verify_bottom_innings_only
+      action: cycle_through_multiple_innings
+      expected: only_bottom_halves_allow_team_scoring
+
+  away_team_interface_display_workflow:
+    - step: away_team_batting_turn
+      action: enter_top_of_inning_3
+      expected: display_shows_top_of_3rd_clearly
+    - step: verify_inning_indicator
+      action: check_interface_text
+      expected: shows_top_of_inning_3_or_t3_indicator
+    - step: verify_team_at_bat
+      action: check_batting_indicator
+      expected: my_team_name_highlighted_as_batting
+
+  home_team_interface_display_workflow:
+    - step: home_team_batting_turn
+      action: enter_bottom_of_inning_5
+      expected: display_shows_bottom_of_5th_clearly
+    - step: verify_inning_indicator
+      action: check_interface_text
+      expected: shows_bottom_of_inning_5_or_b5_indicator
+    - step: verify_team_at_bat
+      action: check_batting_indicator
+      expected: my_team_name_highlighted_as_batting
+
+  opponent_batting_restriction_workflow:
+    - step: opponent_batting_turn
+      action: switch_to_opponent_half_of_inning
+      expected: my_team_scoring_interface_disabled
+    - step: attempt_record_at_bat
+      action: try_click_scoring_button
+      expected: buttons_disabled_with_tooltip_explanation
+    - step: verify_restriction_message
+      action: hover_over_disabled_interface
+      expected: message_explains_opponent_currently_batting
+
+  automatic_interface_control_workflow:
+    - step: inning_switch_away_team
+      action: complete_top_half_switch_to_bottom
+      expected: scoring_interface_automatically_disabled
+    - step: inning_switch_home_team
+      action: complete_bottom_half_switch_to_top
+      expected: scoring_interface_automatically_disabled
+    - step: return_to_batting_turn
+      action: advance_to_next_team_batting_half
+      expected: scoring_interface_automatically_enabled
+    - step: verify_no_manual_intervention
+      action: observe_interface_state_changes
+      expected: automatic_enabling_disabling_no_user_action_required
+
+error_states:
+  - name: InvalidInningHalf
+    http_status: 400
+    response_body:
+      error_code: 'INNING_001'
+      message: 'Invalid inning half. Must be either "top" or "bottom"'
+  - name: WrongTeamBatting
+    http_status: 403
+    response_body:
+      error_code: 'INNING_002'
+      message: 'Cannot record at-bats when opponent team is batting'
+  - name: InconsistentGameState
+    http_status: 500
+    response_body:
+      error_code: 'INNING_003'
+      message: 'Game state inconsistency detected - home/away status vs batting turn'
+  - name: InningNotAdvanceable
+    http_status: 400
+    response_body:
+      error_code: 'INNING_004'
+      message: 'Cannot advance inning until current half is completed'
+
+defensive_actions:
+  retry_policy: 'none (state-based)'
+  circuit_breaker: 'not-applicable'
+  input_validation: 'strict-state-checking'
+  error_logging: 'structured-json'
+  state_consistency: 'automatic-validation'
+
+business_rules:
+  away_team_batting_rule: 'Away team bats in top half of innings only'
+  home_team_batting_rule: 'Home team bats in bottom half of innings only'
+  interface_control_rule: 'Scoring interface automatically enabled/disabled based on batting turn'
+  inning_progression_rule: 'Both halves must complete before advancing to next inning'
+  state_synchronization_rule: 'Game state (home/away + inning + half) determines interface availability'
+
+ui_schema:
+  components:
+    - field: inning_display
+      component: InningIndicator
+      props:
+        size: 'large'
+        format: 'Top/Bottom of [Ordinal] Inning'
+        highlight: 'current'
+    - field: team_batting_indicator
+      component: Badge
+      props:
+        colorScheme: 'blue'
+        variant: 'solid'
+        text: '[TeamName] Batting'
+    - field: opponent_batting_indicator
+      component: Badge
+      props:
+        colorScheme: 'gray'
+        variant: 'outline'
+        text: '[OpponentName] Batting'
+    - field: scoring_interface
+      component: ScoringPanel
+      props:
+        disabled: '!isMyTeamBatting'
+        disabledReason: 'Opponent currently batting'
+        opacity: 'disabled ? 0.4 : 1.0'
+  layout:
+    component: Grid
+    props:
+      sections:
+        - name: 'inning_status'
+          position: 'top'
+          content: 'InningIndicator + BattingIndicator'
+        - name: 'scoring_area'
+          position: 'center'
+          content: 'ScoringInterface'
+          conditionalDisplay: 'isMyTeamBatting'
+
+traceability:
+  source_story_id: 'live-scoring'
+  acceptance_criteria_covered:
+    ['AC029', 'AC030', 'AC031', 'AC032', 'AC033', 'AC034']
+  test_files:
+    - 'test_innings_management.py'
+    - 'innings_management.feature'
+    - 'innings_management.integration.spec'
+    - 'scoring_interface_state.spec'
+
+meta:
+  status: ready-for-dev
+  version: 1.0.0
+  owner: frontend-team@example.com
+  design_spec_url: 'https://www.figma.com/file/innings_management'
+  created_date: '2025-08-10'
+  last_updated: '2025-08-10'
+  dependencies:
+    - live-scoring
+    - game-setup
+  priority: high
+  complexity: medium

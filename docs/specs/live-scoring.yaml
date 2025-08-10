@@ -175,6 +175,32 @@ acceptance_criteria:
     workflow: game_flow
     test_coverage: [component, e2e]
 
+  # Home/Away Innings Management
+  - id: AC029
+    description: 'Away team records scoring only for top half of each inning'
+    workflow: innings_management
+    test_coverage: [unit, integration, e2e]
+  - id: AC030
+    description: 'Home team records scoring only for bottom half of each inning'
+    workflow: innings_management
+    test_coverage: [unit, integration, e2e]
+  - id: AC031
+    description: 'Away game interface clearly indicates "Top of [Inning]" when team bats'
+    workflow: innings_management
+    test_coverage: [component, e2e]
+  - id: AC032
+    description: 'Home game interface clearly indicates "Bottom of [Inning]" when team bats'
+    workflow: innings_management
+    test_coverage: [component, e2e]
+  - id: AC033
+    description: 'Cannot record at-bats during opponent turn to bat'
+    workflow: innings_management
+    test_coverage: [unit, integration, e2e]
+  - id: AC034
+    description: 'Interface automatically disables during opponent innings'
+    workflow: innings_management
+    test_coverage: [integration, e2e]
+
   # User Experience
   - id: AC014
     description: 'Interface optimized for quick, accurate input during live gameplay'
@@ -293,6 +319,17 @@ workflows:
       - provide_override_interface: 'Show manual advancement options when enabled'
       - validate_advancement: 'Ensure logical runner positioning'
       - update_baserunner_state: 'Apply final runner positions'
+
+  innings_management:
+    description: 'Home/away team innings management with automatic interface control'
+    steps:
+      - determine_batting_team: 'Check if current half-inning allows team to bat'
+      - enable_scoring_interface: 'Enable scoring controls when team is batting'
+      - disable_scoring_interface: 'Disable scoring controls during opponent innings'
+      - display_inning_indicator: 'Show "Top/Bottom of [Inning]" clearly'
+      - validate_scoring_attempts: 'Prevent at-bat recording during wrong innings'
+      - switch_inning_halves: 'Transition between top and bottom innings'
+      - update_interface_state: 'Automatically adjust interface based on batting turn'
 
 ui_schema:
   components:
@@ -421,6 +458,12 @@ traceability:
       'AC014',
       'AC015',
       'AC016',
+      'AC029',
+      'AC030',
+      'AC031',
+      'AC032',
+      'AC033',
+      'AC034',
     ]
   test_files:
     - 'tests/unit/application/usecases/RecordAtBatUseCase.test.ts'

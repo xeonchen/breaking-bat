@@ -1,0 +1,413 @@
+id: lineup-management-ux
+title: Enhanced Lineup Management UX
+actor: Scorekeeper
+goal: Manage game lineups with an intuitive interface that shows all players by default and provides real-time validation
+
+inputs:
+  - name: team_players
+    type: array
+    required: true
+    validation: minimum-9-players
+    component_hint: "PlayerList(display='all', sections=['starting', 'bench'])"
+  - name: starting_position_count
+    type: number
+    required: true
+    default: 10
+    validation: range-9-12
+    component_hint: "NumberInput(min=9, max=12, default=10, label='Starting Positions')"
+  - name: batting_positions
+    type: array
+    required: true
+    validation: unique-players-per-position
+    component_hint: 'LineupGrid(rows=starting_position_count, dragDrop=false)'
+  - name: defensive_positions
+    type: array
+    required: true
+    validation: unique-defensive-positions
+    component_hint: "PositionSelector(format='Name (Abbrev)', smartOrdering=true)"
+
+actions:
+  - type: configure_positions
+    label: Configure Starting Positions
+    component_hint: 'Slider(min=9, max=12, step=1)'
+  - type: assign_player
+    label: Assign Player to Position
+    component_hint: 'Select(options=team_players, searchable=true)'
+  - type: assign_position
+    label: Assign Defensive Position
+    component_hint: 'Select(options=all_positions, smartOrdering=true)'
+  - type: auto_fill
+    label: Auto-Fill Positions
+    component_hint: "Button(variant='outline', tooltip='Use default positions')"
+  - type: validate_lineup
+    label: Validate Lineup
+    component_hint: 'ValidationPanel(realTime=true, highlightErrors=true)'
+  - type: save_lineup
+    label: Save Lineup
+    component_hint: "Button(variant='contained', size='large', disabled=hasErrors)"
+
+acceptance_criteria:
+  - id: AC001
+    description: All team players displayed by default when modal opens
+    workflow: default_display_path
+  - id: AC002
+    description: Upper section shows starting players (configurable count)
+    workflow: section_layout_path
+  - id: AC003
+    description: Lower section shows bench players
+    workflow: section_layout_path
+  - id: AC004
+    description: All players initially appear in bench section
+    workflow: default_display_path
+  - id: AC005
+    description: Configure number of starting positions (9-12, default 10)
+    workflow: position_configuration_path
+  - id: AC006
+    description: Interface adjusts when starting position count changes
+    workflow: dynamic_layout_path
+  - id: AC007
+    description: Additional slots appear when starting positions increased
+    workflow: dynamic_layout_path
+  - id: AC008
+    description: Excess players move to bench when positions decreased
+    workflow: dynamic_layout_path
+  - id: AC009
+    description: Use dropdown selectors for player selection (current design)
+    workflow: player_selection_path
+  - id: AC010
+    description: Swap players between batting positions using dropdowns
+    workflow: player_reassignment_path
+  - id: AC011
+    description: Immediate visual feedback when selecting players
+    workflow: visual_feedback_path
+  - id: AC012
+    description: Graceful reassignment when player already assigned elsewhere
+    workflow: conflict_resolution_path
+  - id: AC013
+    description: Player's default position pre-selected automatically
+    workflow: auto_fill_path
+  - id: AC014
+    description: All 11 positions with smart ordering (player's positions first)
+    workflow: smart_position_ordering_path
+  - id: AC015
+    description: Position display format "Pitcher (P)", "First Base (1B)", etc.
+    workflow: position_display_path
+  - id: AC016
+    description: Position abbreviation clearly displayed when assigned
+    workflow: position_display_path
+  - id: AC017
+    description: Duplicate positions highlighted immediately (real-time validation)
+    workflow: real_time_validation_path
+  - id: AC018
+    description: Highlighting disappears when duplicates fixed
+    workflow: real_time_validation_path
+  - id: AC019
+    description: Validation errors clearly visible with specific messages
+    workflow: error_display_path
+  - id: AC020
+    description: Save button enabled when no validation errors
+    workflow: save_enablement_path
+  - id: AC021
+    description: Auto-fill pre-selects player's first (default) position
+    workflow: auto_fill_path
+  - id: AC022
+    description: Auto-fill allows duplicate positions for user to resolve
+    workflow: auto_fill_path
+  - id: AC023
+    description: Manual adjustments possible after auto-fill
+    workflow: manual_override_path
+  - id: AC024
+    description: Auto-fill doesn't override manual changes
+    workflow: manual_override_path
+  - id: AC025
+    description: Position conflicts highlighted in distinct color
+    workflow: conflict_highlighting_path
+  - id: AC026
+    description: Clear indication when player has no available positions
+    workflow: unavailable_position_indication_path
+  - id: AC027
+    description: Progress indicator shows what's missing from lineup
+    workflow: progress_tracking_path
+  - id: AC028
+    description: Success state clearly indicated when lineup complete and valid
+    workflow: completion_indication_path
+
+workflows:
+  default_display_path:
+    - step: open_lineup_modal
+      action: display_all_players
+      expected: all_team_players_visible
+    - step: check_initial_layout
+      action: verify_sections
+      expected: starting_section_empty_bench_section_has_all_players
+
+  section_layout_path:
+    - step: configure_starting_positions
+      action: set_starting_count
+      expected: upper_section_shows_starting_slots
+    - step: verify_bench_section
+      action: check_lower_section
+      expected: bench_players_displayed_below
+
+  position_configuration_path:
+    - step: access_position_config
+      action: open_position_settings
+      expected: starting_position_selector_visible
+    - step: adjust_starting_count
+      action: change_from_10_to_12
+      expected: two_additional_starting_slots_added
+    - step: reduce_starting_count
+      action: change_from_12_to_9
+      expected: three_players_moved_to_bench
+
+  dynamic_layout_path:
+    - step: increase_positions
+      action: set_starting_count_to_12
+      expected: twelve_starting_slots_visible
+    - step: decrease_positions
+      action: set_starting_count_to_9
+      expected: nine_starting_slots_excess_players_to_bench
+
+  player_selection_path:
+    - step: select_batting_position
+      action: click_position_1_dropdown
+      expected: player_dropdown_opens_with_all_players
+    - step: choose_player
+      action: select_player_from_dropdown
+      expected: player_assigned_to_position_1
+
+  player_reassignment_path:
+    - step: assign_player_initially
+      action: assign_player_A_to_position_1
+      expected: player_A_in_position_1
+    - step: reassign_player
+      action: assign_player_A_to_position_3
+      expected: player_A_moved_to_position_3_position_1_empty
+
+  visual_feedback_path:
+    - step: select_player
+      action: choose_player_from_dropdown
+      expected: immediate_visual_update_no_delay
+    - step: assign_position
+      action: select_defensive_position
+      expected: position_indicator_updates_immediately
+
+  conflict_resolution_path:
+    - step: create_player_conflict
+      action: assign_same_player_to_two_positions
+      expected: system_handles_gracefully_shows_warning
+    - step: resolve_conflict
+      action: reassign_player_to_single_position
+      expected: conflict_resolved_warning_cleared
+
+  auto_fill_path:
+    - step: add_player_to_lineup
+      action: select_player_with_default_position
+      expected: default_position_pre_selected_automatically
+    - step: verify_auto_fill_allows_duplicates
+      action: add_multiple_players_same_position
+      expected: duplicates_allowed_highlighted_for_resolution
+
+  smart_position_ordering_path:
+    - step: open_position_dropdown
+      action: click_defensive_position_selector
+      expected: players_available_positions_listed_first
+    - step: verify_all_positions_available
+      action: scroll_through_position_list
+      expected: all_11_positions_present_in_smart_order
+
+  position_display_path:
+    - step: view_position_options
+      action: open_position_dropdown
+      expected: positions_show_as_pitcher_p_first_base_1b
+    - step: assign_position
+      action: select_pitcher_position
+      expected: abbreviation_p_displayed_clearly
+
+  real_time_validation_path:
+    - step: create_duplicate_position
+      action: assign_two_players_to_pitcher
+      expected: both_pitcher_assignments_highlighted_red
+    - step: fix_duplicate
+      action: change_one_player_to_catcher
+      expected: red_highlighting_removed_immediately
+
+  error_display_path:
+    - step: create_validation_errors
+      action: setup_incomplete_invalid_lineup
+      expected: specific_error_messages_displayed
+    - step: view_error_details
+      action: check_error_panel
+      expected: clear_actionable_error_descriptions
+
+  save_enablement_path:
+    - step: create_valid_lineup
+      action: assign_9_players_unique_positions
+      expected: save_button_enabled
+    - step: introduce_error
+      action: create_position_conflict
+      expected: save_button_disabled
+
+  manual_override_path:
+    - step: auto_fill_lineup
+      action: click_auto_fill_button
+      expected: positions_assigned_automatically
+    - step: manual_adjustment
+      action: change_player_position_manually
+      expected: manual_change_preserved_auto_fill_respect_it
+
+  conflict_highlighting_path:
+    - step: create_position_conflicts
+      action: assign_duplicate_defensive_positions
+      expected: conflicting_positions_highlighted_distinct_color
+    - step: resolve_conflicts
+      action: make_positions_unique
+      expected: highlighting_removed
+
+  unavailable_position_indication_path:
+    - step: assign_incompatible_position
+      action: try_assign_position_player_cannot_play
+      expected: clear_indication_position_unavailable
+
+  progress_tracking_path:
+    - step: partial_lineup_setup
+      action: assign_5_of_9_required_positions
+      expected: progress_shows_5_slash_9_complete
+    - step: complete_minimum
+      action: assign_all_9_required_positions
+      expected: progress_shows_minimum_met
+
+  completion_indication_path:
+    - step: complete_valid_lineup
+      action: assign_all_required_positions_no_conflicts
+      expected: success_indicator_green_checkmark_or_badge
+    - step: verify_save_ready
+      action: check_save_button_state
+      expected: save_button_enabled_success_styling
+
+error_states:
+  - name: InsufficientPlayers
+    http_status: 400
+    response_body:
+      error_code: 'LINEUP_001'
+      message: 'Team needs at least 9 active players to create a complete lineup'
+  - name: DuplicateDefensivePosition
+    http_status: 400
+    response_body:
+      error_code: 'LINEUP_002'
+      message: 'Each defensive position can only be assigned to one player'
+  - name: IncompleteLineup
+    http_status: 400
+    response_body:
+      error_code: 'LINEUP_003'
+      message: 'Lineup must have at least 9 batting positions with defensive assignments'
+  - name: InvalidStartingPositionCount
+    http_status: 400
+    response_body:
+      error_code: 'LINEUP_004'
+      message: 'Starting position count must be between 9 and 12'
+  - name: PlayerNotOnTeam
+    http_status: 400
+    response_body:
+      error_code: 'LINEUP_005'
+      message: 'Selected player is not on the chosen team'
+
+defensive_actions:
+  retry_policy: 'none (UI-only validation)'
+  circuit_breaker: 'not-applicable'
+  input_validation: 'real-time'
+  error_logging: 'structured-json'
+  performance_optimization: 'debounced-validation, virtual-scrolling'
+
+ui_schema:
+  components:
+    - field: starting_position_count
+      component: NumberInput
+      props:
+        label: 'Starting Positions'
+        min: 9
+        max: 12
+        default: 10
+        step: 1
+    - field: player_selection
+      component: Select
+      props:
+        placeholder: 'Select Player'
+        searchable: true
+        clearable: true
+        options: 'team_players'
+    - field: position_selection
+      component: Select
+      props:
+        placeholder: 'Select Position'
+        smartOrdering: true
+        format: 'Name (Abbreviation)'
+        options: 'all_defensive_positions'
+    - field: validation_panel
+      component: Alert
+      props:
+        status: 'error'
+        realTime: true
+        highlightConflicts: true
+  layout:
+    component: Modal
+    props:
+      size: 'xl'
+      sections:
+        - name: 'starting_lineup'
+          title: 'Starting Lineup'
+          positions: 'configurable (9-12)'
+        - name: 'bench_players'
+          title: 'Bench Players'
+          positions: 'remaining'
+
+traceability:
+  source_story_id: 'lineup-management-ux'
+  acceptance_criteria_covered:
+    [
+      'AC001',
+      'AC002',
+      'AC003',
+      'AC004',
+      'AC005',
+      'AC006',
+      'AC007',
+      'AC008',
+      'AC009',
+      'AC010',
+      'AC011',
+      'AC012',
+      'AC013',
+      'AC014',
+      'AC015',
+      'AC016',
+      'AC017',
+      'AC018',
+      'AC019',
+      'AC020',
+      'AC021',
+      'AC022',
+      'AC023',
+      'AC024',
+      'AC025',
+      'AC026',
+      'AC027',
+      'AC028',
+    ]
+  test_files:
+    - 'test_lineup_management_ux.py'
+    - 'lineup_management_ux.feature'
+    - 'lineup_management_ux.component.spec'
+    - 'lineup_setup_modal.integration.spec'
+
+meta:
+  status: ready-for-dev
+  version: 1.0.0
+  owner: frontend-team@example.com
+  design_spec_url: 'https://www.figma.com/file/lineup_management_ux'
+  created_date: '2025-08-10'
+  last_updated: '2025-08-10'
+  dependencies:
+    - team-management
+    - game-setup
+  priority: high
