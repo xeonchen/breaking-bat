@@ -738,8 +738,8 @@ describe('GamePage', () => {
         within(setupGameCard).getByRole('button', { name: /start game/i })
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('/scoring', {
-        state: { gameId: 'game-1', shouldStart: true },
+      expect(mockNavigate).toHaveBeenCalledWith('/scoring/game-1', {
+        state: { shouldStart: true },
       });
     });
 
@@ -755,9 +755,7 @@ describe('GamePage', () => {
         within(activeGameCard).getByRole('button', { name: /continue game/i })
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('/scoring', {
-        state: { gameId: 'game-2' },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('/scoring/game-2');
     });
   });
 

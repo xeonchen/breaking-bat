@@ -1,5 +1,6 @@
 import { RecordAtBatUseCase } from '@/application/usecases/RecordAtBatUseCase';
-import { BattingResult, AtBat, Game, BaserunnerState } from '@/domain';
+import { BattingResult, AtBat, Game } from '@/domain';
+import { BaserunnerState } from '@/domain/types/BaserunnerState';
 import { IGameRepository } from '@/domain/repositories/IGameRepository';
 import { IAtBatRepository } from '@/domain/repositories/IAtBatRepository';
 import { BaserunnerAdvancementService } from '@/domain/services/BaserunnerAdvancementService';

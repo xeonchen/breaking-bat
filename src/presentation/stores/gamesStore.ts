@@ -54,6 +54,12 @@ interface GamesState {
   loadPlayersForTeam: (teamId: string) => Promise<Player[]>;
   createGame: (command: CreateGameCommand) => Promise<Game>;
   updateGame: (game: Game) => Promise<void>;
+  saveLineup: (
+    gameId: string,
+    lineupId: string,
+    playerIds: string[],
+    defensivePositions: string[]
+  ) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
   createSeason: (command: CreateSeasonCommand) => Promise<Season>;
   updateSeason: (season: Season) => Promise<void>;
@@ -338,6 +344,36 @@ export const useGamesStore = create<GamesState>()(
               loading: false,
               error: `Failed to update game: ${message}`,
             });
+          }
+        },
+
+        saveLineup: async (
+          gameId: string,
+          lineupId: string,
+          playerIds: string[],
+          defensivePositions: string[]
+        ) => {
+          set({ loading: true, error: null });
+          try {
+            console.log('📋 Saving lineup:', lineupId, 'for game:', gameId);
+            await gameRepository?.saveLineup(
+              gameId,
+              lineupId,
+              playerIds,
+              defensivePositions
+            );
+
+            set({ loading: false });
+            console.log('✅ Lineup saved successfully');
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            console.error('❌ Failed to save lineup:', message);
+            set({
+              loading: false,
+              error: `Failed to save lineup: ${message}`,
+            });
+            throw error; // Re-throw so calling code can handle it
           }
         },
 

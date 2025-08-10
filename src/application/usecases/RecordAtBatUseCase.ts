@@ -1,4 +1,9 @@
-import { BattingResult, Game, AtBat, BaserunnerState } from '@/domain';
+import {
+  BattingResult,
+  AtBat,
+  BaserunnerState as BaserunnerStateClass,
+} from '@/domain';
+import { BaserunnerState } from '@/domain/types/BaserunnerState';
 import { IGameRepository } from '@/domain/repositories/IGameRepository';
 import { IAtBatRepository } from '@/domain/repositories/IAtBatRepository';
 import { BaserunnerAdvancementService } from '@/domain/services/BaserunnerAdvancementService';
@@ -17,7 +22,7 @@ export interface RecordAtBatResponse {
   runsScored: number;
   rbis: number;
   advanceInning: boolean;
-  newBaserunners: BaserunnerState;
+  newBaserunners: import('@/domain/types/BaserunnerState').BaserunnerState;
 }
 
 export class RecordAtBatUseCase {
@@ -27,7 +32,20 @@ export class RecordAtBatUseCase {
     private baserunnerService: BaserunnerAdvancementService
   ) {}
 
-  async execute(request: RecordAtBatRequest): Promise<RecordAtBatResponse> {
+  /**
+   * Convert interface-style baserunner state to class instance
+   */
+  private toBaserunnerStateClass(state: BaserunnerState): BaserunnerStateClass {
+    return new BaserunnerStateClass(
+      state.first?.playerId || null,
+      state.second?.playerId || null,
+      state.third?.playerId || null
+    );
+  }
+
+  public async execute(
+    request: RecordAtBatRequest
+  ): Promise<RecordAtBatResponse> {
     // Retrieve the game
     const game = await this.gameRepository.findById(request.gameId);
     if (!game) {
@@ -95,8 +113,8 @@ export class RecordAtBatUseCase {
       advancementResult.rbis,
       advancementResult.scoringRunners,
       [], // runningErrors - empty for now
-      currentBaserunners,
-      advancementResult.finalBaserunners,
+      this.toBaserunnerStateClass(currentBaserunners),
+      advancementResult.finalBaserunnersClass,
       new Date()
     );
 

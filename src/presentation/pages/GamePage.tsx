@@ -85,6 +85,7 @@ export default function GamePage() {
     loadPlayersForTeam,
     createGame,
     updateGame,
+    saveLineup,
     searchGames,
     filterGamesByStatus,
     clearError,
@@ -181,11 +182,11 @@ export default function GamePage() {
       }
 
       // Navigate to scoring page - the ScoringPage will handle starting the game
-      navigate('/scoring', { state: { gameId: game.id, shouldStart: true } });
+      navigate(`/scoring/${game.id}`, { state: { shouldStart: true } });
     } else if (game.status === 'in_progress') {
-      navigate('/scoring', { state: { gameId: game.id } });
+      navigate(`/scoring/${game.id}`);
     } else if (game.status === 'suspended') {
-      navigate('/scoring', { state: { gameId: game.id, shouldResume: true } });
+      navigate(`/scoring/${game.id}`, { state: { shouldResume: true } });
     } else if (game.status === 'completed') {
       // Navigate to results/stats page when implemented
       navigate('/stats', { state: { gameId: game.id } });
@@ -225,8 +226,21 @@ export default function GamePage() {
       }
 
       // Create a lineup ID (for now, we'll use the game ID with a suffix)
-      // In a full implementation, we'd save to a LineupRepository
       const lineupId = `lineup-${lineupData.gameId}-${Date.now()}`;
+
+      // Extract player IDs and defensive positions from lineup data
+      const playerIds = lineupData.battingOrder.map((item) => item.playerId);
+      const defensivePositions = lineupData.battingOrder.map(
+        (item) => item.defensivePosition
+      );
+
+      // Save lineup data to the repository first
+      await saveLineup(
+        lineupData.gameId,
+        lineupId,
+        playerIds,
+        defensivePositions
+      );
 
       // Create updated game with the lineup ID
       const gameWithLineup = currentGame.setLineup(lineupId);

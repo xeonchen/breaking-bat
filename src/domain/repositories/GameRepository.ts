@@ -26,9 +26,19 @@ export interface GameRepository {
   findCurrent(): Promise<Game | null>;
 
   /**
-   * Get lineup for a game
+   * Get lineup player IDs by lineup ID
    */
-  getLineup(gameId: string): Promise<string[]>;
+  getLineup(lineupId: string): Promise<string[]>;
+
+  /**
+   * Save lineup data
+   */
+  saveLineup(
+    gameId: string,
+    lineupId: string,
+    playerIds: string[],
+    defensivePositions: string[]
+  ): Promise<void>;
 
   /**
    * Find games by team ID

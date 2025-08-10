@@ -82,6 +82,13 @@ export class Game extends BaseEntity {
       throw new Error('Game can only be started from setup status');
     }
 
+    // Initialize empty score when starting the game
+    const initialScore = this.finalScore || {
+      homeScore: 0,
+      awayScore: 0,
+      inningScores: [],
+    };
+
     return new Game(
       this.id,
       this.name,
@@ -94,7 +101,7 @@ export class Game extends BaseEntity {
       'in_progress',
       lineupId,
       this.inningIds,
-      this.finalScore,
+      initialScore,
       this.createdAt,
       new Date()
     );
@@ -309,7 +316,7 @@ export class Game extends BaseEntity {
     playerName: string;
     battingOrder: number;
   } | null = null;
-  private _currentBaserunners: import('../values/BaserunnerState').BaserunnerState =
+  private _currentBaserunners: import('../types/BaserunnerState').BaserunnerState =
     {
       first: null,
       second: null,
@@ -334,7 +341,7 @@ export class Game extends BaseEntity {
   /**
    * Start the game (alias for start method, expected by tests)
    */
-  public startGame(lineupId: string): void {
+  public startGame(_lineupId: string): void {
     if (!this._mutableStatus) {
       this.initializeMutableState();
     }
@@ -392,7 +399,7 @@ export class Game extends BaseEntity {
   /**
    * Get current baserunner state
    */
-  public getCurrentBaserunners(): import('../values/BaserunnerState').BaserunnerState {
+  public getCurrentBaserunners(): import('../types/BaserunnerState').BaserunnerState {
     return this._currentBaserunners;
   }
 
@@ -418,7 +425,7 @@ export class Game extends BaseEntity {
    * Update baserunner positions
    */
   public updateBaserunners(
-    baserunners: import('../values/BaserunnerState').BaserunnerState
+    baserunners: import('../types/BaserunnerState').BaserunnerState
   ): void {
     this._currentBaserunners = baserunners;
   }

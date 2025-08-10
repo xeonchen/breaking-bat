@@ -18,8 +18,8 @@ describe('Database Schema Validation', () => {
   });
 
   describe('Schema Version Management', () => {
-    it('should be on the latest schema version (4)', () => {
-      expect(db.verno).toBe(4);
+    it('should be on the latest schema version (5)', () => {
+      expect(db.verno).toBe(5);
     });
 
     it('should have all required tables', () => {
@@ -29,6 +29,7 @@ describe('Database Schema Validation', () => {
         'seasons',
         'gameTypes',
         'games',
+        'lineups',
         'innings',
         'atBats',
       ];
@@ -46,6 +47,7 @@ describe('Database Schema Validation', () => {
         seasons: '++id',
         gameTypes: '++id',
         games: '++id',
+        lineups: '++id',
         innings: '++id',
         atBats: '++id',
       };
@@ -108,6 +110,7 @@ describe('Database Schema Validation', () => {
           'status',
           'lineupId',
         ],
+        lineups: ['gameId'],
         innings: ['gameId', 'number', 'teamAtBat', 'runsScored', 'isComplete'],
         atBats: [
           'gameId',
@@ -143,6 +146,7 @@ describe('Database Schema Validation', () => {
         teams: ['seasonIds', 'playerIds'],
         seasons: ['teamIds'],
         games: ['inningIds'],
+        lineups: ['playerIds', 'defensivePositions'],
         innings: ['atBatIds'],
         atBats: ['runsScored'],
       };

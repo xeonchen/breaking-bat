@@ -77,15 +77,36 @@ export class IndexedDBGameRepository implements GameRepository {
     return this.recordToGame(records);
   }
 
-  public async getLineup(gameId: string): Promise<string[]> {
-    const game = await this.findById(gameId);
-    if (!game || !game.lineupId) {
+  public async getLineup(lineupId: string): Promise<string[]> {
+    if (!lineupId) {
       return [];
     }
 
-    // This is a simplified implementation
-    // In reality, this would fetch lineup data from a lineup repository
-    return [];
+    // Find the lineup record by ID
+    const lineupRecord = await this.db.table('lineups').get(lineupId);
+    if (!lineupRecord) {
+      return [];
+    }
+
+    return lineupRecord.playerIds;
+  }
+
+  public async saveLineup(
+    gameId: string,
+    lineupId: string,
+    playerIds: string[],
+    defensivePositions: string[]
+  ): Promise<void> {
+    const lineupRecord = {
+      id: lineupId,
+      gameId,
+      playerIds,
+      defensivePositions,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await this.db.table('lineups').put(lineupRecord);
   }
 
   public async findByTeamId(teamId: string): Promise<Game[]> {

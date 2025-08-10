@@ -273,26 +273,21 @@ async function testMobileNavigation(page: Page): Promise<void> {
 async function createPrerequisitesOnMobile(page: Page): Promise<void> {
   console.log('Creating prerequisites on mobile...');
 
-  // Create team on mobile
-  await page.goto('/teams');
+  // Load sample data to get teams and players
+  await page.goto('/settings');
+  await page.getByTestId('load-sample-data-button').click();
+
+  // Wait for success toast to appear
+  await page.waitForSelector('text="Sample Data Loaded Successfully!"', {
+    timeout: 10000,
+  });
+
+  // Wait a moment for the data to be fully loaded
   await page.waitForTimeout(1000);
 
-  const createTeamBtn = page.locator('[data-testid="create-team-button"]');
-  if (await createTeamBtn.isVisible({ timeout: 2000 })) {
-    await createTeamBtn.click();
+  console.log('  ✅ Sample data loaded on mobile');
 
-    // Test mobile form
-    const nameInput = page.locator('[data-testid="team-name-input"]');
-    await expect(nameInput).toBeVisible();
-
-    await nameInput.fill('Mobile Test Team');
-    await page.click('[data-testid="confirm-create-team"]');
-    await page.waitForTimeout(1000);
-
-    console.log('  ✅ Team created on mobile');
-  }
-
-  // Create season on mobile
+  // Create additional season on mobile if needed
   await page.goto('/seasons');
   await page.waitForTimeout(1000);
 
@@ -312,65 +307,20 @@ async function createPrerequisitesOnMobile(page: Page): Promise<void> {
 }
 
 /**
- * Helper: Create game on mobile
+ * Helper: Create game on mobile using dedicated test setup
  */
 async function createGameOnMobile(page: Page, gameName: string): Promise<void> {
-  console.log('Creating game on mobile...');
+  console.log('Creating game on mobile using dedicated test setup...');
 
-  await page.goto('/games');
-  await page.waitForTimeout(1000);
+  await createTestGame(page, {
+    name: gameName,
+    opponent: 'Mobile Opponents',
+    teamName: 'Mobile Test Team',
+    seasonName: 'Mobile Season',
+    gameTypeName: 'Mobile Game Type',
+  });
 
-  const createGameBtn = page.locator('[data-testid="create-game-button"]');
-  if (await createGameBtn.isVisible({ timeout: 2000 })) {
-    await createGameBtn.click();
-
-    // Test mobile game creation form
-    const modal = page.locator('[role="dialog"]');
-    const formVisible = await modal.isVisible({ timeout: 2000 });
-
-    if (formVisible) {
-      console.log('  ✅ Mobile game creation modal opened');
-
-      // Fill form on mobile
-      await page.fill('[data-testid="game-name-input"]', gameName);
-      await page.fill('[data-testid="opponent-input"]', 'Mobile Opponents');
-      // Use tomorrow's date to avoid validation errors
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      await page.fill(
-        '[data-testid="game-date-input"]',
-        tomorrow.toISOString().split('T')[0]
-      );
-
-      // Test mobile select dropdowns
-      const teamSelect = page.locator('[data-testid="team-select"]');
-      if (await teamSelect.isVisible({ timeout: 1000 })) {
-        await teamSelect.selectOption({ index: 1 });
-        console.log('  ✅ Team selection works on mobile');
-      }
-
-      const seasonSelect = page.locator('[data-testid="season-select"]');
-      if (await seasonSelect.isVisible({ timeout: 1000 })) {
-        await page.waitForTimeout(1000);
-        const optionCount = await seasonSelect.locator('option').count();
-        if (optionCount > 1) {
-          await seasonSelect.selectOption({ index: 1 });
-          console.log('  ✅ Season selection works on mobile');
-        } else {
-          console.log(
-            '  ⚠️ Season dropdown has no selectable options on mobile - skipping'
-          );
-        }
-      }
-
-      await page.click('[data-testid="confirm-create-game"]');
-      await page.waitForTimeout(2000);
-
-      console.log('  ✅ Game created on mobile');
-    } else {
-      console.log('  ❌ Mobile game creation form not accessible');
-    }
-  }
+  console.log('  ✅ Game created on mobile with dedicated setup');
 }
 
 /**
@@ -447,22 +397,32 @@ async function testLineupSetupOnMobile(
 
   if (await setupLineupBtn.isVisible({ timeout: 2000 })) {
     await setupLineupBtn.click();
-    await page.waitForTimeout(1000);
 
-    // Test mobile lineup interface
-    const lineupInterface = page.locator('[data-testid*="lineup"]').first();
-    if (await lineupInterface.isVisible({ timeout: 2000 })) {
-      console.log('  ✅ Mobile lineup interface accessible');
+    // Wait for lineup modal to appear
+    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
+      timeout: 5000,
+    });
+    console.log('  ✅ Mobile lineup interface accessible');
 
-      // Test if lineup interface is usable on mobile
-      const interfaceSize = await lineupInterface.boundingBox();
-      const viewportHeight = page.viewportSize()?.height || 667;
-
-      const fitsOnScreen = (interfaceSize?.height || 0) <= viewportHeight;
-      console.log(`  Lineup interface fits on mobile screen: ${fitsOnScreen}`);
-    } else {
-      console.log('  ❌ Mobile lineup interface not accessible');
+    // Complete lineup setup for all 9 positions
+    for (let i = 1; i <= 9; i++) {
+      await page
+        .getByTestId(`batting-position-${i}-player`)
+        .selectOption({ index: i });
+      await page
+        .getByTestId(`batting-position-${i}-defensive-position`)
+        .selectOption({ index: i });
     }
+
+    // Save the lineup
+    await page.getByTestId('save-lineup-button').click();
+    console.log('  ✅ Lineup setup completed on mobile');
+
+    // Wait for modal to close
+    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
+      state: 'hidden',
+      timeout: 3000,
+    });
   } else {
     console.log('  ❌ No lineup setup available on mobile');
   }

@@ -1,4 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
+import {
+  createTestPrerequisites,
+  createTestGame,
+  setupTestLineup,
+} from './helpers/test-data-setup';
 
 /**
  * Complete Game Workflow E2E Tests
@@ -25,8 +30,12 @@ test.describe('Complete Game Workflow', () => {
     // Step 1: Create complete prerequisites with players
     await createCompletePrerequisites(page);
 
-    // Step 2: Create game
-    const gameId = await createGame(page, 'Workflow Test Game', 'Cardinals');
+    // Step 2: Create game using dedicated test setup
+    const gameId = await createTestGame(page, {
+      name: 'Workflow Test Game',
+      opponent: 'Cardinals',
+      teamName: 'Test Team',
+    });
 
     // Step 3: Attempt to start the game and identify lineup setup process
     await page.goto('/games');
@@ -102,34 +111,31 @@ test.describe('Complete Game Workflow', () => {
 
     // If lineup setup interface found, test it
     if (lineupSetupExists) {
-      await page.waitForTimeout(2000);
+      // Wait for lineup modal to appear
+      await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
+        timeout: 5000,
+      });
+      console.log('✅ Found lineup setup modal');
 
-      // Look for lineup setup interface elements
-      const lineupModal = page.locator('[data-testid="lineup-modal"]');
-      const lineupForm = page.locator('[data-testid="lineup-form"]');
-      const battingOrderSection = page.locator('[data-testid="batting-order"]');
-      const playerSelects = page.locator('select[data-testid*="position-"]');
-
-      let interfaceFound = false;
-
-      if (await lineupModal.isVisible({ timeout: 2000 })) {
-        console.log('✅ Found lineup modal interface');
-        interfaceFound = true;
-      } else if (await lineupForm.isVisible({ timeout: 2000 })) {
-        console.log('✅ Found lineup form interface');
-        interfaceFound = true;
-      } else if (await battingOrderSection.isVisible({ timeout: 2000 })) {
-        console.log('✅ Found batting order interface');
-        interfaceFound = true;
-      } else if (await playerSelects.first().isVisible({ timeout: 2000 })) {
-        console.log('✅ Found player selection interface');
-        interfaceFound = true;
+      // Complete lineup setup for all 9 positions
+      for (let i = 1; i <= 9; i++) {
+        await page
+          .getByTestId(`batting-position-${i}-player`)
+          .selectOption({ index: i });
+        await page
+          .getByTestId(`batting-position-${i}-defensive-position`)
+          .selectOption({ index: i });
       }
 
-      expect(interfaceFound).toBeTruthy();
+      // Save the lineup
+      await page.getByTestId('save-lineup-button').click();
+      console.log('✅ Lineup setup completed');
 
-      // Try to set up a basic lineup if interface exists
-      await attemptLineupSetup(page);
+      // Wait for modal to close
+      await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
+        state: 'hidden',
+        timeout: 3000,
+      });
     }
 
     // Verify we can navigate around without breaking
@@ -137,9 +143,13 @@ test.describe('Complete Game Workflow', () => {
   });
 
   test('should identify game state transition points', async ({ page }) => {
-    // Create prerequisites and game
+    // Create prerequisites and game using dedicated test setup
     await createCompletePrerequisites(page);
-    await createGame(page, 'State Test Game', 'Cubs');
+    await createTestGame(page, {
+      name: 'State Test Game',
+      opponent: 'Cubs',
+      teamName: 'Test Team',
+    });
 
     await page.goto('/games');
     await page.waitForTimeout(1000);
@@ -222,42 +232,41 @@ test.describe('Complete Game Workflow', () => {
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
-    // Create game
-    await page.click('[data-testid="create-game-button"]');
-    await page.fill('[data-testid="game-name-input"]', 'Quick Setup Game');
-    await page.fill('[data-testid="opponent-input"]', 'Pirates');
-    // Use tomorrow's date to avoid validation errors
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    await page.fill(
-      '[data-testid="game-date-input"]',
-      tomorrow.toISOString().split('T')[0]
-    );
+    // Create game using dedicated test setup
+    await createTestGame(page, {
+      name: 'Quick Setup Game',
+      opponent: 'Pirates',
+      teamName: 'Test Team',
+    });
 
-    // Select team
-    const teamSelect = page.locator('[data-testid="team-select"]');
-    if (await teamSelect.isVisible({ timeout: 2000 })) {
-      await teamSelect.selectOption({ index: 1 }); // Select our created team
-    }
+    // Navigate back to games page to test the created game
+    await page.goto('/games');
+    await page.waitForTimeout(1000);
 
-    // Check if create modal has "Create and Setup Lineup" option
-    const createAndSetupBtn = page.locator(
-      '[data-testid="create-and-setup-lineup"]'
-    );
-    const setupLineupCheckbox = page.locator(
-      '[data-testid="setup-lineup-after-create"]'
-    );
+    // Look for the created game card and test lineup setup integration
+    const gameCard = page
+      .locator('[data-testid*="game-"]')
+      .filter({ hasText: 'Quick Setup Game' })
+      .first();
 
-    if (await createAndSetupBtn.isVisible({ timeout: 1000 })) {
-      console.log('✅ Found create-and-setup option');
-      await createAndSetupBtn.click();
-    } else if (await setupLineupCheckbox.isVisible({ timeout: 1000 })) {
-      console.log('✅ Found setup-lineup checkbox');
-      await setupLineupCheckbox.check();
-      await page.click('[data-testid="confirm-create-game"]');
+    if (await gameCard.isVisible({ timeout: 3000 })) {
+      console.log('✅ Game created successfully with dedicated test setup');
+
+      // Check for integrated lineup setup options
+      const setupLineupBtn = gameCard.locator(
+        '[data-testid="setup-lineup-button"]'
+      );
+
+      if (await setupLineupBtn.isVisible({ timeout: 1000 })) {
+        console.log('✅ Found integrated lineup setup option');
+        // Test the integration by clicking it
+        await setupLineupBtn.click();
+        await page.waitForTimeout(1000);
+      } else {
+        console.log('❌ No integrated lineup setup available');
+      }
     } else {
-      console.log('❌ No integrated lineup setup in create flow');
-      await page.click('[data-testid="confirm-create-game"]');
+      console.log('❌ Game creation failed with dedicated test setup');
     }
 
     await page.waitForTimeout(2000);
@@ -283,49 +292,19 @@ test.describe('Complete Game Workflow', () => {
 async function createCompletePrerequisites(page: Page): Promise<void> {
   console.log('Creating complete prerequisites...');
 
-  // Create team
-  await page.goto('/teams');
+  // Load sample data to get teams and players (much more reliable than manual creation)
+  await page.goto('/settings');
+  await page.getByTestId('load-sample-data-button').click();
+
+  // Wait for success toast to appear
+  await page.waitForSelector('text="Sample Data Loaded Successfully!"', {
+    timeout: 10000,
+  });
+
+  // Wait a moment for the data to be fully loaded
   await page.waitForTimeout(1000);
 
-  const createTeamBtn = page.locator('[data-testid="create-team-button"]');
-  if (await createTeamBtn.isVisible({ timeout: 2000 })) {
-    await createTeamBtn.click();
-    await page.fill('[data-testid="team-name-input"]', 'Test Workflow Team');
-    await page.click('[data-testid="confirm-create-team"]');
-    await page.waitForTimeout(1000);
-
-    // Add some players to the team
-    await addPlayersToTeam(page, 'Test Workflow Team');
-  }
-
-  // Create season
-  await page.goto('/seasons');
-  await page.waitForTimeout(1000);
-
-  const createSeasonBtn = page.locator('[data-testid="create-season-button"]');
-  if (await createSeasonBtn.isVisible({ timeout: 2000 })) {
-    await createSeasonBtn.click();
-    await page.fill('[data-testid="season-name-input"]', '2025 Test Season');
-    await page.fill('[data-testid="season-year-input"]', '2025');
-    await page.fill('[data-testid="season-start-date"]', '2025-04-01');
-    await page.fill('[data-testid="season-end-date"]', '2025-09-30');
-    await page.click('[data-testid="confirm-create-season"]');
-    await page.waitForTimeout(1000);
-  }
-
-  // Create game type
-  await page.goto('/game-types');
-  await page.waitForTimeout(1000);
-
-  const createGameTypeBtn = page.locator(
-    '[data-testid="create-game-type-button"]'
-  );
-  if (await createGameTypeBtn.isVisible({ timeout: 2000 })) {
-    await createGameTypeBtn.click();
-    await page.fill('[data-testid="game-type-name-input"]', 'Regular Game');
-    await page.click('[data-testid="confirm-create-game-type"]');
-    await page.waitForTimeout(1000);
-  }
+  console.log('✅ Sample data loaded for complete prerequisites');
 }
 
 /**

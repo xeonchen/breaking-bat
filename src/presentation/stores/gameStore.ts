@@ -59,6 +59,7 @@ interface GameState {
 
   // Actions
   getCurrentGame: () => Promise<void>;
+  loadGame: (gameId: string) => Promise<void>;
   updateGame: (game: Game) => Promise<void>;
   startGame: (lineupId: string) => Promise<void>;
   resumeGame: () => Promise<void>;
@@ -129,6 +130,30 @@ export const initializeGameStore = (deps: {
   scoringService = deps.scoringService;
 };
 
+// Rehydration helper to restore Game domain entity methods after persistence
+function rehydrateGame(gameData: any): Game | null {
+  if (!gameData) return null;
+
+  // Restore Game domain entity from serialized data
+  // This ensures currentGame has proper methods like isHomeGame(), isAwayGame()
+  return new Game(
+    gameData.id,
+    gameData.name,
+    gameData.opponent,
+    new Date(gameData.date), // Restore Date objects
+    gameData.seasonId,
+    gameData.gameTypeId,
+    gameData.homeAway,
+    gameData.teamId,
+    gameData.status,
+    gameData.lineupId,
+    gameData.inningIds || [],
+    gameData.finalScore,
+    gameData.createdAt ? new Date(gameData.createdAt) : undefined,
+    gameData.updatedAt ? new Date(gameData.updatedAt) : undefined
+  );
+}
+
 export const useGameStore = create<GameState>()(
   devtools(
     persist(
@@ -161,6 +186,23 @@ export const useGameStore = create<GameState>()(
             set({
               loading: false,
               error: 'Failed to load current game',
+              currentGame: null,
+            });
+          }
+        },
+        loadGame: async (gameId: string) => {
+          set({ loading: true, error: null });
+          try {
+            const game = await gameRepository?.findById(gameId);
+            if (!game) {
+              throw new Error(`Game not found: ${gameId}`);
+            }
+            set({ currentGame: game, loading: false });
+          } catch (error) {
+            set({
+              loading: false,
+              error:
+                error instanceof Error ? error.message : 'Failed to load game',
               currentGame: null,
             });
           }
@@ -631,6 +673,18 @@ export const useGameStore = create<GameState>()(
           currentCount: state.currentCount,
           currentOuts: state.currentOuts,
         }),
+        onRehydrateStorage: () => (state, error) => {
+          if (error) {
+            console.error('Failed to rehydrate gameStore:', error);
+            return;
+          }
+
+          if (state?.currentGame) {
+            // Restore Game domain entity methods after persistence rehydration
+            // This fixes: "TypeError: currentGame.isHomeGame is not a function"
+            state.currentGame = rehydrateGame(state.currentGame);
+          }
+        },
       }
     ),
     {

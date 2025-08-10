@@ -96,6 +96,28 @@ export function initializeDatabase(): Dexie {
       // No data migration needed, just index addition in schema
     });
 
+  // Version 5 - Add lineups table for proper lineup storage
+  productionDb
+    .version(5)
+    .stores({
+      teams: '++id, name, *seasonIds, *playerIds',
+      players:
+        '++id, name, jerseyNumber, teamId, position, isActive, statistics, [teamId+jerseyNumber]',
+      seasons: '++id, name, year, startDate, endDate, *teamIds, [name+year]',
+      gameTypes: '++id, name, description',
+      games:
+        '++id, name, opponent, date, seasonId, gameTypeId, homeAway, teamId, status, lineupId, *inningIds, finalScore',
+      lineups: '++id, gameId, *playerIds, *defensivePositions',
+      innings:
+        '++id, gameId, number, teamAtBat, runsScored, *atBatIds, isComplete',
+      atBats:
+        '++id, gameId, inningId, batterId, battingPosition, result, rbis, *runsScored, baserunnersBefore, baserunnersAfter',
+    })
+    .upgrade(() => {
+      console.log('🔄 Upgrading database to version 5 - adding lineups table');
+      // No data migration needed, just new table
+    });
+
   return productionDb;
 }
 

@@ -1,16 +1,32 @@
-import { BattingResult, BaserunnerState } from '@/domain';
+import {
+  BattingResult,
+  BaserunnerState as BaserunnerStateClass,
+} from '@/domain';
+import { BaserunnerState } from '@/domain/types/BaserunnerState';
 
 export interface AdvancementResult {
   finalBaserunners: BaserunnerState;
+  finalBaserunnersClass: BaserunnerStateClass;
   scoringRunners: string[];
   rbis: number;
 }
 
 export class BaserunnerAdvancementService {
   /**
+   * Convert interface-style baserunner state to class instance
+   */
+  private toBaserunnerStateClass(state: BaserunnerState): BaserunnerStateClass {
+    return new BaserunnerStateClass(
+      state.first?.playerId || null,
+      state.second?.playerId || null,
+      state.third?.playerId || null
+    );
+  }
+
+  /**
    * Calculate standard softball baserunner advancement based on batting result
    */
-  calculateStandardAdvancement(
+  public calculateStandardAdvancement(
     initialState: BaserunnerState,
     battingResult: BattingResult,
     batterId: string
@@ -185,6 +201,7 @@ export class BaserunnerAdvancementService {
 
     return {
       finalBaserunners,
+      finalBaserunnersClass: this.toBaserunnerStateClass(finalBaserunners),
       scoringRunners,
       rbis,
     };
@@ -193,7 +210,7 @@ export class BaserunnerAdvancementService {
   /**
    * Apply manual overrides to baserunner advancement
    */
-  applyManualOverrides(
+  public applyManualOverrides(
     initialState: BaserunnerState,
     battingResult: BattingResult,
     batterId: string,
@@ -201,13 +218,6 @@ export class BaserunnerAdvancementService {
   ): AdvancementResult {
     // Validate overrides before applying them
     this.validateManualOverrides(initialState, manualOverrides);
-
-    // Start with standard advancement as base
-    const result = this.calculateStandardAdvancement(
-      initialState,
-      battingResult,
-      batterId
-    );
 
     // Apply manual overrides
     const finalBaserunners: BaserunnerState = {
@@ -300,6 +310,7 @@ export class BaserunnerAdvancementService {
 
     return {
       finalBaserunners,
+      finalBaserunnersClass: this.toBaserunnerStateClass(finalBaserunners),
       scoringRunners,
       rbis,
     };
@@ -334,49 +345,6 @@ export class BaserunnerAdvancementService {
         for (let aheadBase = base + 1; aheadBase <= 3; aheadBase++) {
           const aheadAction = runnerActions.get(aheadBase);
           if (aheadAction === 'stay') {
-            throw new Error('Runner cannot pass another runner');
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Validate that runner positioning is logical
-   */
-  private validateRunnerPositions(
-    baserunners: BaserunnerState,
-    scoringRunners: string[]
-  ): void {
-    // Basic validation: ensure no impossible scenarios
-
-    // Validate RBI count doesn't exceed maximum possible
-    const maxPossibleRbis = 4; // 3 baserunners + batter
-    const totalScoring = scoringRunners.length;
-
-    if (totalScoring > maxPossibleRbis) {
-      throw new Error(
-        `Invalid RBI count: ${totalScoring} exceeds maximum possible ${maxPossibleRbis}`
-      );
-    }
-
-    // Validate runners cannot pass each other
-    // Check for scenario where a trailing runner scores while a leading runner doesn't
-    const occupiedBases = [];
-    if (baserunners.first)
-      occupiedBases.push({ base: 1, playerId: baserunners.first.playerId });
-    if (baserunners.second)
-      occupiedBases.push({ base: 2, playerId: baserunners.second.playerId });
-    if (baserunners.third)
-      occupiedBases.push({ base: 3, playerId: baserunners.third.playerId });
-
-    // Check if any trailing runner is scoring while a leading runner is not
-    for (const runner of occupiedBases) {
-      if (scoringRunners.includes(runner.playerId)) {
-        // This runner is scoring, check if any runner ahead is not scoring
-        const runnersAhead = occupiedBases.filter((r) => r.base > runner.base);
-        for (const runnerAhead of runnersAhead) {
-          if (!scoringRunners.includes(runnerAhead.playerId)) {
             throw new Error('Runner cannot pass another runner');
           }
         }

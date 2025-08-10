@@ -1,4 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
+import {
+  createTestPrerequisites,
+  createTestGame,
+  setupTestLineup,
+} from './helpers/test-data-setup';
 
 /**
  * Game State Transitions E2E Tests
@@ -21,8 +26,8 @@ test.describe('Game State Transitions', () => {
   test('should trace complete state transition flow', async ({ page }) => {
     console.log('=== COMPLETE GAME STATE TRANSITION FLOW ===');
 
-    // Create prerequisites and game
-    await createTestGame(page, 'State Transition Game');
+    // Create prerequisites and game using dedicated test setup
+    await createTestGameWithPrerequisites(page, 'State Transition Game');
 
     // Document initial state (should be 'setup')
     await verifyGameState(page, 'State Transition Game', 'setup');
@@ -97,7 +102,7 @@ test.describe('Game State Transitions', () => {
   test('should test state-specific UI elements', async ({ page }) => {
     console.log('=== TESTING STATE-SPECIFIC UI ELEMENTS ===');
 
-    await createTestGame(page, 'UI Elements Game');
+    await createTestGameWithPrerequisites(page, 'UI Elements Game');
 
     // Test UI elements for 'setup' state
     await testSetupStateUI(page, 'UI Elements Game');
@@ -113,7 +118,7 @@ test.describe('Game State Transitions', () => {
     console.log('=== TESTING ERROR HANDLING DURING TRANSITIONS ===');
 
     // Test starting game without lineup
-    await createTestGame(page, 'Error Test Game');
+    await createTestGameWithPrerequisites(page, 'Error Test Game');
 
     await page.goto('/games');
     await page.waitForTimeout(1000);
@@ -176,7 +181,7 @@ test.describe('Game State Transitions', () => {
   }) => {
     console.log('=== TESTING URL-BASED NAVIGATION ===');
 
-    await createTestGame(page, 'URL Test Game');
+    await createTestGameWithPrerequisites(page, 'URL Test Game');
 
     // Test direct navigation to scoring page with no current game
     await page.goto('/scoring');
@@ -208,7 +213,7 @@ test.describe('Game State Transitions', () => {
   test('should test persistence of game states', async ({ page }) => {
     console.log('=== TESTING GAME STATE PERSISTENCE ===');
 
-    await createTestGame(page, 'Persistence Game');
+    await createTestGameWithPrerequisites(page, 'Persistence Game');
 
     // Record initial state
     await page.goto('/games');
@@ -259,70 +264,17 @@ test.describe('Game State Transitions', () => {
 });
 
 /**
- * Helper: Create a test game with prerequisites
+ * Helper: Create a test game with prerequisites using dedicated test data setup
  */
-async function createTestGame(page: Page, gameName: string): Promise<void> {
-  // Create team with players
-  await page.goto('/teams');
-  await page.waitForTimeout(1000);
-
-  const createTeamBtn = page.locator('[data-testid="create-team-button"]');
-  if (await createTeamBtn.isVisible({ timeout: 2000 })) {
-    await createTeamBtn.click();
-    await page.fill('[data-testid="team-name-input"]', `${gameName} Team`);
-    await page.click('[data-testid="confirm-create-team"]');
-    await page.waitForTimeout(1000);
-  }
-
-  // Create basic season
-  await page.goto('/seasons');
-  await page.waitForTimeout(1000);
-
-  const createSeasonBtn = page.locator('[data-testid="create-season-button"]');
-  if (await createSeasonBtn.isVisible({ timeout: 2000 })) {
-    await createSeasonBtn.click();
-    await page.fill('[data-testid="season-name-input"]', `${gameName} Season`);
-    await page.fill('[data-testid="season-year-input"]', '2025');
-    await page.fill('[data-testid="season-start-date"]', '2025-04-01');
-    await page.fill('[data-testid="season-end-date"]', '2025-09-30');
-    await page.click('[data-testid="confirm-create-season"]');
-    await page.waitForTimeout(1000);
-  }
-
-  // Create game
-  await page.goto('/games');
-  await page.waitForTimeout(1000);
-
-  await page.click('[data-testid="create-game-button"]');
-  await page.fill('[data-testid="game-name-input"]', gameName);
-  await page.fill('[data-testid="opponent-input"]', 'Test Opponents');
-  // Use tomorrow's date to avoid validation errors
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  await page.fill(
-    '[data-testid="game-date-input"]',
-    tomorrow.toISOString().split('T')[0]
-  );
-
-  const teamSelect = page.locator('[data-testid="team-select"]');
-  if (await teamSelect.isVisible({ timeout: 2000 })) {
-    await teamSelect.selectOption({ index: 1 });
-  }
-
-  const seasonSelect = page.locator('[data-testid="season-select"]');
-  if (await seasonSelect.isVisible({ timeout: 2000 })) {
-    // Wait for options to be loaded
-    await page.waitForTimeout(1000);
-    const optionCount = await seasonSelect.locator('option').count();
-    if (optionCount > 1) {
-      await seasonSelect.selectOption({ index: 1 });
-    } else {
-      console.log('⚠️ Season dropdown has no options available');
-    }
-  }
-
-  await page.click('[data-testid="confirm-create-game"]');
-  await page.waitForTimeout(1000);
+async function createTestGameWithPrerequisites(
+  page: Page,
+  gameName: string
+): Promise<void> {
+  await createTestGame(page, {
+    name: gameName,
+    opponent: 'Test Opponents',
+    teamName: 'Test Team',
+  });
 }
 
 /**
@@ -351,7 +303,11 @@ async function verifyGameState(
   let currentState = 'unknown';
 
   for (const status of statusBadges) {
-    if (await gameCard.locator(`text=${status}`).isVisible({ timeout: 1000 })) {
+    // Be more specific to avoid strict mode violations - target the badge element specifically
+    const statusBadge = gameCard
+      .locator('.chakra-badge')
+      .filter({ hasText: status });
+    if (await statusBadge.isVisible({ timeout: 1000 })) {
       currentState = status.toLowerCase().replace(' ', '_');
       break;
     }
@@ -386,7 +342,40 @@ async function attemptGameStart(
     return false;
   }
 
-  // Look for start game button
+  // First, set up lineup if needed
+  const setupLineupBtn = gameCard.locator(
+    '[data-testid="setup-lineup-button"]'
+  );
+  if (await setupLineupBtn.isVisible({ timeout: 2000 })) {
+    console.log('✅ Setting up lineup first');
+    await setupLineupBtn.click();
+
+    // Wait for lineup modal to appear
+    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
+      timeout: 5000,
+    });
+
+    // Complete lineup setup for all 9 positions
+    for (let i = 1; i <= 9; i++) {
+      await page
+        .getByTestId(`batting-position-${i}-player`)
+        .selectOption({ index: i });
+      await page
+        .getByTestId(`batting-position-${i}-defensive-position`)
+        .selectOption({ index: i });
+    }
+
+    // Save the lineup
+    await page.getByTestId('save-lineup-button').click();
+
+    // Wait for modal to close
+    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
+      state: 'hidden',
+      timeout: 3000,
+    });
+  }
+
+  // Look for start game button (should be enabled now)
   const startBtn = gameCard.locator('[data-testid="start-game-button"]');
   if (await startBtn.isVisible({ timeout: 2000 })) {
     console.log('✅ Found start-game-button');

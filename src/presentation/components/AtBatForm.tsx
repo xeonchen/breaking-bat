@@ -24,6 +24,32 @@ import { RepeatIcon, DeleteIcon } from '@chakra-ui/icons';
 import { Position, BattingResult } from '@/domain';
 import { useState, useEffect, useCallback } from 'react';
 
+/**
+ * Convert a number to its ordinal string representation
+ * Following the UI schema specification in live-scoring.yaml
+ */
+function getOrdinalSuffix(num: number): string {
+  const lastDigit = num % 10;
+  const lastTwoDigits = num % 100;
+
+  // Handle special cases for 11th, 12th, 13th
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+    return `${num}th`;
+  }
+
+  // Handle regular cases
+  switch (lastDigit) {
+    case 1:
+      return `${num}st`;
+    case 2:
+      return `${num}nd`;
+    case 3:
+      return `${num}rd`;
+    default:
+      return `${num}th`;
+  }
+}
+
 interface CurrentBatter {
   playerId: string;
   playerName: string;
@@ -122,8 +148,9 @@ export function AtBatForm({
 
   const handleAtBatComplete = useCallback(
     (result: BattingResult, finalCount?: Count) => {
-      if (!currentBatter) return;
-
+      if (!currentBatter) {
+        return;
+      }
       const atBatResult = {
         batterId: currentBatter.playerId,
         result,
@@ -161,7 +188,8 @@ export function AtBatForm({
       try {
         onAtBatComplete(atBatResult);
         setHasError(false);
-      } catch {
+      } catch (error) {
+        console.error('❌ AtBatForm: Error in onAtBatComplete:', error);
         setHasError(true);
         toast({
           title: 'Error recording at-bat',
@@ -329,7 +357,7 @@ export function AtBatForm({
             color={mutedColor}
             fontSize="sm"
           >
-            {currentBatter.battingOrder}rd Batter
+            {getOrdinalSuffix(currentBatter.battingOrder)} Batter
           </Text>
         </Box>
 
@@ -564,7 +592,10 @@ export function AtBatForm({
                 data-testid="double-button"
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.double())}
+                onClick={() => {
+                  console.log('🔘 Double button clicked!');
+                  handleAtBatComplete(BattingResult.double());
+                }}
               >
                 Double
               </Button>
