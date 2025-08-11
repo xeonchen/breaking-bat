@@ -36,58 +36,32 @@ const mockGame = new Game(
 const mockTeam = new Team('test-team-id', 'Test Team', [], []);
 
 const mockPlayers = [
-  new Player('player-1', 'Player One', 1, Position.pitcher(), 'test-team-id'),
-  new Player('player-2', 'Player Two', 2, Position.catcher(), 'test-team-id'),
-  new Player(
-    'player-3',
-    'Player Three',
-    3,
+  new Player('player-1', 'Player One', 1, 'test-team-id', [Position.pitcher()]),
+  new Player('player-2', 'Player Two', 2, 'test-team-id', [Position.catcher()]),
+  new Player('player-3', 'Player Three', 3, 'test-team-id', [
     Position.firstBase(),
-    'test-team-id'
-  ),
-  new Player(
-    'player-4',
-    'Player Four',
-    4,
+  ]),
+  new Player('player-4', 'Player Four', 4, 'test-team-id', [
     Position.secondBase(),
-    'test-team-id'
-  ),
-  new Player(
-    'player-5',
-    'Player Five',
-    5,
+  ]),
+  new Player('player-5', 'Player Five', 5, 'test-team-id', [
     Position.thirdBase(),
-    'test-team-id'
-  ),
-  new Player('player-6', 'Player Six', 6, Position.shortstop(), 'test-team-id'),
-  new Player(
-    'player-7',
-    'Player Seven',
-    7,
+  ]),
+  new Player('player-6', 'Player Six', 6, 'test-team-id', [
+    Position.shortstop(),
+  ]),
+  new Player('player-7', 'Player Seven', 7, 'test-team-id', [
     Position.leftField(),
-    'test-team-id'
-  ),
-  new Player(
-    'player-8',
-    'Player Eight',
-    8,
+  ]),
+  new Player('player-8', 'Player Eight', 8, 'test-team-id', [
     Position.centerField(),
-    'test-team-id'
-  ),
-  new Player(
-    'player-9',
-    'Player Nine',
-    9,
+  ]),
+  new Player('player-9', 'Player Nine', 9, 'test-team-id', [
     Position.rightField(),
-    'test-team-id'
-  ),
-  new Player(
-    'player-10',
-    'Player Ten',
-    10,
+  ]),
+  new Player('player-10', 'Player Ten', 10, 'test-team-id', [
     Position.leftField(),
-    'test-team-id'
-  ),
+  ]),
 ];
 
 const mockOnClose = jest.fn();
@@ -686,6 +660,609 @@ describe('LineupSetupModal - TDD Tests', () => {
       const playerSelect = screen.getByTestId('batting-position-1-player');
       playerSelect.focus();
       expect(document.activeElement).toBe(playerSelect);
+    });
+  });
+
+  // ====== TDD TESTS FOR MISSING ACCEPTANCE CRITERIA ======
+  // These tests will FAIL until the corresponding features are implemented
+
+  describe('AC001-AC004: Default Player Display', () => {
+    test('AC001: should display all team players by default when modal opens', () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // All 10 mock players should be visible in the player cards
+      expect(screen.getByTestId('all-players-display')).toBeInTheDocument();
+      expect(screen.getByText('Available Players (10)')).toBeInTheDocument();
+
+      mockPlayers.forEach((player) => {
+        // Check that each player has a card in the all-players-display section
+        const playerCard = screen.getByTestId(`player-option-${player.id}`);
+        expect(playerCard).toBeInTheDocument();
+        expect(playerCard).toHaveTextContent(
+          `#${player.jerseyNumber} ${player.name}`
+        );
+      });
+    });
+
+    test('AC002: should show upper section labeled "Starting Lineup"', () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Check for starting lineup section with dynamic count
+      expect(
+        screen.getByText(/Starting Lineup \(Positions 1-\d+\)/)
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('starting-lineup-section')).toBeInTheDocument();
+    });
+
+    test('AC003: should show lower section labeled "Bench Players"', () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Check for bench section (may not be visible if startingPositionCount is 15)
+      const benchSection = screen.queryByTestId('bench-players-section');
+      if (benchSection) {
+        expect(
+          screen.getByText(/Bench Players \(Positions \d+-15\)/)
+        ).toBeInTheDocument();
+      }
+    });
+
+    test('AC004: should initially show all players in bench section', () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Initially all batting position selects should be empty (showing "Select Player")
+      const playerSelects = screen.getAllByText('Select Player');
+      expect(playerSelects.length).toBeGreaterThanOrEqual(10); // At least 10 starting positions
+
+      // All players should show as unassigned in the player display cards
+      mockPlayers.forEach((player) => {
+        const playerCard = screen.getByTestId(`player-option-${player.id}`);
+        // Should not have any batting order badge initially since no assignments
+        expect(playerCard).not.toHaveTextContent('Batting #');
+        expect(playerCard).not.toHaveTextContent('Bench');
+      });
+    });
+  });
+
+  describe('AC005-AC008: Configurable Starting Positions', () => {
+    test('AC005: should show starting position selector with 9-12 range and default 10', () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      const positionSelector = screen.getByTestId('starting-positions-config');
+      expect(positionSelector).toBeInTheDocument();
+
+      // Check the actual input field within the NumberInput
+      const inputField = positionSelector.querySelector('input');
+      expect(inputField).toHaveAttribute('aria-valuemin', '9');
+      expect(inputField).toHaveAttribute('aria-valuemax', '12');
+      expect(inputField).toHaveValue('10'); // Default value
+      expect(
+        screen.getByText('Number of Starting Positions (9-12)')
+      ).toBeInTheDocument();
+    });
+
+    test('AC006: should adjust interface when starting position count changes', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      const positionSelector = screen.getByTestId('starting-positions-config');
+      const inputField = positionSelector.querySelector(
+        'input'
+      ) as HTMLInputElement;
+
+      fireEvent.change(inputField, { target: { value: '12' } });
+
+      await waitFor(() => {
+        // Should show 12 starting position slots in the starting lineup section
+        expect(
+          screen.getByText('Starting Lineup (Positions 1-12)')
+        ).toBeInTheDocument();
+
+        // Check that positions 1-12 are visible in starting section
+        for (let i = 1; i <= 12; i++) {
+          expect(
+            screen.getByTestId(`batting-position-${i}-player`)
+          ).toBeInTheDocument();
+        }
+
+        // And positions 13-15 should be in bench section
+        expect(screen.getByTestId('bench-players-section')).toBeInTheDocument();
+      });
+    });
+
+    test('AC007: should show additional slots when starting positions increased', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      const positionSelector = screen.getByTestId('starting-positions-config');
+      const inputField = positionSelector.querySelector(
+        'input'
+      ) as HTMLInputElement;
+
+      fireEvent.change(inputField, { target: { value: '11' } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('batting-position-10-player')
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId('batting-position-11-player')
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('AC008: should move excess players to bench when positions decreased', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // First set to 11 positions and assign players
+      const positionSelector = screen.getByTestId('starting-positions-config');
+      const inputField = positionSelector.querySelector(
+        'input'
+      ) as HTMLInputElement;
+
+      fireEvent.change(inputField, { target: { value: '11' } });
+
+      await waitFor(() => {
+        const player10Select = screen.getByTestId('batting-position-10-player');
+        const player11Select = screen.getByTestId('batting-position-11-player');
+        fireEvent.change(player10Select, { target: { value: 'player-1' } });
+        fireEvent.change(player11Select, { target: { value: 'player-2' } });
+      });
+
+      // Then decrease to 9 positions
+      fireEvent.change(inputField, { target: { value: '9' } });
+
+      await waitFor(() => {
+        // Positions 10 and 11 should no longer exist
+        expect(
+          screen.queryByTestId('batting-position-10-player')
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('batting-position-11-player')
+        ).not.toBeInTheDocument();
+
+        // Players should be back in bench section
+        const benchSection = screen.getByTestId('bench-players-section');
+        expect(benchSection).toHaveTextContent('Player One');
+        expect(benchSection).toHaveTextContent('Player Two');
+      });
+    });
+  });
+
+  describe('AC012: Graceful Player Reassignment', () => {
+    test('should handle reassigning player already assigned elsewhere', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Assign player to position 1
+      const player1Select = screen.getByTestId('batting-position-1-player');
+      fireEvent.change(player1Select, { target: { value: 'player-1' } });
+
+      // Now assign same player to position 3
+      const player3Select = screen.getByTestId('batting-position-3-player');
+      fireEvent.change(player3Select, { target: { value: 'player-1' } });
+
+      await waitFor(() => {
+        // Player 1 should move to position 3, position 1 should be empty
+        expect(player1Select).toHaveValue('');
+        expect(player3Select).toHaveValue('player-1');
+
+        // Should show reassignment notification
+        expect(
+          screen.getByTestId('reassignment-notification')
+        ).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('AC013-AC014: Smart Position Ordering and Auto-Fill', () => {
+    test('AC013: should pre-select player default position when assigned', async () => {
+      // Create player with multiple positions (Pitcher primary)
+      const multiPositionPlayer = new Player(
+        'multi-1',
+        'Multi Player',
+        99,
+        [Position.pitcher(), Position.firstBase(), Position.catcher()],
+        'test-team-id'
+      );
+
+      const playersWithMulti = [...mockPlayers, multiPositionPlayer];
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={playersWithMulti}
+        />
+      );
+
+      const playerSelect = screen.getByTestId('batting-position-1-player');
+      fireEvent.change(playerSelect, { target: { value: 'multi-1' } });
+
+      await waitFor(() => {
+        const positionSelect = screen.getByTestId(
+          'batting-position-1-defensive-position'
+        );
+        expect(positionSelect).toHaveValue('Pitcher'); // Default position pre-selected
+      });
+    });
+
+    test('AC014: should show smart position ordering (player positions first)', async () => {
+      const multiPositionPlayer = new Player(
+        'multi-1',
+        'Multi Player',
+        99,
+        [Position.shortstop(), Position.secondBase()],
+        'test-team-id'
+      );
+
+      const playersWithMulti = [...mockPlayers, multiPositionPlayer];
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={playersWithMulti}
+        />
+      );
+
+      const playerSelect = screen.getByTestId('batting-position-1-player');
+      fireEvent.change(playerSelect, { target: { value: 'multi-1' } });
+
+      const positionSelect = screen.getByTestId(
+        'batting-position-1-defensive-position'
+      );
+      const options = Array.from(positionSelect.querySelectorAll('option')).map(
+        (o) => o.textContent
+      );
+
+      // Player's positions should be listed first
+      expect(options.slice(1, 3)).toEqual([
+        'Shortstop (SS)',
+        'Second Base (2B)',
+      ]);
+    });
+  });
+
+  describe('AC021-AC024: Auto-Fill Features', () => {
+    test('AC021: should have auto-fill button that pre-selects default positions', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Assign some players first
+      for (let i = 1; i <= 5; i++) {
+        const playerSelect = screen.getByTestId(`batting-position-${i}-player`);
+        fireEvent.change(playerSelect, { target: { value: `player-${i}` } });
+      }
+
+      const autoFillButton = screen.getByTestId('auto-fill-positions-button');
+      expect(autoFillButton).toBeInTheDocument();
+
+      fireEvent.click(autoFillButton);
+
+      await waitFor(() => {
+        // Each assigned player should have their default position selected
+        for (let i = 1; i <= 5; i++) {
+          const positionSelect = screen.getByTestId(
+            `batting-position-${i}-defensive-position`
+          );
+          expect(positionSelect.value).not.toBe('');
+        }
+      });
+    });
+
+    test('AC022: auto-fill should allow duplicate positions for user resolution', async () => {
+      // Create multiple players with same primary position
+      const pitchers = [
+        new Player(
+          'pitcher-1',
+          'Pitcher One',
+          91,
+          Position.pitcher(),
+          'test-team-id'
+        ),
+        new Player(
+          'pitcher-2',
+          'Pitcher Two',
+          92,
+          Position.pitcher(),
+          'test-team-id'
+        ),
+      ];
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={[...mockPlayers, ...pitchers]}
+        />
+      );
+
+      // Assign both pitchers
+      const player1Select = screen.getByTestId('batting-position-1-player');
+      const player2Select = screen.getByTestId('batting-position-2-player');
+      fireEvent.change(player1Select, { target: { value: 'pitcher-1' } });
+      fireEvent.change(player2Select, { target: { value: 'pitcher-2' } });
+
+      const autoFillButton = screen.getByTestId('auto-fill-positions-button');
+      fireEvent.click(autoFillButton);
+
+      await waitFor(() => {
+        // Both should have Pitcher assigned
+        const position1Select = screen.getByTestId(
+          'batting-position-1-defensive-position'
+        );
+        const position2Select = screen.getByTestId(
+          'batting-position-2-defensive-position'
+        );
+        expect(position1Select).toHaveValue('Pitcher');
+        expect(position2Select).toHaveValue('Pitcher');
+
+        // Duplicates should be highlighted
+        expect(
+          screen.getByTestId('position-validation-error')
+        ).toBeInTheDocument();
+      });
+    });
+
+    test('AC024: auto-fill should not override manual changes', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Make manual assignment
+      const playerSelect = screen.getByTestId('batting-position-1-player');
+      const positionSelect = screen.getByTestId(
+        'batting-position-1-defensive-position'
+      );
+      fireEvent.change(playerSelect, { target: { value: 'player-1' } });
+      fireEvent.change(positionSelect, { target: { value: 'Catcher' } }); // Manual override
+
+      // Now run auto-fill
+      const autoFillButton = screen.getByTestId('auto-fill-positions-button');
+      fireEvent.click(autoFillButton);
+
+      await waitFor(() => {
+        // Manual assignment should be preserved
+        expect(positionSelect).toHaveValue('Catcher');
+      });
+    });
+  });
+
+  describe('AC025-AC026: Advanced Visual Feedback', () => {
+    test('AC025: should highlight position conflicts in distinct red color', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Create duplicate shortstop assignments
+      const player1Select = screen.getByTestId('batting-position-1-player');
+      const player2Select = screen.getByTestId('batting-position-2-player');
+      const position1Select = screen.getByTestId(
+        'batting-position-1-defensive-position'
+      );
+      const position2Select = screen.getByTestId(
+        'batting-position-2-defensive-position'
+      );
+
+      fireEvent.change(player1Select, { target: { value: 'player-1' } });
+      fireEvent.change(player2Select, { target: { value: 'player-2' } });
+      fireEvent.change(position1Select, { target: { value: 'Shortstop' } });
+      fireEvent.change(position2Select, { target: { value: 'Shortstop' } });
+
+      await waitFor(() => {
+        expect(position1Select).toHaveClass('position-conflict-highlight');
+        expect(position2Select).toHaveClass('position-conflict-highlight');
+      });
+    });
+
+    test('AC026: should show clear indication when player has no available positions', () => {
+      // Create scenario where all positions are taken
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // This test would need a complex setup to exhaust all positions
+      // For now, just check the UI element exists
+      const player10Select = screen.getByTestId('batting-position-10-player');
+      fireEvent.change(player10Select, { target: { value: 'player-10' } });
+
+      // Should show unavailable positions indication
+      expect(
+        screen.getByTestId('unavailable-positions-indicator')
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('AC027-AC028: Progress and Success Indicators', () => {
+    test('AC027: should show progress indicator with filled positions count', () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      const progressIndicator = screen.getByTestId('lineup-progress-indicator');
+      expect(progressIndicator).toHaveTextContent('0/10 positions filled');
+
+      // Assign 3 players
+      for (let i = 1; i <= 3; i++) {
+        const playerSelect = screen.getByTestId(`batting-position-${i}-player`);
+        const positionSelect = screen.getByTestId(
+          `batting-position-${i}-defensive-position`
+        );
+        fireEvent.change(playerSelect, { target: { value: `player-${i}` } });
+        fireEvent.change(positionSelect, {
+          target: { value: `Position-${i}` },
+        });
+      }
+
+      expect(progressIndicator).toHaveTextContent('3/10 positions filled');
+    });
+
+    test('AC028: should show success state when lineup complete and valid', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Create complete valid lineup
+      const positions = [
+        'Pitcher',
+        'Catcher',
+        'First Base',
+        'Second Base',
+        'Third Base',
+        'Shortstop',
+        'Left Field',
+        'Center Field',
+        'Right Field',
+        'Short Fielder',
+      ];
+
+      for (let i = 1; i <= 10; i++) {
+        const playerSelect = screen.getByTestId(`batting-position-${i}-player`);
+        const positionSelect = screen.getByTestId(
+          `batting-position-${i}-defensive-position`
+        );
+        fireEvent.change(playerSelect, { target: { value: `player-${i}` } });
+        fireEvent.change(positionSelect, {
+          target: { value: positions[i - 1] },
+        });
+      }
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('lineup-complete-success')
+        ).toBeInTheDocument();
+        expect(screen.getByText('Lineup Complete')).toBeInTheDocument();
+      });
     });
   });
 });

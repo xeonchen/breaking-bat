@@ -13,6 +13,12 @@ import {
   Text,
   Select,
   FormControl,
+  FormLabel,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -73,6 +79,8 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   const [lineupPositions, setLineupPositions] = useState<LineupPosition[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isValidating, setIsValidating] = useState(false);
+  const [startingPositionCount, setStartingPositionCount] =
+    useState<number>(10);
 
   // Create a unique key for this game's draft lineup
   const draftKey = `lineup-draft-${game.id}`;
@@ -171,7 +179,7 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
     );
 
     // Validate complete lineup before saving
-    if (filledPositions.length < 9) {
+    if (filledPositions.length < Math.min(startingPositionCount, 9)) {
       setValidationErrors(['LINEUP_INCOMPLETE']);
       return;
     }
@@ -201,7 +209,10 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   };
 
   const isLineupComplete = () => {
-    return getFilledPositionCount() >= 9 && validationErrors.length === 0;
+    return (
+      getFilledPositionCount() >= Math.min(startingPositionCount, 9) &&
+      validationErrors.length === 0
+    );
   };
 
   const getErrorMessage = (errorCode: string) => {
@@ -323,16 +334,55 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
         <ModalBody>
           <VStack spacing={4} align="stretch">
+            {/* Starting Position Configuration */}
+            <Box data-testid="starting-positions-config-container">
+              <FormControl>
+                <FormLabel htmlFor="starting-positions-config">
+                  Number of Starting Positions (9-12)
+                </FormLabel>
+                <NumberInput
+                  id="starting-positions-config"
+                  data-testid="starting-positions-config"
+                  value={startingPositionCount}
+                  onChange={(_, valueAsNumber) => {
+                    if (
+                      !isNaN(valueAsNumber) &&
+                      valueAsNumber >= 9 &&
+                      valueAsNumber <= 12
+                    ) {
+                      setStartingPositionCount(valueAsNumber);
+                    }
+                  }}
+                  min={9}
+                  max={12}
+                  defaultValue={10}
+                  size="sm"
+                  width="150px"
+                >
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </FormControl>
+            </Box>
+
             {/* Progress indicator */}
-            <Box>
+            <Box data-testid="lineup-progress-indicator">
               <HStack justify="space-between" align="center">
                 <Text fontSize="sm" color="gray.600">
-                  Lineup Progress: {getFilledPositionCount()}/9 minimum
-                  positions filled
+                  Lineup Progress: {getFilledPositionCount()}/
+                  {Math.min(startingPositionCount, 9)} minimum positions filled
                 </Text>
                 <Badge
                   colorScheme={isLineupComplete() ? 'green' : 'yellow'}
                   variant="solid"
+                  data-testid={
+                    isLineupComplete()
+                      ? 'lineup-complete-success'
+                      : 'lineup-incomplete'
+                  }
                 >
                   {isLineupComplete() ? 'Complete' : 'Incomplete'}
                 </Badge>
@@ -363,109 +413,69 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
               </Alert>
             )}
 
-            <Divider />
-
-            {/* Lineup grid - show first 9 positions prominently */}
-            <Box>
-              <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                Starting Lineup (Positions 1-9)
+            {/* All Players Display */}
+            <Box data-testid="all-players-display">
+              <Text fontSize="md" fontWeight="semibold" mb={2}>
+                Available Players ({players.length})
               </Text>
-              <Grid templateColumns="repeat(1, 1fr)" gap={3}>
-                {lineupPositions.slice(0, 9).map((position) => (
-                  <GridItem key={position.battingOrder}>
+              <Grid templateColumns="repeat(3, 1fr)" gap={2} mb={4}>
+                {players.map((player) => {
+                  const isAssigned = lineupPositions.some(
+                    (pos) => pos.playerId === player.id
+                  );
+                  const assignedPosition = lineupPositions.find(
+                    (pos) => pos.playerId === player.id
+                  );
+                  const battingOrderNum = assignedPosition?.battingOrder;
+
+                  return (
                     <Box
-                      bg={cardBg}
+                      key={player.id}
+                      data-testid={`player-option-${player.id}`}
+                      bg={isAssigned ? 'blue.50' : 'gray.50'}
                       border="1px"
-                      borderColor={borderColor}
+                      borderColor={isAssigned ? 'blue.200' : 'gray.200'}
                       borderRadius="md"
-                      p={4}
+                      p={2}
+                      fontSize="sm"
                     >
-                      <Grid
-                        templateColumns="60px 1fr 1fr"
-                        gap={4}
-                        alignItems="center"
-                      >
-                        {/* Batting order */}
-                        <Badge
-                          colorScheme="blue"
-                          fontSize="md"
-                          textAlign="center"
-                        >
-                          {position.battingOrder}
-                        </Badge>
-
-                        {/* Player select */}
-                        <FormControl>
-                          <Select
-                            data-testid={`batting-position-${position.battingOrder}-player`}
-                            placeholder="Select Player"
-                            value={position.playerId || ''}
-                            onChange={(e) =>
-                              handlePlayerChange(
-                                position.battingOrder,
-                                e.target.value
-                              )
-                            }
-                            aria-label={`Player for batting position ${position.battingOrder}`}
-                          >
-                            {players.map((player) => (
-                              <option key={player.id} value={player.id}>
-                                #{player.jerseyNumber} {player.name}
-                              </option>
-                            ))}
-                          </Select>
-                        </FormControl>
-
-                        {/* Defensive position select */}
-                        <FormControl
-                          isInvalid={isPositionDuplicated(
-                            position.defensivePosition
-                          )}
-                        >
-                          <Select
-                            data-testid={`batting-position-${position.battingOrder}-defensive-position`}
-                            placeholder="Select Position"
-                            value={position.defensivePosition || ''}
-                            onChange={(e) =>
-                              handlePositionChange(
-                                position.battingOrder,
-                                e.target.value
-                              )
-                            }
-                            aria-label={`Defensive position for batting position ${position.battingOrder}`}
-                            borderColor={
-                              isPositionDuplicated(position.defensivePosition)
-                                ? 'red.300'
-                                : undefined
-                            }
-                            bg={
-                              isPositionDuplicated(position.defensivePosition)
-                                ? 'red.50'
-                                : undefined
-                            }
-                          >
-                            {DEFENSIVE_POSITIONS.map((pos) => (
-                              <option key={pos.value} value={pos.value}>
-                                {pos.label}
-                              </option>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
+                      <Text fontWeight="medium">
+                        #{player.jerseyNumber} {player.name}
+                      </Text>
+                      <Text fontSize="xs" color="gray.600">
+                        {player.getPositionsDisplay() || 'No positions'}
+                      </Text>
+                      {isAssigned &&
+                        battingOrderNum &&
+                        battingOrderNum <= startingPositionCount && (
+                          <Badge size="sm" colorScheme="blue">
+                            Batting #{battingOrderNum}
+                          </Badge>
+                        )}
+                      {isAssigned &&
+                        battingOrderNum &&
+                        battingOrderNum > startingPositionCount && (
+                          <Badge size="sm" colorScheme="gray">
+                            Bench
+                          </Badge>
+                        )}
                     </Box>
-                  </GridItem>
-                ))}
+                  );
+                })}
               </Grid>
             </Box>
 
-            {/* Additional positions (10-15) */}
-            {getFilledPositionCount() >= 9 && (
-              <Box>
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                  Additional Players (Positions 10-15)
-                </Text>
-                <Grid templateColumns="repeat(1, 1fr)" gap={3}>
-                  {lineupPositions.slice(9, 15).map((position) => (
+            <Divider />
+
+            {/* Starting Lineup Section */}
+            <Box data-testid="starting-lineup-section">
+              <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                Starting Lineup (Positions 1-{startingPositionCount})
+              </Text>
+              <Grid templateColumns="repeat(1, 1fr)" gap={3}>
+                {lineupPositions
+                  .slice(0, startingPositionCount)
+                  .map((position) => (
                     <GridItem key={position.battingOrder}>
                       <Box
                         bg={cardBg}
@@ -479,14 +489,16 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                           gap={4}
                           alignItems="center"
                         >
+                          {/* Batting order */}
                           <Badge
-                            colorScheme="gray"
+                            colorScheme="blue"
                             fontSize="md"
                             textAlign="center"
                           >
                             {position.battingOrder}
                           </Badge>
 
+                          {/* Player select */}
                           <FormControl>
                             <Select
                               data-testid={`batting-position-${position.battingOrder}-player`}
@@ -498,6 +510,7 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                                   e.target.value
                                 )
                               }
+                              aria-label={`Player for batting position ${position.battingOrder}`}
                             >
                               {players.map((player) => (
                                 <option key={player.id} value={player.id}>
@@ -507,6 +520,7 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                             </Select>
                           </FormControl>
 
+                          {/* Defensive position select */}
                           <FormControl
                             isInvalid={isPositionDuplicated(
                               position.defensivePosition
@@ -522,6 +536,7 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                                   e.target.value
                                 )
                               }
+                              aria-label={`Defensive position for batting position ${position.battingOrder}`}
                               borderColor={
                                 isPositionDuplicated(position.defensivePosition)
                                   ? 'red.300'
@@ -544,6 +559,112 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                       </Box>
                     </GridItem>
                   ))}
+              </Grid>
+            </Box>
+
+            {/* Bench Section */}
+            {startingPositionCount < 15 && (
+              <Box data-testid="bench-players-section">
+                <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                  Bench Players (Positions {startingPositionCount + 1}-15)
+                </Text>
+                <Grid templateColumns="repeat(1, 1fr)" gap={3}>
+                  {lineupPositions
+                    .slice(startingPositionCount, 15)
+                    .map((position) => {
+                      const assignedPlayer = players.find(
+                        (p) => p.id === position.playerId
+                      );
+
+                      return (
+                        <GridItem key={position.battingOrder}>
+                          <Box
+                            bg={cardBg}
+                            border="1px"
+                            borderColor={borderColor}
+                            borderRadius="md"
+                            p={4}
+                            data-testid={
+                              assignedPlayer
+                                ? `bench-player-${assignedPlayer.id}`
+                                : `empty-bench-${position.battingOrder}`
+                            }
+                          >
+                            <Grid
+                              templateColumns="60px 1fr 1fr"
+                              gap={4}
+                              alignItems="center"
+                            >
+                              <Badge
+                                colorScheme="gray"
+                                fontSize="md"
+                                textAlign="center"
+                              >
+                                {position.battingOrder}
+                              </Badge>
+
+                              <FormControl>
+                                <Select
+                                  data-testid={`batting-position-${position.battingOrder}-player`}
+                                  placeholder="Select Player"
+                                  value={position.playerId || ''}
+                                  onChange={(e) =>
+                                    handlePlayerChange(
+                                      position.battingOrder,
+                                      e.target.value
+                                    )
+                                  }
+                                >
+                                  {players.map((player) => (
+                                    <option key={player.id} value={player.id}>
+                                      #{player.jerseyNumber} {player.name}
+                                    </option>
+                                  ))}
+                                </Select>
+                              </FormControl>
+
+                              <FormControl
+                                isInvalid={isPositionDuplicated(
+                                  position.defensivePosition
+                                )}
+                              >
+                                <Select
+                                  data-testid={`batting-position-${position.battingOrder}-defensive-position`}
+                                  placeholder="Select Position"
+                                  value={position.defensivePosition || ''}
+                                  onChange={(e) =>
+                                    handlePositionChange(
+                                      position.battingOrder,
+                                      e.target.value
+                                    )
+                                  }
+                                  borderColor={
+                                    isPositionDuplicated(
+                                      position.defensivePosition
+                                    )
+                                      ? 'red.300'
+                                      : undefined
+                                  }
+                                  bg={
+                                    isPositionDuplicated(
+                                      position.defensivePosition
+                                    )
+                                      ? 'red.50'
+                                      : undefined
+                                  }
+                                >
+                                  {DEFENSIVE_POSITIONS.map((pos) => (
+                                    <option key={pos.value} value={pos.value}>
+                                      {pos.label}
+                                    </option>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </Box>
+                        </GridItem>
+                      );
+                    })}
                 </Grid>
               </Box>
             )}
@@ -560,9 +681,13 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
             Cancel
           </Button>
           <Button
-            colorScheme="blue"
+            colorScheme={isLineupComplete() ? 'green' : 'blue'}
             onClick={handleSave}
-            isDisabled={getFilledPositionCount() === 0 || isValidating}
+            isDisabled={
+              getFilledPositionCount() === 0 ||
+              isValidating ||
+              !isLineupComplete()
+            }
             data-testid="save-lineup-button"
           >
             Save Lineup
