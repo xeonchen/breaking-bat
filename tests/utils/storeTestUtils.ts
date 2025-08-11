@@ -74,7 +74,7 @@ export const getCleanGamesStoreState = () => ({
  * Creates a mock function with proper TypeScript typing for Zustand stores
  */
 export const createMockStoreMethod = <
-  T extends (...args: any[]) => any,
+  T extends (...args: unknown[]) => unknown,
 >(): jest.MockedFunction<T> => {
   return jest.fn() as jest.MockedFunction<T>;
 };

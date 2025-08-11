@@ -35,7 +35,12 @@ test.describe('Game Setup and Lineup Management', () => {
       .locator('[data-testid="game-name-input"]')
       .fill('Setup Test Game vs Eagles');
     await page.locator('[data-testid="opponent-input"]').fill('Eagles');
-    await page.locator('[data-testid="game-date-input"]').fill('2024-08-15');
+    // Use tomorrow's date to avoid validation errors
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await page
+      .locator('[data-testid="game-date-input"]')
+      .fill(tomorrow.toISOString().split('T')[0]);
 
     // Select options (only if available)
     const teamSelect = page.locator('[data-testid="team-select"]');
@@ -367,7 +372,12 @@ test.describe('Game Setup and Lineup Management', () => {
     await page
       .locator('[data-testid="opponent-input"]')
       .fill('Workflow Opponents');
-    await page.locator('[data-testid="game-date-input"]').fill('2024-08-20');
+    // Use tomorrow's date to avoid validation errors
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await page
+      .locator('[data-testid="game-date-input"]')
+      .fill(tomorrow.toISOString().split('T')[0]);
 
     // Select options (skip selects that may not be available)
     const teamSelect = page.locator('[data-testid="team-select"]');
@@ -469,7 +479,12 @@ async function createGameWithPrerequisites(page: Page) {
     await page
       .locator('[data-testid="opponent-input"]')
       .fill('Setup Opponents');
-    await page.locator('[data-testid="game-date-input"]').fill('2024-08-10');
+    // Use tomorrow's date to avoid validation errors
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await page
+      .locator('[data-testid="game-date-input"]')
+      .fill(tomorrow.toISOString().split('T')[0]);
 
     // Select options (only if available)
     const teamSelect = page.locator('[data-testid="team-select"]');

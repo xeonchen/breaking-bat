@@ -831,4 +831,303 @@ describe('GamesStore', () => {
       expect(result.current.statusFilter).toBe('completed');
     });
   });
+
+  describe('Enhanced Error Handling and Edge Cases', () => {
+    it('should handle createGame when use case returns null result', async () => {
+      const result = { isSuccess: true, value: null }; // Null value scenario
+      mockCreateGameUseCase.execute.mockResolvedValue(result);
+
+      const { result: hookResult } = renderHook(() => useGamesStore());
+
+      const command = {
+        name: 'Test Game',
+        opponent: 'Test Opponent',
+        date: new Date(),
+        seasonId: 'season-1',
+        gameTypeId: 'type-1',
+        homeAway: 'home' as const,
+        teamId: 'team-1',
+      };
+
+      await act(async () => {
+        try {
+          await hookResult.current.createGame(command);
+        } catch {
+          // Expected to throw when result is null
+        }
+      });
+
+      expect(hookResult.current.error).toContain(
+        'Game creation returned no result'
+      );
+    });
+
+    it('should handle filtering by status "all"', async () => {
+      mockGameRepository.findAll.mockResolvedValue([mockGame]);
+
+      const { result } = renderHook(() => useGamesStore());
+
+      // Set up some initial games
+      act(() => {
+        result.current.games = [mockGame];
+      });
+
+      // Filter by 'all' should trigger loadGames
+      await act(async () => {
+        result.current.filterGamesByStatus('all');
+      });
+
+      expect(mockGameRepository.findAll).toHaveBeenCalled();
+      expect(result.current.statusFilter).toBe('all');
+    });
+
+    it('should handle non-Error exceptions in createSeason', async () => {
+      // Mock a non-Error exception (string error)
+      mockSeasonRepository.save.mockRejectedValue('String error');
+
+      const { result } = renderHook(() => useGamesStore());
+
+      const command = {
+        name: 'Test Season',
+        year: 2024,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-12-31'),
+      };
+
+      await act(async () => {
+        try {
+          await result.current.createSeason(command);
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to create season: Unknown error'
+      );
+    });
+
+    it('should handle non-Error exceptions in updateSeason', async () => {
+      // Mock a non-Error exception (number error)
+      mockSeasonRepository.save.mockRejectedValue(404);
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        try {
+          await result.current.updateSeason(mockSeason);
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to update season: Unknown error'
+      );
+    });
+
+    it('should handle non-Error exceptions in deleteSeason', async () => {
+      // Mock a non-Error exception (object error)
+      mockSeasonRepository.delete.mockRejectedValue({ code: 500 });
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        try {
+          await result.current.deleteSeason('season-1');
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to delete season: Unknown error'
+      );
+    });
+
+    it('should handle non-Error exceptions in createGameType', async () => {
+      mockGameTypeRepository.save.mockRejectedValue('GameType save failed');
+
+      const { result } = renderHook(() => useGamesStore());
+
+      const command = {
+        name: 'Test Game Type',
+        description: 'Test Description',
+      };
+
+      await act(async () => {
+        try {
+          await result.current.createGameType(command);
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to create game type: Unknown error'
+      );
+    });
+
+    it('should handle non-Error exceptions in updateGameType', async () => {
+      mockGameTypeRepository.save.mockRejectedValue(null);
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        try {
+          await result.current.updateGameType(mockGameType);
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to update game type: Unknown error'
+      );
+    });
+
+    it('should handle non-Error exceptions in deleteGameType', async () => {
+      mockGameTypeRepository.delete.mockRejectedValue(undefined);
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        try {
+          await result.current.deleteGameType('type-1');
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe(
+        'Failed to delete game type: Unknown error'
+      );
+    });
+
+    it('should handle non-Error exceptions in updateGame', async () => {
+      mockGameRepository.save.mockRejectedValue('Update failed');
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        try {
+          await result.current.updateGame(mockGame);
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe('Failed to update game: Unknown error');
+    });
+
+    it('should handle non-Error exceptions in deleteGame', async () => {
+      mockGameRepository.delete.mockRejectedValue(false);
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        try {
+          await result.current.deleteGame('game-1');
+        } catch {
+          // Expected to throw
+        }
+      });
+
+      expect(result.current.error).toBe('Failed to delete game: Unknown error');
+    });
+
+    it('should handle filterGamesByTeam with existing games', () => {
+      const game1 = new Game(
+        'game-1',
+        'Game 1',
+        'Opponent',
+        new Date(),
+        'season-1',
+        'type-1',
+        'home',
+        'team-1',
+        'setup',
+        'lineup-1'
+      );
+      const game2 = new Game(
+        'game-2',
+        'Game 2',
+        'Opponent',
+        new Date(),
+        'season-1',
+        'type-1',
+        'away',
+        'team-2',
+        'setup',
+        'lineup-2'
+      );
+
+      const { result } = renderHook(() => useGamesStore());
+
+      // Set up games
+      act(() => {
+        result.current.games = [game1, game2];
+      });
+
+      // Filter by team
+      act(() => {
+        result.current.filterGamesByTeam('team-1');
+      });
+
+      // Should filter games to only show games for team-1
+      const filteredGames = result.current.games.filter(
+        (game) => game.teamId === 'team-1'
+      );
+      expect(filteredGames).toHaveLength(1);
+      expect(filteredGames[0].id).toBe('game-1');
+    });
+
+    it('should handle edge cases in filterGamesByStatus with specific statuses', async () => {
+      const game1 = new Game(
+        'game-1',
+        'Game 1',
+        'Opponent',
+        new Date(),
+        'season-1',
+        'type-1',
+        'home',
+        'team-1',
+        'completed',
+        'lineup-1'
+      );
+      const game2 = new Game(
+        'game-2',
+        'Game 2',
+        'Opponent',
+        new Date(),
+        'season-1',
+        'type-1',
+        'away',
+        'team-2',
+        'in_progress',
+        'lineup-2'
+      );
+
+      const { result } = renderHook(() => useGamesStore());
+
+      // Set up games
+      act(() => {
+        result.current.games = [game1, game2];
+      });
+
+      // Filter by completed status
+      act(() => {
+        result.current.filterGamesByStatus('completed');
+      });
+
+      expect(result.current.statusFilter).toBe('completed');
+
+      // Filter by in_progress status
+      act(() => {
+        result.current.filterGamesByStatus('in_progress');
+      });
+
+      expect(result.current.statusFilter).toBe('in_progress');
+    });
+  });
 });

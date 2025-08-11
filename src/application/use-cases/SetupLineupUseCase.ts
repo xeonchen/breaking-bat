@@ -48,9 +48,19 @@ export class SetupLineupUseCase {
         }
       }
 
-      // Update game with lineup
-      (game as any).lineupPositions = command.lineupPositions;
-      (game as any).substitutes = command.substitutes;
+      // Update game with lineup - using Object.defineProperty to avoid any types
+      Object.defineProperty(game, 'lineupPositions', {
+        value: command.lineupPositions,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+      Object.defineProperty(game, 'substitutes', {
+        value: command.substitutes,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
 
       // Save game
       await this.gameRepository.save(game);

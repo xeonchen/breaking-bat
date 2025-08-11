@@ -1,0 +1,85 @@
+id: load-sample-data
+title: Load Sample Data for Testing
+actor: Developer/Tester
+goal: Load sample data with a single click to populate the application for testing
+inputs:
+  - name: load_sample_data_button
+    type: button
+    required: true
+    component_hint: "Button(leftIcon=<AddIcon />, colorScheme='blue', loadingText='Loading Sample Data...')"
+actions:
+  - type: click
+    label: Load Sample Data
+    component_hint: 'Button(onClick=handleLoadSampleData, isLoading=loading)'
+acceptance_criteria:
+  - description: Settings page shows Load Sample Data button with clear description
+    workflow: ui_display
+  - description: Successfully creates 3 teams, multiple MLB players, 3 seasons, and 5 game types
+    workflow: success_path
+  - description: Shows success notification with creation details
+    workflow: success_feedback
+  - description: Shows error notification on failure
+    workflow: error_path
+  - description: Handles existing data gracefully without duplicates
+    workflow: duplicate_handling
+  - description: Button shows loading state during processing
+    workflow: loading_state
+  - description: Created data is visible in respective pages
+    workflow: data_verification
+error_states:
+  - name: LoadDefaultDataUseCaseNotInitialized
+    http_status: 500
+    response_body:
+      error_code: 'DEPENDENCY_ERROR'
+      message: 'LoadDefaultDataUseCase not initialized'
+  - name: RepositoryNotInitialized
+    http_status: 500
+    response_body:
+      error_code: 'DEPENDENCY_ERROR'
+      message: 'Required repository not initialized'
+  - name: DataCreationError
+    http_status: 500
+    response_body:
+      error_code: 'DATA_CREATION_ERROR'
+      message: 'Failed to create sample data'
+defensive_actions:
+  retry_policy: 'none (manual user action)'
+  circuit_breaker: 'none'
+  validation: 'check all dependencies before execution'
+meta:
+  status: implemented
+  version: 1.0.0
+  owner: development-team@breaking-bat.com
+  design_spec_url: 'settings-page-design.md'
+expected_sample_data:
+  teams:
+    - name: 'Dodgers All-Stars'
+      player_count: 12
+      players:
+        [
+          'Walker Buehler',
+          'Will Smith',
+          'Freddie Freeman',
+          'Shohei Ohtani',
+          'Mookie Betts',
+        ]
+    - name: 'Yankees Legends'
+      player_count: 11
+      players: ['Gerrit Cole', 'Aaron Judge', 'Juan Soto', 'Giancarlo Stanton']
+    - name: 'Braves Champions'
+      player_count: 10
+      players:
+        ['Spencer Strider', 'Ronald Acuña Jr', 'Austin Riley', 'Matt Olson']
+  seasons:
+    - name: '2025 Spring Season'
+      period: 'March 1 - May 31, 2025'
+    - name: '2025 Summer Season'
+      period: 'June 1 - August 31, 2025'
+    - name: '2025 Fall Season'
+      period: 'September 1 - November 30, 2025'
+  game_types:
+    - 'Regular Season'
+    - 'Playoff'
+    - 'Championship'
+    - 'Tournament'
+    - 'Scrimmage'

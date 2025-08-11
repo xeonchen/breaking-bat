@@ -164,6 +164,19 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     await this.db.table('players').delete(id);
   }
 
+  public async existsByTeamAndJersey(
+    teamId: string,
+    jerseyNumber: number
+  ): Promise<boolean> {
+    const player = await this.db
+      .table('players')
+      .where(['teamId', 'jerseyNumber'])
+      .equals([teamId, jerseyNumber])
+      .first();
+
+    return !!player;
+  }
+
   public async updateStatistics(
     id: string,
     statistics: PlayerStatistics

@@ -39,15 +39,11 @@ describe('AtBatForm Component', () => {
         />
       );
 
-      expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
+      expect(screen.getByTestId('current-batter')).toHaveTextContent(
         'John Smith'
       );
-      expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
-        '#12'
-      );
-      expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
-        '3rd'
-      );
+      expect(screen.getByTestId('current-batter')).toHaveTextContent('#12');
+      expect(screen.getByTestId('current-batter')).toHaveTextContent('3rd');
     });
 
     it('should display current count', () => {

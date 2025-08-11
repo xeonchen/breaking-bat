@@ -40,13 +40,22 @@ import {
 import { AddIcon, SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
-import { Game, GameStatus } from '@/domain';
+import { Game, GameStatus, Player } from '@/domain';
+import { LineupSetupModal } from '../components/LineupSetupModal';
 
 export default function GamePage() {
   const navigate = useNavigate();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isLineupModalOpen,
+    onOpen: onLineupModalOpen,
+    onClose: onLineupModalClose,
+  } = useDisclosure();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGameForLineup, setSelectedGameForLineup] =
+    useState<Game | null>(null);
+  const [playersForLineup, setPlayersForLineup] = useState<Player[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -73,7 +82,10 @@ export default function GamePage() {
     loadSeasons,
     loadGameTypes,
     loadTeams,
+    loadPlayersForTeam,
     createGame,
+    updateGame,
+    saveLineup,
     searchGames,
     filterGamesByStatus,
     clearError,
@@ -170,15 +182,98 @@ export default function GamePage() {
       }
 
       // Navigate to scoring page - the ScoringPage will handle starting the game
-      navigate('/scoring', { state: { gameId: game.id, shouldStart: true } });
+      navigate(`/scoring/${game.id}`, { state: { shouldStart: true } });
     } else if (game.status === 'in_progress') {
-      navigate('/scoring', { state: { gameId: game.id } });
+      navigate(`/scoring/${game.id}`);
     } else if (game.status === 'suspended') {
-      navigate('/scoring', { state: { gameId: game.id, shouldResume: true } });
+      navigate(`/scoring/${game.id}`, { state: { shouldResume: true } });
     } else if (game.status === 'completed') {
       // Navigate to results/stats page when implemented
       navigate('/stats', { state: { gameId: game.id } });
     }
+  };
+
+  const handleSetupLineup = async (game: Game) => {
+    setSelectedGameForLineup(game);
+
+    // Load players for the team
+    try {
+      const players = await loadPlayersForTeam(game.teamId);
+      setPlayersForLineup(players);
+    } catch (error) {
+      console.error('Failed to load players for team:', error);
+      setPlayersForLineup([]);
+    }
+
+    onLineupModalOpen();
+  };
+
+  const handleLineupSave = async (lineupData: {
+    gameId: string;
+    battingOrder: Array<{
+      battingOrder: number;
+      playerId: string;
+      defensivePosition: string;
+    }>;
+  }) => {
+    try {
+      console.log('Saving lineup:', lineupData);
+
+      // Find the current game
+      const currentGame = games.find((g) => g.id === lineupData.gameId);
+      if (!currentGame) {
+        throw new Error('Game not found');
+      }
+
+      // Create a lineup ID (for now, we'll use the game ID with a suffix)
+      const lineupId = `lineup-${lineupData.gameId}-${Date.now()}`;
+
+      // Extract player IDs and defensive positions from lineup data
+      const playerIds = lineupData.battingOrder.map((item) => item.playerId);
+      const defensivePositions = lineupData.battingOrder.map(
+        (item) => item.defensivePosition
+      );
+
+      // Save lineup data to the repository first
+      await saveLineup(
+        lineupData.gameId,
+        lineupId,
+        playerIds,
+        defensivePositions
+      );
+
+      // Create updated game with the lineup ID
+      const gameWithLineup = currentGame.setLineup(lineupId);
+
+      // Update the game using the store's updateGame method
+      await updateGame(gameWithLineup);
+
+      toast({
+        title: 'Lineup saved successfully',
+        description: 'Game is now ready to start!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      // Reload games to reflect lineup changes
+      loadGames();
+      onLineupModalClose();
+      setSelectedGameForLineup(null);
+    } catch (error) {
+      toast({
+        title: 'Failed to save lineup',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        status: 'error',
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleLineupModalClose = () => {
+    onLineupModalClose();
+    setSelectedGameForLineup(null);
+    setPlayersForLineup([]);
   };
 
   const getStatusBadge = (status: GameStatus) => {
@@ -197,17 +292,42 @@ export default function GamePage() {
     );
   };
 
-  const getActionButton = (game: Game) => {
+  const getActionButtons = (game: Game) => {
     if (game.status === 'setup') {
       return (
-        <Button
-          size="sm"
-          colorScheme="green"
-          onClick={() => handleGameAction(game)}
-          isDisabled={!game.lineupId}
-        >
-          Start Game
-        </Button>
+        <VStack spacing={2} align="stretch">
+          {!game.lineupId ? (
+            <Button
+              size="sm"
+              colorScheme="blue"
+              variant="outline"
+              leftIcon={<AddIcon />}
+              onClick={() => handleSetupLineup(game)}
+              data-testid="setup-lineup-button"
+            >
+              Setup Lineup
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              colorScheme="blue"
+              variant="outline"
+              onClick={() => handleSetupLineup(game)}
+              data-testid="view-edit-lineup-button"
+            >
+              View/Edit Lineup
+            </Button>
+          )}
+          <Button
+            size="sm"
+            colorScheme="green"
+            onClick={() => handleGameAction(game)}
+            isDisabled={!game.lineupId}
+            data-testid="start-game-button"
+          >
+            Start Game
+          </Button>
+        </VStack>
       );
     } else if (game.status === 'in_progress') {
       return (
@@ -359,7 +479,7 @@ export default function GamePage() {
                   {games.map((game) => (
                     <Card
                       key={game.id}
-                      data-testid={`game-card-${game.id}`}
+                      data-testid={`game-${game.name.toLowerCase().replace(/\s+/g, '-')}`}
                       role="article"
                       aria-label={`Game: ${game.name}`}
                     >
@@ -387,7 +507,7 @@ export default function GamePage() {
                             </Text>
                           )}
 
-                          <Box>{getActionButton(game)}</Box>
+                          <Box>{getActionButtons(game)}</Box>
                         </VStack>
                       </CardBody>
                     </Card>
@@ -404,7 +524,12 @@ export default function GamePage() {
       </VStack>
 
       {/* Create Game Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="lg"
+        data-testid="create-game-modal"
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader as="h2">Create New Game</ModalHeader>
@@ -545,6 +670,7 @@ export default function GamePage() {
               <FormControl>
                 <FormLabel>Home/Away</FormLabel>
                 <Select
+                  data-testid="home-away-select"
                   value={formData.homeAway}
                   onChange={(e) =>
                     setFormData({
@@ -576,6 +702,28 @@ export default function GamePage() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Lineup Setup Modal */}
+      {selectedGameForLineup && (
+        <LineupSetupModal
+          isOpen={isLineupModalOpen}
+          onClose={handleLineupModalClose}
+          onSave={handleLineupSave}
+          game={selectedGameForLineup}
+          team={
+            teams.find((t) => t.id === selectedGameForLineup.teamId) ||
+            teams[0] || {
+              id: '',
+              name: 'Unknown Team',
+              seasonIds: [],
+              playerIds: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+          }
+          players={playersForLineup}
+        />
+      )}
     </Box>
   );
 }

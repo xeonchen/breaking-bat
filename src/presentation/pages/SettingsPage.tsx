@@ -10,18 +10,48 @@ import {
   Tab,
   TabPanel,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
-import { DownloadIcon } from '@chakra-ui/icons';
+import { DownloadIcon, AddIcon } from '@chakra-ui/icons';
 import { SeasonsManagement } from '@/presentation/components/settings/SeasonsManagement';
 import { GameTypesManagement } from '@/presentation/components/settings/GameTypesManagement';
+import { useGamesStore } from '@/presentation/stores/gamesStore';
 
 export default function SettingsPage() {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const toast = useToast();
+  const { loadDefaultData, loading } = useGamesStore();
 
   const handleExportData = () => {
     console.log('🔄 Export data clicked');
     // TODO: Implement actual data export functionality
     alert('Data export functionality will be implemented here');
+  };
+
+  const handleLoadSampleData = async () => {
+    try {
+      console.log('🔄 Load sample data clicked');
+      const result = await loadDefaultData();
+      toast({
+        title: 'Sample Data Loaded Successfully!',
+        description: result.message,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Failed to load sample data:', error);
+      toast({
+        title: 'Failed to Load Sample Data',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -46,14 +76,42 @@ export default function SettingsPage() {
                   <Heading size="md" mb={4}>
                     Data Management
                   </Heading>
-                  <Button
-                    data-testid="export-data-button"
-                    leftIcon={<DownloadIcon />}
-                    colorScheme="green"
-                    onClick={handleExportData}
-                  >
-                    Export Data
-                  </Button>
+                  <VStack align="stretch" spacing={4}>
+                    <Box>
+                      <Text
+                        data-testid="load-sample-data-description"
+                        mb={2}
+                        fontSize="sm"
+                        color="gray.600"
+                      >
+                        Load sample teams with MLB fantasy players, seasons, and
+                        game types for testing
+                      </Text>
+                      <Button
+                        data-testid="load-sample-data-button"
+                        leftIcon={<AddIcon />}
+                        colorScheme="blue"
+                        onClick={handleLoadSampleData}
+                        isLoading={loading}
+                        loadingText="Loading Sample Data..."
+                      >
+                        Load Sample Data
+                      </Button>
+                    </Box>
+                    <Box>
+                      <Text mb={2} fontSize="sm" color="gray.600">
+                        Export all your current data
+                      </Text>
+                      <Button
+                        data-testid="export-data-button"
+                        leftIcon={<DownloadIcon />}
+                        colorScheme="green"
+                        onClick={handleExportData}
+                      >
+                        Export Data
+                      </Button>
+                    </Box>
+                  </VStack>
                 </Box>
 
                 <Box>

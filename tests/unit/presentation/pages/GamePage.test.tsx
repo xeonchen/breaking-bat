@@ -305,7 +305,7 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const gameCard = screen.getByTestId('game-card-game-1');
+      const gameCard = screen.getByTestId('game-game-vs-yankees');
       expect(within(gameCard).getByText('Game vs Yankees')).toBeInTheDocument();
       expect(within(gameCard).getByText('vs Yankees')).toBeInTheDocument();
       expect(within(gameCard).getByText('Setup')).toBeInTheDocument();
@@ -319,9 +319,11 @@ describe('GamePage', () => {
       );
 
       // Check for status badges within game cards, not tabs
-      const setupGameCard = screen.getByTestId('game-card-game-1');
-      const activeGameCard = screen.getByTestId('game-card-game-2');
-      const completedGameCard = screen.getByTestId('game-card-game-3');
+      const setupGameCard = screen.getByTestId('game-game-vs-yankees');
+      const activeGameCard = screen.getByTestId('game-active-game-vs-dodgers');
+      const completedGameCard = screen.getByTestId(
+        'game-completed-game-vs-mets'
+      );
 
       expect(within(setupGameCard).getByText('Setup')).toBeInTheDocument();
       expect(
@@ -339,7 +341,9 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const completedGameCard = screen.getByTestId('game-card-game-3');
+      const completedGameCard = screen.getByTestId(
+        'game-completed-game-vs-mets'
+      );
       expect(within(completedGameCard).getByText('8 - 6')).toBeInTheDocument();
     });
 
@@ -688,7 +692,7 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const setupGameCard = screen.getByTestId('game-card-game-1');
+      const setupGameCard = screen.getByTestId('game-game-vs-yankees');
       expect(
         within(setupGameCard).getByRole('button', { name: /start game/i })
       ).toBeInTheDocument();
@@ -701,7 +705,7 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const activeGameCard = screen.getByTestId('game-card-game-2');
+      const activeGameCard = screen.getByTestId('game-active-game-vs-dodgers');
       expect(
         within(activeGameCard).getByRole('button', { name: /continue game/i })
       ).toBeInTheDocument();
@@ -714,7 +718,9 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const completedGameCard = screen.getByTestId('game-card-game-3');
+      const completedGameCard = screen.getByTestId(
+        'game-completed-game-vs-mets'
+      );
       expect(
         within(completedGameCard).getByRole('button', { name: /view results/i })
       ).toBeInTheDocument();
@@ -727,13 +733,13 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const setupGameCard = screen.getByTestId('game-card-game-1');
+      const setupGameCard = screen.getByTestId('game-game-vs-yankees');
       fireEvent.click(
         within(setupGameCard).getByRole('button', { name: /start game/i })
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('/scoring', {
-        state: { gameId: 'game-1', shouldStart: true },
+      expect(mockNavigate).toHaveBeenCalledWith('/scoring/game-1', {
+        state: { shouldStart: true },
       });
     });
 
@@ -744,14 +750,12 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const activeGameCard = screen.getByTestId('game-card-game-2');
+      const activeGameCard = screen.getByTestId('game-active-game-vs-dodgers');
       fireEvent.click(
         within(activeGameCard).getByRole('button', { name: /continue game/i })
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('/scoring', {
-        state: { gameId: 'game-2' },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('/scoring/game-2');
     });
   });
 
@@ -782,7 +786,7 @@ describe('GamePage', () => {
       expect(screen.getByText('Active Game vs Dodgers')).toBeInTheDocument();
 
       // Verify games are displayed in mobile layout
-      const gameCards = screen.getAllByTestId(/^game-card-/);
+      const gameCards = screen.getAllByTestId(/^game-/);
       expect(gameCards).toHaveLength(2);
     });
 
@@ -811,7 +815,7 @@ describe('GamePage', () => {
       expect(screen.getByText('Active Game vs Dodgers')).toBeInTheDocument();
 
       // Verify it's using a grid layout by checking for multiple game cards
-      const gameCards = screen.getAllByTestId(/^game-card-/);
+      const gameCards = screen.getAllByTestId(/^game-/);
       expect(gameCards).toHaveLength(2);
     });
   });
@@ -869,7 +873,7 @@ describe('GamePage', () => {
         </TestWrapper>
       );
 
-      const gameCard = screen.getByTestId('game-card-game-1');
+      const gameCard = screen.getByTestId('game-game-vs-yankees');
       expect(gameCard).toHaveAttribute('role', 'article');
       expect(gameCard).toHaveAttribute('aria-label', 'Game: Game vs Yankees');
     });

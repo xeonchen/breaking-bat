@@ -70,5 +70,30 @@ export default tseslint.config(
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
     },
+  },
+  // Relaxed rules for test files
+  {
+    files: [
+      '**/*.test.{ts,tsx}',
+      '**/tests/**/*.{ts,tsx}',
+      '**/__tests__/**/*.{ts,tsx}',
+    ],
+    rules: {
+      // Allow any types in tests for mocking private APIs
+      '@typescript-eslint/no-explicit-any': 'off',
+
+      // Allow non-null assertions in tests when we control test data
+      '@typescript-eslint/no-non-null-assertion': 'off',
+
+      // Allow unused variables in tests (mock functions, etc.)
+      '@typescript-eslint/no-unused-vars': 'off',
+
+      // Allow security warnings in test files - these are false positives for test data
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
+
+      // Allow explicit member accessibility warnings in tests
+      '@typescript-eslint/explicit-member-accessibility': 'off',
+    },
   }
 );

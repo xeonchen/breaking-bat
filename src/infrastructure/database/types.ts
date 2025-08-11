@@ -63,8 +63,8 @@ export interface GameRecord {
   name: string;
   opponent: string;
   date: Date;
-  seasonId: string;
-  gameTypeId: string;
+  seasonId: string | null;
+  gameTypeId: string | null;
   homeAway: 'home' | 'away';
   teamId: string;
   status: 'setup' | 'in_progress' | 'completed' | 'suspended';
@@ -95,6 +95,15 @@ export interface InningRecord {
   isComplete: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export interface LineupRecord {
+  id: string;
+  gameId: string;
+  playerIds: string[]; // Array of player IDs in batting order
+  defensivePositions: string[]; // Array of defensive positions corresponding to playerIds
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface AtBatRecord {
@@ -128,6 +137,7 @@ export interface BreakingBatDatabase extends Dexie {
   seasons: Table<SeasonRecord>;
   gameTypes: Table<GameTypeRecord>;
   games: Table<GameRecord>;
+  lineups: Table<LineupRecord>;
   innings: Table<InningRecord>;
   atBats: Table<AtBatRecord>;
 }

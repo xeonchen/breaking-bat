@@ -23,14 +23,15 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import { useEffect, useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Scoreboard } from '@/presentation/components/Scoreboard';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
 import { useGameStore } from '@/presentation/stores/gameStore';
 import { BattingResult } from '@/domain';
 
 export default function ScoringPage() {
-  // Use location hook - in test environment, this will be mocked
+  // Get gameId from URL params and location state
+  const { gameId } = useParams<{ gameId: string }>();
   const location = useLocation();
 
   const {
@@ -45,6 +46,7 @@ export default function ScoringPage() {
     loading,
     error,
     getCurrentGame,
+    loadGame,
     startGame,
     resumeGame,
     recordAtBat,
@@ -86,51 +88,67 @@ export default function ScoringPage() {
 
   // Load initial data
   useEffect(() => {
-    const initializeGame = async () => {
-      await getCurrentGame();
-      await getTeams();
-      await getLineup();
+    const initializeData = async () => {
+      try {
+        // First, load game by ID if gameId is in URL params, otherwise load current game
+        if (gameId) {
+          await loadGame(gameId);
+        } else {
+          await getCurrentGame();
+        }
 
-      // Handle game state transitions based on navigation state
+        // Load teams in parallel with game data
+        await getTeams();
+
+        // Load lineup AFTER game is loaded (getLineup depends on currentGame.lineupId)
+        await getLineup();
+      } catch (error) {
+        console.error('❌ Failed to initialize game data:', error);
+      }
+    };
+
+    initializeData();
+  }, [gameId, loadGame, getCurrentGame, getTeams, getLineup]);
+
+  // Handle game state transitions when currentGame changes
+  useEffect(() => {
+    if (!currentGame) return;
+
+    const handleGameStateTransitions = async () => {
       const navigationState = location.state as {
         gameId?: string;
         shouldStart?: boolean;
         shouldResume?: boolean;
       };
 
-      if (navigationState?.shouldStart && currentGame) {
-        if (currentGame.status === 'setup' && currentGame.lineupId) {
-          try {
-            await startGame(currentGame.lineupId);
-            setScoreUpdateAnnouncement('Game started! Play ball!');
-            setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
-          } catch (error) {
-            console.error('Failed to start game:', error);
-          }
+      if (
+        navigationState?.shouldStart &&
+        currentGame.status === 'setup' &&
+        currentGame.lineupId
+      ) {
+        try {
+          await startGame(currentGame.lineupId);
+          setScoreUpdateAnnouncement('Game started! Play ball!');
+          setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
+        } catch (error) {
+          console.error('Failed to start game:', error);
         }
-      } else if (navigationState?.shouldResume && currentGame) {
-        if (currentGame.status === 'suspended') {
-          try {
-            await resumeGame();
-            setScoreUpdateAnnouncement("Game resumed! Let's continue!");
-            setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
-          } catch (error) {
-            console.error('Failed to resume game:', error);
-          }
+      } else if (
+        navigationState?.shouldResume &&
+        currentGame.status === 'suspended'
+      ) {
+        try {
+          await resumeGame();
+          setScoreUpdateAnnouncement("Game resumed! Let's continue!");
+          setTimeout(() => setScoreUpdateAnnouncement(''), 3000);
+        } catch (error) {
+          console.error('Failed to resume game:', error);
         }
       }
     };
 
-    initializeGame();
-  }, [
-    getCurrentGame,
-    getTeams,
-    getLineup,
-    startGame,
-    resumeGame,
-    location.state,
-    currentGame,
-  ]);
+    handleGameStateTransitions();
+  }, [currentGame, startGame, resumeGame, location.state]);
 
   // Handle at-bat completion
   const handleAtBatComplete = useCallback(
@@ -169,7 +187,8 @@ export default function ScoringPage() {
           duration: 2000,
           isClosable: true,
         });
-      } catch {
+      } catch (error) {
+        console.error('❌ ScoringPage: Error recording at-bat:', error);
         toast({
           title: 'Error recording at-bat',
           description: 'Please try again',

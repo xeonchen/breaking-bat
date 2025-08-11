@@ -320,12 +320,10 @@ describe('ScoringPage Component', () => {
       const atBatForm = screen.getByTestId('at-bat-form');
       expect(atBatForm).toBeInTheDocument();
 
-      expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
+      expect(screen.getByTestId('current-batter')).toHaveTextContent(
         'John Smith'
       );
-      expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
-        '#12'
-      );
+      expect(screen.getByTestId('current-batter')).toHaveTextContent('#12');
     });
 
     it('should show current count', () => {
@@ -796,12 +794,10 @@ describe('ScoringPage Component', () => {
       // The test should check that the component displays the current batter from the store
       // Since mockGameStoreState.currentBatter is mockLineup[0] (John Smith), verify that
       await waitFor(() => {
-        expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
+        expect(screen.getByTestId('current-batter')).toHaveTextContent(
           'John Smith'
         );
-        expect(screen.getByTestId('current-batter-info')).toHaveTextContent(
-          '#12'
-        );
+        expect(screen.getByTestId('current-batter')).toHaveTextContent('#12');
       });
     });
 

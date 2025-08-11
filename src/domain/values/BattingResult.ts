@@ -28,7 +28,7 @@ export class BattingResult {
   }
 
   public static isValid(result: string): boolean {
-    return BattingResult.VALID_RESULTS.includes(result as any);
+    return (BattingResult.VALID_RESULTS as readonly string[]).includes(result);
   }
 
   // Hit results

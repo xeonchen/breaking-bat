@@ -54,6 +54,22 @@ actions:
     target: last_action
 
 entities:
+  current_game:
+    description: 'Game entity must be properly hydrated with domain methods'
+    requirements:
+      - must_be_domain_entity: 'Game object must have domain methods like isHomeGame(), isAwayGame()'
+      - hydration_required: 'Plain database objects must be converted to domain entities'
+      - methods_available:
+          ['isHomeGame', 'isAwayGame', 'getVenueText', 'getSummary']
+    properties:
+      - id: uuid
+      - name: string
+      - opponent: string
+      - date: datetime
+      - teamId: uuid
+      - homeAway: enum
+      - status: enum
+      - lineupId: uuid
   at_bat:
     properties:
       - id: uuid
@@ -99,14 +115,79 @@ entities:
       - batting_average: float
 
 acceptance_criteria:
-  - real-time scoreboard shows both teams scores by inning
-  - system automatically selects current batter from lineup
-  - quick-action buttons available for all batting results
-  - baserunner advancement automatically suggested with manual override
-  - RBI count automatically calculated with manual confirmation
-  - opponent scores can be recorded by inning
-  - all scoring actions immediately saved
-  - interface optimized for touch input during live games
+  # Core At-Bat Recording (Currently Missing Integration)
+  - id: AC001
+    description: 'Record at-bat results with functional business logic integration and database persistence'
+    workflow: at_bat_recording
+    test_coverage: [unit, integration, e2e]
+  - id: AC002
+    description: 'System automatically selects current batter and advances to next batter after each at-bat'
+    workflow: game_flow
+    test_coverage: [unit, integration, e2e]
+  - id: AC003
+    description: 'Quick-action buttons for all batting results (1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP)'
+    workflow: at_bat_recording
+    test_coverage: [unit, component, e2e]
+
+  # Baserunner Management (Currently Missing)
+  - id: AC004
+    description: 'Apply standard softball baserunner advancement rules automatically after batting result'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC005
+    description: 'Manual override capability for runner advancement in unusual situations'
+    workflow: baserunner_advancement
+    test_coverage: [unit, component, e2e]
+  - id: AC006
+    description: 'Track which runners score and calculate RBIs accurately'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC007
+    description: 'Visual representation of current baserunners at all times'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
+
+  # Inning and Out Management (Currently Missing)
+  - id: AC008
+    description: 'Automatically count outs and switch sides when 3 outs are reached'
+    workflow: inning_management
+    test_coverage: [unit, integration, e2e]
+  - id: AC009
+    description: 'Innings progress automatically and are tracked correctly throughout game'
+    workflow: inning_management
+    test_coverage: [unit, integration, e2e]
+  - id: AC010
+    description: 'Scoreboard updates in real-time as runs are scored'
+    workflow: game_flow
+    test_coverage: [integration, e2e]
+
+  # Game Flow Integration (Currently Missing)
+  - id: AC011
+    description: 'All at-bat data immediately saved to prevent data loss during live gameplay'
+    workflow: game_flow
+    test_coverage: [integration, e2e]
+  - id: AC012
+    description: 'Scoring interface integrates with game state (only score during in-progress games)'
+    workflow: game_flow
+    test_coverage: [unit, integration, e2e]
+  - id: AC013
+    description: "Display both teams' scores by inning with running totals"
+    workflow: game_flow
+    test_coverage: [component, e2e]
+
+  # User Experience
+  - id: AC014
+    description: 'Interface optimized for quick, accurate input during live gameplay'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
+  - id: AC015
+    description: 'Interface works well with touch input on tablets'
+    workflow: at_bat_recording
+    test_coverage: [e2e]
+  - id: AC016
+    description: 'All scoring actions provide immediate visual feedback'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
 
 validation_rules:
   - batting results must be valid softball outcomes
@@ -124,60 +205,245 @@ business_rules:
   - sacrifice flies score runners from third base
   - errors may allow advancement at scorekeeper discretion
 
-auto_calculations:
-  baserunner_advancement:
-    single:
-      - runners advance one base
-      - runner on second scores
-    double:
-      - all runners advance two bases
-      - runners score from second and third
-    triple:
-      - all runners score
-      - batter reaches third base
-    home_run:
-      - all runners score including batter
-    walk:
-      - forced runners advance
-      - non-forced runners stay
-    sacrifice_fly:
-      - runner on third scores
-      - other runners may advance
+standard_baserunner_advancement:
+  # Default advancement rules - scorekeeper can manually override any of these
+  single:
+    - batter reaches first base
+    - runner on third scores
+    - runner on second scores
+    - runner on first advances to second
+  double:
+    - batter reaches second base
+    - all runners advance two bases
+    - runners score from second and third
+  triple:
+    - batter reaches third base
+    - all existing runners score
+  home_run:
+    - all runners score including batter
+    - bases cleared
+  walk:
+    - batter takes first base
+    - forced runners advance one base
+    - non-forced runners stay (unless manually overridden)
+  sacrifice_fly:
+    - batter is out
+    - runner on third scores (if present)
+    - other runners may advance (scorekeeper choice)
+  strikeout:
+    - batter is out
+    - no runner advancement (unless stealing/wild pitch - manual override)
+  ground_out:
+    - batter is out
+    - runners may advance (scorekeeper choice)
+  air_out:
+    - batter is out
+    - no runner advancement (unless tagging up - manual override)
+  error:
+    - batter reaches base (as determined by scorekeeper)
+    - runner advancement determined by scorekeeper
+  fielders_choice:
+    - batter reaches first
+    - runner advancement determined by play situation (manual)
 
 workflows:
   at_bat_recording:
+    description: 'Complete functional integration between UI and business logic for at-bat recording'
     steps:
-      - display_current_batter
-      - show_baserunner_state
-      - await_batting_result
-      - calculate_advancement
-      - confirm_rbis
-      - update_statistics
-      - advance_to_next_batter
+      - display_current_batter: 'Show current batter from lineup with position and order'
+      - show_baserunner_state: 'Display live baserunner positions with player names'
+      - await_batting_result: 'Present touch-friendly buttons for all batting results'
+      - apply_standard_advancement: 'Automatically apply standard baserunner rules'
+      - allow_manual_override: 'Provide manual override interface for unusual situations'
+      - calculate_rbis: 'Count RBIs based on runners scored'
+      - persist_at_bat: 'Save complete at-bat record to database immediately'
+      - update_statistics: 'Update real-time game statistics'
+      - advance_to_next_batter: 'Move to next batter in lineup order'
+      - trigger_inning_check: 'Check if inning should advance due to outs'
+
   inning_management:
+    description: 'Automated inning progression with out counting and side switching'
     steps:
-      - track_outs
-      - switch_sides_at_three_outs
-      - record_inning_totals
-      - update_scoreboard
+      - track_outs: 'Count outs from each at-bat result'
+      - check_three_outs: 'Monitor when 3 outs are reached'
+      - switch_sides_at_three_outs: 'Automatically change batting team'
+      - advance_inning: 'Progress inning number when both sides complete'
+      - record_inning_totals: 'Calculate runs scored per inning'
+      - update_scoreboard: 'Refresh live scoreboard display'
+      - reset_baserunners: 'Clear bases for new inning'
+      - reset_batting_order: 'Return to leadoff batter'
+
   game_flow:
+    description: 'Overall game state management and data persistence'
     steps:
-      - maintain_batting_order
-      - track_current_inning
-      - update_live_statistics
-      - save_all_changes
+      - maintain_batting_order: 'Cycle through lineup automatically'
+      - track_current_inning: 'Maintain current inning and half-inning state'
+      - update_live_statistics: 'Real-time calculation of game stats'
+      - save_all_changes: 'Immediate persistence of all game data'
+      - handle_game_transitions: 'Manage setup → in-progress → completed states'
+      - provide_undo_capability: 'Allow correction of last recorded at-bat'
+
+  baserunner_advancement:
+    description: 'Standard advancement rules with manual override capability'
+    steps:
+      - identify_current_runners: 'Determine runners on base before at-bat'
+      - apply_batting_result: 'Apply standard advancement for hit/walk/out'
+      - check_forced_advancement: 'Handle forced runners on walks/hits'
+      - calculate_scoring_runners: 'Identify which runners score'
+      - provide_override_interface: 'Show manual advancement options when enabled'
+      - validate_advancement: 'Ensure logical runner positioning'
+      - update_baserunner_state: 'Apply final runner positions'
+
+ui_schema:
+  components:
+    - field: current_batter
+      component: BatterDisplay
+      props:
+        format: '#{jerseyNumber} {playerName}'
+        subtitle: '{battingOrder} Batter' # Uses proper ordinal: 1st, 2nd, 3rd, 4th, etc.
+        testId: 'current-batter'
+        fontSize: 'lg-xl'
+        fontWeight: 'bold'
+    - field: batting_order_display
+      component: Text
+      props:
+        format: '{battingOrder} Batter' # Must use proper ordinal suffix (1st, 2nd, 3rd, 4th, 5th, etc.)
+        testId: 'batting-order-display'
+        color: 'muted'
+        fontSize: 'sm'
+    - field: outcome_buttons
+      component: ButtonGroup
+      props:
+        layout: 'grid'
+        spacing: 2
+        testId: 'outcome-buttons'
+        touchFriendly: true
+        buttons:
+          - {
+              label: 'Single',
+              value: 'single',
+              testId: 'single-button',
+              colorScheme: 'green',
+            }
+          - {
+              label: 'Double',
+              value: 'double',
+              testId: 'double-button',
+              colorScheme: 'green',
+            }
+          - {
+              label: 'Triple',
+              value: 'triple',
+              testId: 'triple-button',
+              colorScheme: 'green',
+            }
+          - {
+              label: 'Home Run',
+              value: 'home_run',
+              testId: 'home-run-button',
+              colorScheme: 'green',
+            }
+          - {
+              label: 'Walk',
+              value: 'walk',
+              testId: 'walk-button',
+              colorScheme: 'blue',
+            }
+          - {
+              label: 'Strikeout',
+              value: 'strikeout',
+              testId: 'strikeout-button',
+              colorScheme: 'red',
+            }
+          - {
+              label: 'Ground Out',
+              value: 'ground_out',
+              testId: 'ground-out-button',
+              colorScheme: 'red',
+            }
+    - field: baserunner_state
+      component: BaserunnerDiagram
+      props:
+        testId: 'baserunner-state'
+        positions:
+          - {
+              base: 'first',
+              testId: 'baserunner-first',
+              format: '{playerName} | Empty',
+            }
+          - {
+              base: 'second',
+              testId: 'baserunner-second',
+              format: '{playerName} | Empty',
+            }
+          - {
+              base: 'third',
+              testId: 'baserunner-third',
+              format: '{playerName} | Empty',
+            }
+    - field: baserunner_advancement_modal
+      component: Modal
+      props:
+        testId: 'baserunner-advancement-modal'
+        title: 'Baserunner Advancement'
+        confirmButton:
+          label: 'Confirm'
+          testId: 'confirm-advancement'
+        cancelButton:
+          label: 'Cancel'
+          testId: 'cancel-advancement'
 
 ui_requirements:
-  - large touch-friendly buttons for batting results
-  - visual baserunner diagram showing current state
+  - large touch-friendly buttons for batting results (minimum 44px height per iOS/Android guidelines)
+  - visual baserunner diagram showing current state with player names or "Empty"
   - prominent scoreboard with inning-by-inning breakdown
-  - current batter highlighted in lineup
+  - current batter highlighted in lineup with proper ordinal suffix (1st, 2nd, 3rd, 4th, 5th, etc.)
   - quick access to undo functionality
   - responsive design for tablet use
 
+traceability:
+  source_story_id: 'live-scoring'
+  acceptance_criteria_covered:
+    [
+      'AC001',
+      'AC002',
+      'AC003',
+      'AC004',
+      'AC005',
+      'AC006',
+      'AC007',
+      'AC008',
+      'AC009',
+      'AC010',
+      'AC011',
+      'AC012',
+      'AC013',
+      'AC014',
+      'AC015',
+      'AC016',
+    ]
+  test_files:
+    - 'tests/unit/application/usecases/RecordAtBatUseCase.test.ts'
+    - 'tests/unit/domain/services/BaserunnerAdvancementService.test.ts'
+    - 'tests/unit/presentation/stores/gameStore.test.ts'
+    - 'tests/integration/scoring/AtBatRecordingIntegration.test.ts'
+    - 'tests/integration/scoring/InningManagementIntegration.test.ts'
+    - 'tests/e2e/live-scoring/at-bat-recording.spec.ts'
+    - 'tests/e2e/live-scoring/baserunner-advancement.spec.ts'
+    - 'tests/e2e/live-scoring/inning-management.spec.ts'
+  implementation_files:
+    - 'src/application/usecases/RecordAtBatUseCase.ts'
+    - 'src/domain/services/BaserunnerAdvancementService.ts'
+    - 'src/presentation/stores/gameStore.ts'
+    - 'src/presentation/pages/ScoringPage.tsx'
+    - 'src/presentation/components/AtBatForm.tsx'
+    - 'src/presentation/components/Scoreboard.tsx'
+
 meta:
-  status: active
-  version: 1.0.0
+  status: ready-for-implementation
+  version: 2.0.0
   priority: critical
   dependencies: [game-setup, team-management]
   created_by: breaking-bat-team
+  updated_date: '2025-08-09'
+  implementation_phase: 'Priority 1 - Live Scoring Implementation'
