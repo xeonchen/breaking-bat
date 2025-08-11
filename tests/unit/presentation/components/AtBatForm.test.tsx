@@ -699,4 +699,77 @@ describe('AtBatForm Component', () => {
       expect(screen.getByTestId('strikes-count')).toHaveTextContent('1');
     });
   });
+
+  describe('Disabled State', () => {
+    it('should disable all controls when disabled prop is true', async () => {
+      const user = userEvent.setup();
+      const mockOnAtBatComplete = jest.fn();
+
+      renderWithChakra(
+        <AtBatForm
+          currentBatter={mockCurrentBatter}
+          baserunners={mockBaserunners}
+          currentCount={{ balls: 1, strikes: 1 }}
+          onAtBatComplete={mockOnAtBatComplete}
+          disabled={true}
+        />
+      );
+
+      // Check that all buttons are disabled
+      expect(screen.getByTestId('ball-button')).toBeDisabled();
+      expect(screen.getByTestId('strike-button')).toBeDisabled();
+      expect(screen.getByTestId('foul-button')).toBeDisabled();
+      expect(screen.getByTestId('single-button')).toBeDisabled();
+      expect(screen.getByTestId('double-button')).toBeDisabled();
+      expect(screen.getByTestId('triple-button')).toBeDisabled();
+      expect(screen.getByTestId('home-run-button')).toBeDisabled();
+      expect(screen.getByTestId('walk-button')).toBeDisabled();
+      expect(screen.getByTestId('strikeout-button')).toBeDisabled();
+      expect(screen.getByTestId('ground-out-button')).toBeDisabled();
+      expect(screen.getByTestId('clear-count-button')).toBeDisabled();
+
+      // Try clicking a disabled button and ensure no callback is triggered
+      await user.click(screen.getByTestId('single-button'));
+      expect(mockOnAtBatComplete).not.toHaveBeenCalled();
+    });
+
+    it('should apply visual disabled styling when disabled', () => {
+      renderWithChakra(
+        <AtBatForm
+          currentBatter={mockCurrentBatter}
+          baserunners={mockBaserunners}
+          currentCount={{ balls: 1, strikes: 1 }}
+          onAtBatComplete={jest.fn()}
+          disabled={true}
+        />
+      );
+
+      const form = screen.getByTestId('at-bat-form');
+      expect(form).toHaveStyle('opacity: 0.6');
+    });
+
+    it('should remain enabled when disabled prop is false or not provided', async () => {
+      const user = userEvent.setup();
+      const mockOnAtBatComplete = jest.fn();
+
+      renderWithChakra(
+        <AtBatForm
+          currentBatter={mockCurrentBatter}
+          baserunners={mockBaserunners}
+          currentCount={{ balls: 1, strikes: 1 }}
+          onAtBatComplete={mockOnAtBatComplete}
+          disabled={false}
+        />
+      );
+
+      // Check that buttons are enabled
+      expect(screen.getByTestId('single-button')).toBeEnabled();
+      expect(screen.getByTestId('double-button')).toBeEnabled();
+      expect(screen.getByTestId('ball-button')).toBeEnabled();
+
+      // Try clicking an enabled button and ensure callback is triggered
+      await user.click(screen.getByTestId('single-button'));
+      expect(mockOnAtBatComplete).toHaveBeenCalledTimes(1);
+    });
+  });
 });

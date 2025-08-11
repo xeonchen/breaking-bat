@@ -91,6 +91,7 @@ interface AtBatFormProps {
   enablePitchTypes?: boolean;
   enableUndo?: boolean;
   isMobile?: boolean;
+  disabled?: boolean;
 }
 
 type PitchType =
@@ -117,6 +118,7 @@ export function AtBatForm({
   enablePitchTypes = false,
   enableUndo = false,
   isMobile = false,
+  disabled = false,
 }: AtBatFormProps) {
   const [count, setCount] = useState<Count>(initialCount);
   const [pitchHistory, setPitchHistory] = useState<Pitch[]>([]);
@@ -345,6 +347,8 @@ export function AtBatForm({
       borderRadius="lg"
       p={{ base: 4, md: 6 }}
       className={isMobile ? 'mobile-layout' : ''}
+      opacity={disabled ? 0.6 : 1}
+      transition="opacity 0.3s ease"
     >
       <VStack spacing={6}>
         {/* Current Batter Info */}
@@ -461,6 +465,7 @@ export function AtBatForm({
                 setSelectedPitchType(e.target.value as PitchType)
               }
               size="sm"
+              isDisabled={disabled}
             >
               <option value="fastball">Fastball</option>
               <option value="curveball">Curveball</option>
@@ -488,6 +493,7 @@ export function AtBatForm({
               size={isMobile ? 'sm' : 'md'}
               onClick={() => handlePitch('ball')}
               tabIndex={0}
+              isDisabled={disabled}
             >
               Ball
             </Button>
@@ -498,6 +504,7 @@ export function AtBatForm({
               size={isMobile ? 'sm' : 'md'}
               onClick={() => handlePitch('strike')}
               tabIndex={0}
+              isDisabled={disabled}
             >
               Strike
             </Button>
@@ -508,6 +515,7 @@ export function AtBatForm({
               size={isMobile ? 'sm' : 'md'}
               onClick={() => handlePitch('foul')}
               tabIndex={0}
+              isDisabled={disabled}
             >
               Foul
             </Button>
@@ -556,7 +564,7 @@ export function AtBatForm({
                   size="sm"
                   variant="ghost"
                   onClick={handleUndoPitch}
-                  isDisabled={pitchHistory.length === 0}
+                  isDisabled={disabled || pitchHistory.length === 0}
                 />
               )}
               <IconButton
@@ -566,6 +574,7 @@ export function AtBatForm({
                 size="sm"
                 variant="ghost"
                 onClick={handleClearCount}
+                isDisabled={disabled}
               />
             </HStack>
           </HStack>
@@ -585,6 +594,7 @@ export function AtBatForm({
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() => handleAtBatComplete(BattingResult.single())}
+                isDisabled={disabled}
               >
                 Single
               </Button>
@@ -596,6 +606,7 @@ export function AtBatForm({
                   console.log('🔘 Double button clicked!');
                   handleAtBatComplete(BattingResult.double());
                 }}
+                isDisabled={disabled}
               >
                 Double
               </Button>
@@ -604,6 +615,7 @@ export function AtBatForm({
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() => handleAtBatComplete(BattingResult.triple())}
+                isDisabled={disabled}
               >
                 Triple
               </Button>
@@ -612,6 +624,7 @@ export function AtBatForm({
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() => handleAtBatComplete(BattingResult.homeRun())}
+                isDisabled={disabled}
               >
                 Home Run
               </Button>
@@ -623,6 +636,7 @@ export function AtBatForm({
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() => handleAtBatComplete(BattingResult.walk())}
+                isDisabled={disabled}
               >
                 Walk
               </Button>
@@ -632,6 +646,7 @@ export function AtBatForm({
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() => handleAtBatComplete(BattingResult.strikeout())}
+                isDisabled={disabled}
               >
                 Strikeout
               </Button>
@@ -641,6 +656,7 @@ export function AtBatForm({
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() => handleAtBatComplete(BattingResult.groundOut())}
+                isDisabled={disabled}
               >
                 Ground Out
               </Button>

@@ -248,7 +248,7 @@ describe('ScoringPage Component', () => {
         'In Progress'
       );
       expect(screen.getByTestId('current-inning-info')).toHaveTextContent(
-        'Bottom 7th'
+        'Bottom of 7th'
       );
     });
   });
@@ -806,7 +806,7 @@ describe('ScoringPage Component', () => {
       renderWithChakra(<ScoringPage />);
 
       expect(screen.getByTestId('current-inning-info')).toHaveTextContent(
-        'Bottom 7th'
+        'Bottom of 7th'
       );
     });
 
