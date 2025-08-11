@@ -258,6 +258,14 @@ export async function createTestGame(
     tomorrow.toISOString().split('T')[0]
   );
 
+  // Set game as AWAY game so we can bat in the top of innings (when game starts)
+  // This ensures the at-bat buttons are enabled in tests since games start with isTopInning=true
+  const homeAwaySelect = page.locator('[data-testid="home-away-select"]');
+  if (await homeAwaySelect.isVisible({ timeout: 2000 })) {
+    await homeAwaySelect.selectOption('away');
+    console.log('✅ Set game as away game for testing');
+  }
+
   // Select the team (use sample data team if default, or specific team if provided)
   const teamSelect = page.locator('[data-testid="team-select"]');
   if (await teamSelect.isVisible({ timeout: 2000 })) {
