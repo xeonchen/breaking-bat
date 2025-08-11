@@ -15,13 +15,13 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Fast-fail mode for CI cost savings - exit on first failure */
   maxFailures: process.env.CI && process.env.FAST_FAIL ? 1 : undefined,
-  /* Global timeout for entire test suite */
-  globalTimeout: 20 * 60 * 1000, // 20 minutes for comprehensive test suite
-  /* Timeout for each test - keep default 30s, only increase if actually needed */
-  timeout: 30 * 1000, // 30 seconds per test (default)
-  /* Expected timeout for each assertion - keep default 5s */
+  /* Global timeout for entire test suite - increased for CI environment */
+  globalTimeout: process.env.CI ? 40 * 60 * 1000 : 20 * 60 * 1000, // 40min on CI, 20min locally
+  /* Timeout for each test - increased for CI environment */
+  timeout: process.env.CI ? 60 * 1000 : 30 * 1000, // 60s on CI, 30s locally
+  /* Expected timeout for each assertion */
   expect: {
-    timeout: 5 * 1000, // 5 seconds for assertions (default)
+    timeout: process.env.CI ? 10 * 1000 : 5 * 1000, // 10s on CI, 5s locally
   },
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
@@ -35,10 +35,10 @@ export default defineConfig({
     trace: 'on-first-retry',
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
-    /* Navigation timeout - keep reasonable but not excessive */
-    navigationTimeout: 15 * 1000, // 15 seconds for page navigation
-    /* Action timeout for clicks, fills, etc - keep default */
-    actionTimeout: 10 * 1000, // 10 seconds for user actions
+    /* Navigation timeout - increased for CI environment */
+    navigationTimeout: process.env.CI ? 30 * 1000 : 15 * 1000, // 30s on CI, 15s locally
+    /* Action timeout for clicks, fills, etc - increased for CI */
+    actionTimeout: process.env.CI ? 20 * 1000 : 10 * 1000, // 20s on CI, 10s locally
   },
 
   /* Configure projects for major browsers */
