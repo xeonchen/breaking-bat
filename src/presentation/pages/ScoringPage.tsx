@@ -250,14 +250,40 @@ export default function ScoringPage() {
     getCurrentGame();
   }, [clearError, getCurrentGame]);
 
-  // Get display text for inning
+  // Check if it's our team's turn to bat based on home/away status
+  const isOurTurnToBat = useCallback(() => {
+    if (!currentGame) return false;
+
+    // Away teams bat in top of inning, home teams bat in bottom
+    const ourTurnTop = currentGame.isAwayGame() && isTopInning;
+    const ourTurnBottom = currentGame.isHomeGame() && !isTopInning;
+
+    return ourTurnTop || ourTurnBottom;
+  }, [currentGame, isTopInning]);
+
+  // Get display text for inning with team context
   const getInningText = useCallback(() => {
     const half = isTopInning ? 'Top' : 'Bottom';
     const inningNumber = currentInning;
     const suffix = getOrdinalSuffix(inningNumber);
 
-    return `${half} ${inningNumber}${suffix}`;
-  }, [currentInning, isTopInning, getOrdinalSuffix]);
+    if (!currentGame) return `${half} ${inningNumber}${suffix}`;
+
+    const isOurTurn = isOurTurnToBat();
+
+    if (isOurTurn) {
+      return `${half} of ${inningNumber}${suffix}`;
+    } else {
+      const teamName = currentGame.opponent;
+      return `${half} of ${inningNumber}${suffix} - ${teamName} Batting`;
+    }
+  }, [
+    currentInning,
+    isTopInning,
+    getOrdinalSuffix,
+    currentGame,
+    isOurTurnToBat,
+  ]);
 
   // Loading state
   if (loading && !currentGame) {
@@ -358,9 +384,14 @@ export default function ScoringPage() {
                   ? 'In Progress'
                   : currentGame.status}
               </Badge>
-              <Text data-testid="current-inning-info" color={mutedColor}>
+              <Badge
+                data-testid="current-inning-info"
+                colorScheme={isOurTurnToBat() ? 'blue' : 'gray'}
+                variant={isOurTurnToBat() ? 'solid' : 'outline'}
+                fontSize="sm"
+              >
                 {getInningText()}
-              </Text>
+              </Badge>
               <Badge
                 data-testid="current-outs"
                 colorScheme={currentOuts >= 2 ? 'red' : 'gray'}
@@ -415,6 +446,22 @@ export default function ScoringPage() {
 
         {/* At-Bat Section */}
         <Box data-testid="at-bat-section">
+          {!isOurTurnToBat() && (
+            <Alert status="info" mb={4} data-testid="opponent-batting-alert">
+              <AlertIcon />
+              <Box>
+                <Text fontWeight="semibold">Opponent's Turn to Bat</Text>
+                <Text fontSize="sm">
+                  Recording interface is disabled while {currentGame?.opponent}{' '}
+                  is batting.
+                  {currentGame?.isAwayGame()
+                    ? ' Your team will bat in the top of the next inning.'
+                    : ' Your team will bat in the bottom of this inning.'}
+                </Text>
+              </Box>
+            </Alert>
+          )}
+
           <AtBatForm
             currentBatter={currentBatter}
             baserunners={baserunners}
@@ -425,6 +472,7 @@ export default function ScoringPage() {
             enablePitchTypes={false}
             enableUndo={true}
             isMobile={isMobile}
+            disabled={!isOurTurnToBat()}
           />
         </Box>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Heading,
@@ -61,7 +61,7 @@ export default function GamePage() {
   const [formData, setFormData] = useState({
     name: '',
     opponent: '',
-    date: '',
+    date: new Date().toISOString().split('T')[0], // Set today's date as default
     teamId: '',
     seasonId: '',
     gameTypeId: '',
@@ -69,6 +69,8 @@ export default function GamePage() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [creationError, setCreationError] = useState<string | null>(null);
+  const [gameNameManuallyModified, setGameNameManuallyModified] =
+    useState(false);
 
   // Store hooks
   const {
@@ -91,6 +93,41 @@ export default function GamePage() {
     clearError,
   } = useGamesStore();
 
+  // Helper functions for smart defaults
+  const getSmartDefaults = useCallback(() => {
+    // Get most recent selections from localStorage
+    const lastSelections = {
+      teamId:
+        localStorage.getItem('lastSelectedTeamId') ||
+        (teams.length > 0 ? teams[0].id : ''),
+      seasonId:
+        localStorage.getItem('lastSelectedSeasonId') ||
+        (seasons.length > 0 ? seasons[0].id : ''),
+      gameTypeId:
+        localStorage.getItem('lastSelectedGameTypeId') ||
+        (gameTypes.length > 0 ? gameTypes[0].id : ''),
+    };
+
+    return lastSelections;
+  }, [teams, seasons, gameTypes]);
+
+  const generateGameName = useCallback(
+    (seasonId: string, date: string, gameTypeId?: string) => {
+      const season = seasons.find((s) => s.id === seasonId);
+      const gameType = gameTypeId
+        ? gameTypes.find((gt) => gt.id === gameTypeId)
+        : null;
+
+      if (!season) return '';
+
+      const seasonName = season.name;
+      const gameTypePrefix = gameType ? `${gameType.name} - ` : '';
+
+      return `${gameTypePrefix}${seasonName} - ${date}`;
+    },
+    [seasons, gameTypes]
+  );
+
   // Load data on mount
   useEffect(() => {
     loadGames();
@@ -98,6 +135,36 @@ export default function GamePage() {
     loadGameTypes();
     loadTeams();
   }, [loadGames, loadSeasons, loadGameTypes, loadTeams]);
+
+  // Apply smart defaults when data loads
+  useEffect(() => {
+    if (teams.length > 0 && seasons.length > 0 && gameTypes.length > 0) {
+      const defaults = getSmartDefaults();
+      const currentDate = formData.date;
+
+      setFormData((prev) => ({
+        ...prev,
+        teamId: prev.teamId || defaults.teamId,
+        seasonId: prev.seasonId || defaults.seasonId,
+        gameTypeId: prev.gameTypeId || defaults.gameTypeId,
+        name: gameNameManuallyModified
+          ? prev.name
+          : generateGameName(
+              defaults.seasonId,
+              currentDate,
+              defaults.gameTypeId
+            ),
+      }));
+    }
+  }, [
+    teams,
+    seasons,
+    gameTypes,
+    gameNameManuallyModified,
+    formData.date,
+    getSmartDefaults,
+    generateGameName,
+  ]);
 
   // Search debouncing
   useEffect(() => {
@@ -111,6 +178,42 @@ export default function GamePage() {
 
     return () => clearTimeout(timer);
   }, [searchQuery, searchGames, loadGames]);
+
+  // Handler for form field changes with smart name generation
+  const handleFieldChange = (field: string, value: string) => {
+    // Save selections to localStorage for next time
+    if (field === 'teamId' && value)
+      localStorage.setItem('lastSelectedTeamId', value);
+    if (field === 'seasonId' && value)
+      localStorage.setItem('lastSelectedSeasonId', value);
+    if (field === 'gameTypeId' && value)
+      localStorage.setItem('lastSelectedGameTypeId', value);
+
+    setFormData((prev) => {
+      const newData = { ...prev, [field]: value };
+
+      // Auto-update game name if not manually modified and we have the necessary data
+      if (
+        !gameNameManuallyModified &&
+        (field === 'seasonId' || field === 'gameTypeId' || field === 'date')
+      ) {
+        const seasonId = field === 'seasonId' ? value : prev.seasonId;
+        const gameTypeId = field === 'gameTypeId' ? value : prev.gameTypeId;
+        const date = field === 'date' ? value : prev.date;
+
+        if (seasonId && date) {
+          newData.name = generateGameName(seasonId, date, gameTypeId);
+        }
+      }
+
+      return newData;
+    });
+  };
+
+  const handleGameNameChange = (value: string) => {
+    setGameNameManuallyModified(true);
+    setFormData((prev) => ({ ...prev, name: value }));
+  };
 
   const handleCreateGame = async () => {
     // Clear previous errors
@@ -147,18 +250,26 @@ export default function GamePage() {
         duration: 3000,
       });
 
-      // Reset form and close modal
+      // Reset form and close modal with smart defaults
+      const defaults = getSmartDefaults();
+      const currentDate = new Date().toISOString().split('T')[0];
+
       setFormData({
-        name: '',
+        name: generateGameName(
+          defaults.seasonId,
+          currentDate,
+          defaults.gameTypeId
+        ),
         opponent: '',
-        date: '',
-        teamId: '',
-        seasonId: '',
-        gameTypeId: '',
+        date: currentDate,
+        teamId: defaults.teamId,
+        seasonId: defaults.seasonId,
+        gameTypeId: defaults.gameTypeId,
         homeAway: 'home',
       });
       setFormErrors({});
       setCreationError(null);
+      setGameNameManuallyModified(false); // Reset manual modification flag
       onClose();
     } catch (error) {
       const message =
@@ -547,9 +658,7 @@ export default function GamePage() {
                 <FormLabel>Game Name</FormLabel>
                 <Input
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={(e) => handleGameNameChange(e.target.value)}
                   aria-label="Game name"
                   data-testid="game-name-input"
                 />
@@ -565,7 +674,7 @@ export default function GamePage() {
                 <Input
                   value={formData.opponent}
                   onChange={(e) =>
-                    setFormData({ ...formData, opponent: e.target.value })
+                    handleFieldChange('opponent', e.target.value)
                   }
                   aria-label="Opponent"
                   data-testid="opponent-input"
@@ -582,9 +691,7 @@ export default function GamePage() {
                 <Input
                   type="date"
                   value={formData.date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
-                  }
+                  onChange={(e) => handleFieldChange('date', e.target.value)}
                   aria-label="Date"
                   data-testid="game-date-input"
                 />
@@ -599,9 +706,7 @@ export default function GamePage() {
                 <FormLabel>Team</FormLabel>
                 <Select
                   value={formData.teamId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, teamId: e.target.value })
-                  }
+                  onChange={(e) => handleFieldChange('teamId', e.target.value)}
                   aria-label="Team"
                   data-testid="team-select"
                 >
@@ -624,7 +729,7 @@ export default function GamePage() {
                 <Select
                   value={formData.seasonId}
                   onChange={(e) =>
-                    setFormData({ ...formData, seasonId: e.target.value })
+                    handleFieldChange('seasonId', e.target.value)
                   }
                   aria-label="Season"
                   data-testid="season-select"
@@ -648,7 +753,7 @@ export default function GamePage() {
                 <Select
                   value={formData.gameTypeId}
                   onChange={(e) =>
-                    setFormData({ ...formData, gameTypeId: e.target.value })
+                    handleFieldChange('gameTypeId', e.target.value)
                   }
                   aria-label="Game type"
                   data-testid="game-type-select"
@@ -673,10 +778,7 @@ export default function GamePage() {
                   data-testid="home-away-select"
                   value={formData.homeAway}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      homeAway: e.target.value as 'home' | 'away',
-                    })
+                    handleFieldChange('homeAway', e.target.value)
                   }
                   aria-label="Home/away"
                 >

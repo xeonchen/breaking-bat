@@ -110,6 +110,66 @@ export class Position {
   }
 
   /**
+   * Get display name with abbreviation (e.g., "Pitcher (P)")
+   */
+  public getDisplayName(): string {
+    const displayMap: Record<string, string> = {
+      pitcher: 'Pitcher (P)',
+      catcher: 'Catcher (C)',
+      'first-base': 'First Base (1B)',
+      'second-base': 'Second Base (2B)',
+      'third-base': 'Third Base (3B)',
+      shortstop: 'Shortstop (SS)',
+      'left-field': 'Left Field (LF)',
+      'center-field': 'Center Field (CF)',
+      'right-field': 'Right Field (RF)',
+      'short-fielder': 'Short Fielder (SF)',
+      'extra-player': 'Extra Player (EP)',
+    };
+    return displayMap[this.value] || this.value;
+  }
+
+  /**
+   * Get position abbreviation only (e.g., "P", "1B")
+   */
+  public getAbbreviation(): string {
+    const abbreviationMap: Record<string, string> = {
+      pitcher: 'P',
+      catcher: 'C',
+      'first-base': '1B',
+      'second-base': '2B',
+      'third-base': '3B',
+      shortstop: 'SS',
+      'left-field': 'LF',
+      'center-field': 'CF',
+      'right-field': 'RF',
+      'short-fielder': 'SF',
+      'extra-player': 'EP',
+    };
+    return abbreviationMap[this.value] || this.value;
+  }
+
+  /**
+   * Get full position name without abbreviation (e.g., "Pitcher", "First Base")
+   */
+  public getFullName(): string {
+    const nameMap: Record<string, string> = {
+      pitcher: 'Pitcher',
+      catcher: 'Catcher',
+      'first-base': 'First Base',
+      'second-base': 'Second Base',
+      'third-base': 'Third Base',
+      shortstop: 'Shortstop',
+      'left-field': 'Left Field',
+      'center-field': 'Center Field',
+      'right-field': 'Right Field',
+      'short-fielder': 'Short Fielder',
+      'extra-player': 'Extra Player',
+    };
+    return nameMap[this.value] || this.value;
+  }
+
+  /**
    * Create a Position from a string value (for deserialization)
    */
   public static fromValue(value: string): Position {

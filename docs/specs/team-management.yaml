@@ -29,6 +29,8 @@ inputs:
     type: multi-select
     required: false
     default: [extra-player]
+    validation: min-length-1
+    component_hint: "MultiSelect(placeholder='Select positions', data-testid='player-positions-select', isOrderable=true)"
     options:
       [
         pitcher,
@@ -63,6 +65,15 @@ actions:
   - type: delete
     label: Remove Player
     target: player
+  - type: reorder
+    label: Reorder Positions
+    target: player_positions
+  - type: add
+    label: Add Position
+    target: player_positions
+  - type: remove
+    label: Remove Position
+    target: player_positions
 
 entities:
   team:
@@ -89,19 +100,56 @@ entities:
       - id: uuid
       - name: string
       - jersey_number: number
-      - positions: array<string>
+      - positions: array<string> # ordered array, first position is default/primary
       - team_id: uuid
       - is_active: boolean
+    methods:
+      - getDefaultPosition(): string
+      - updatePositions(positions): void
+      - addPosition(position): void
+      - removePosition(position): void
+      - canPlayPosition(position): boolean
 
 acceptance_criteria:
-  - teams can be created with unique names
-  - seasons organize games by time periods
-  - game types categorize different kinds of matches
-  - players can be added to teams with jersey numbers (0-999)
-  - players can have multiple positions assigned
-  - extra player (EP) is default position for new players
-  - data persists locally between sessions
-  - all operations work offline
+  - id: AC001
+    description: teams can be created with unique names and basic information
+    workflow: team_creation
+  - id: AC002
+    description: seasons can be created to organize games by time periods
+    workflow: season_management
+  - id: AC003
+    description: game types can be defined (regular season, playoffs, tournaments, etc.)
+    workflow: game_type_management
+  - id: AC004
+    description: all team and player data is saved locally and persists between sessions
+    workflow: data_persistence
+  - id: AC005
+    description: player rosters can be managed for each team
+    workflow: player_management
+  - id: AC006
+    description: jersey numbers can be assigned to players (0-999, unique per team)
+    workflow: player_management
+  - id: AC007
+    description: multiple positions can be assigned to each player with first being default
+    workflow: player_management
+  - id: AC008
+    description: player position list can be reordered to change default position
+    workflow: player_management
+  - id: AC009
+    description: positions can be added or removed from player position list
+    workflow: player_management
+  - id: AC010
+    description: all positions a player can play are viewable
+    workflow: player_management
+  - id: AC011
+    description: starting lineups and substitutes can be set up before games
+    workflow: lineup_setup
+  - id: AC012
+    description: player default position is pre-selected when setting up lineups
+    workflow: lineup_setup
+  - id: AC013
+    description: player default position can be overridden in specific game lineups
+    workflow: lineup_setup
 
 validation_rules:
   - team names must be unique within a season
@@ -111,16 +159,84 @@ validation_rules:
 
 business_rules:
   - maximum 25 players per team roster
-  - jersey numbers range from 0-999
+  - jersey numbers range from 0-999 and must be unique within team
   - seasons can span multiple calendar years
   - players can only belong to one team at a time
   - slowpitch softball supports 10 defensive positions plus extra player (EP)
   - EP is batting-only role, does not play defense
   - short fielder is 10th defensive position in slowpitch softball
+  - player position array is ordered - first position is player's default/primary position
+  - players must have at least one position (defaults to extra-player)
+  - position order can be changed to update player's default position
+  - in lineup setup, player's default position is automatically pre-selected
+
+workflows:
+  team_creation:
+    steps:
+      - enter_team_name
+      - configure_basic_info
+      - save_team
+  player_management:
+    steps:
+      - enter_player_name
+      - assign_jersey_number
+      - select_positions
+      - set_default_position
+      - save_player
+  position_management:
+    steps:
+      - view_player_positions
+      - reorder_positions
+      - add_remove_positions
+      - update_default_position
+
+error_states:
+  - name: DuplicateJerseyNumber
+    http_status: 400
+    response_body:
+      error_code: 'JERSEY_NUMBER_DUPLICATE'
+      message: 'Jersey number already exists on this team'
+  - name: InvalidPosition
+    http_status: 400
+    response_body:
+      error_code: 'POSITION_INVALID'
+      message: 'Selected position is not valid for softball'
+  - name: EmptyPositionArray
+    http_status: 400
+    response_body:
+      error_code: 'NO_POSITIONS'
+      message: 'Player must have at least one position assigned'
+
+traceability:
+  source_story_id: 'team-management'
+  acceptance_criteria_covered:
+    [
+      'AC001',
+      'AC002',
+      'AC003',
+      'AC004',
+      'AC005',
+      'AC006',
+      'AC007',
+      'AC008',
+      'AC009',
+      'AC010',
+      'AC011',
+      'AC012',
+      'AC013',
+    ]
+  test_files:
+    [
+      'tests/unit/domain/entities/Player.test.ts',
+      'tests/unit/presentation/components/TeamManagement.test.tsx',
+      'tests/e2e/team-management-basic.spec.ts',
+    ]
 
 meta:
   status: active
-  version: 1.0.0
+  version: 2.0.0
   priority: high
   dependencies: []
   created_by: breaking-bat-team
+  created_date: '2025-01-15'
+  last_updated: '2025-01-15'

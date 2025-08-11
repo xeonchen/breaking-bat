@@ -194,6 +194,13 @@ export class Player extends BaseEntity {
   }
 
   /**
+   * Get the player's default/primary position (first position in array)
+   */
+  public getDefaultPosition(): Position {
+    return this.positions[0] || Position.extraPlayer();
+  }
+
+  /**
    * Check if player can play a specific position
    */
   public canPlayPosition(position: Position): boolean {
@@ -212,5 +219,26 @@ export class Player extends BaseEntity {
    */
   public isExtraPlayer(): boolean {
     return this.positions.some((p) => p.equals(Position.extraPlayer()));
+  }
+
+  /**
+   * Get formatted positions for display (e.g., "P, C, 1B")
+   */
+  public getPositionsDisplay(): string {
+    return this.positions.map((p) => p.getAbbreviation()).join(', ');
+  }
+
+  /**
+   * Get full positions display (e.g., "Pitcher (P), Catcher (C)")
+   */
+  public getPositionsFullDisplay(): string {
+    return this.positions.map((p) => p.getDisplayName()).join(', ');
+  }
+
+  /**
+   * Get position names only (e.g., "Pitcher, Catcher, First Base")
+   */
+  public getPositionNames(): string {
+    return this.positions.map((p) => p.getFullName()).join(', ');
   }
 }

@@ -282,16 +282,26 @@ describe('LineupSetupModal - TDD Tests', () => {
 
       await waitFor(() => {
         // Should have all defensive positions (appears multiple times)
-        expect(screen.getAllByText('Pitcher').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Catcher').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('First Base').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Pitcher (P)').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Catcher (C)').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('First Base (1B)').length).toBeGreaterThan(
+          0
+        );
       });
-      expect(screen.getAllByText('Second Base').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Third Base').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Shortstop').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Left Field').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Center Field').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Right Field').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Second Base (2B)').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Third Base (3B)').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Shortstop (SS)').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Left Field (LF)').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Center Field (CF)').length).toBeGreaterThan(
+        0
+      );
+      expect(screen.getAllByText('Right Field (RF)').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Short Fielder (SF)').length).toBeGreaterThan(
+        0
+      );
+      expect(screen.getAllByText('Extra Player (EP)').length).toBeGreaterThan(
+        0
+      );
     });
 
     test('should allow assigning defensive positions', () => {

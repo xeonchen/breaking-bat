@@ -623,12 +623,131 @@ describe('GamePage', () => {
       );
 
       fireEvent.click(screen.getByRole('button', { name: /create new game/i }));
+
+      // Clear the auto-populated team field to test validation
+      await waitFor(() => {
+        screen.getByTestId('team-select');
+      });
+
+      const teamSelect = screen.getByTestId('team-select');
+      fireEvent.change(teamSelect, { target: { value: '' } });
+
       fireEvent.click(screen.getByRole('button', { name: /create/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/game name is required/i)).toBeInTheDocument();
+        // Game name should be auto-generated, so no longer get that error
+        expect(
+          screen.queryByText(/game name is required/i)
+        ).not.toBeInTheDocument();
+        // But opponent and team should still be required
         expect(screen.getByText(/opponent is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/team is required/i)).toBeInTheDocument();
       });
+    });
+
+    it('should auto-generate game name from season and date', async () => {
+      render(
+        <TestWrapper>
+          <GamePage />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /create new game/i }));
+
+      await waitFor(() => {
+        const gameNameInput = screen.getByTestId(
+          'game-name-input'
+        ) as HTMLInputElement;
+        // Should have auto-generated name based on season and date
+        expect(gameNameInput.value).toContain('2025');
+        expect(gameNameInput.value).toContain('-');
+        expect(gameNameInput.value).not.toBe('');
+      });
+    });
+
+    it('should update game name when season changes unless manually modified', async () => {
+      render(
+        <TestWrapper>
+          <GamePage />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /create new game/i }));
+
+      await waitFor(() => {
+        screen.getByTestId('game-name-input');
+      });
+
+      const gameNameInput = screen.getByTestId(
+        'game-name-input'
+      ) as HTMLInputElement;
+      const originalName = gameNameInput.value;
+
+      // Change season - should update game name
+      const seasonSelect = screen.getByTestId('season-select');
+      // Since we only have one mock season, we'll simulate the behavior
+      fireEvent.change(seasonSelect, { target: { value: mockSeason.id } });
+
+      await waitFor(() => {
+        expect(gameNameInput.value).toContain(mockSeason.name);
+      });
+    });
+
+    it('should preserve manually modified game name when season changes', async () => {
+      render(
+        <TestWrapper>
+          <GamePage />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /create new game/i }));
+
+      await waitFor(() => {
+        screen.getByTestId('game-name-input');
+      });
+
+      const gameNameInput = screen.getByTestId(
+        'game-name-input'
+      ) as HTMLInputElement;
+
+      // Manually modify the game name
+      const customName = 'My Custom Game Name';
+      fireEvent.change(gameNameInput, { target: { value: customName } });
+
+      // Change season - should NOT update game name since it was manually modified
+      const seasonSelect = screen.getByTestId('season-select');
+      fireEvent.change(seasonSelect, { target: { value: mockSeason.id } });
+
+      await waitFor(() => {
+        expect(gameNameInput.value).toBe(customName);
+      });
+    });
+
+    it('should remember last selected values in localStorage', async () => {
+      const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+
+      render(
+        <TestWrapper>
+          <GamePage />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /create new game/i }));
+
+      await waitFor(() => {
+        screen.getByTestId('team-select');
+      });
+
+      // Select team - should save to localStorage
+      const teamSelect = screen.getByTestId('team-select');
+      fireEvent.change(teamSelect, { target: { value: mockTeam.id } });
+
+      expect(setItemSpy).toHaveBeenCalledWith(
+        'lastSelectedTeamId',
+        mockTeam.id
+      );
+
+      setItemSpy.mockRestore();
     });
 
     it('should close modal after successful creation', async () => {

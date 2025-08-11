@@ -50,6 +50,7 @@ jobs:
   e2e-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
 
     steps:
@@ -73,6 +74,7 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+        timeout-minutes: 40
 
       - name: Upload E2E test artifacts
         if: failure()

@@ -50,15 +50,17 @@ interface LineupPosition {
 }
 
 const DEFENSIVE_POSITIONS = [
-  'Pitcher',
-  'Catcher',
-  'First Base',
-  'Second Base',
-  'Third Base',
-  'Shortstop',
-  'Left Field',
-  'Center Field',
-  'Right Field',
+  { value: 'Pitcher', label: 'Pitcher (P)' },
+  { value: 'Catcher', label: 'Catcher (C)' },
+  { value: 'First Base', label: 'First Base (1B)' },
+  { value: 'Second Base', label: 'Second Base (2B)' },
+  { value: 'Third Base', label: 'Third Base (3B)' },
+  { value: 'Shortstop', label: 'Shortstop (SS)' },
+  { value: 'Left Field', label: 'Left Field (LF)' },
+  { value: 'Center Field', label: 'Center Field (CF)' },
+  { value: 'Right Field', label: 'Right Field (RF)' },
+  { value: 'Short Fielder', label: 'Short Fielder (SF)' },
+  { value: 'Extra Player', label: 'Extra Player (EP)' },
 ];
 
 export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
@@ -215,6 +217,31 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
         'Team needs at least 9 active players to create a complete lineup',
     };
     return messages[errorCode] || 'Unknown validation error occurred';
+  };
+
+  // Get positions that have duplicates for highlighting
+  const getDuplicatePositions = () => {
+    const filledPositions = lineupPositions.filter(
+      (pos) => pos.playerId && pos.defensivePosition
+    );
+
+    const positionCounts: Record<string, number> = {};
+    filledPositions.forEach((pos) => {
+      if (pos.defensivePosition) {
+        positionCounts[pos.defensivePosition] =
+          (positionCounts[pos.defensivePosition] || 0) + 1;
+      }
+    });
+
+    return Object.keys(positionCounts).filter(
+      (position) => positionCounts[position] > 1
+    );
+  };
+
+  // Check if a specific position is duplicated
+  const isPositionDuplicated = (position: string | null) => {
+    if (!position) return false;
+    return getDuplicatePositions().includes(position);
   };
 
   // Handle insufficient players
@@ -390,7 +417,11 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                         </FormControl>
 
                         {/* Defensive position select */}
-                        <FormControl>
+                        <FormControl
+                          isInvalid={isPositionDuplicated(
+                            position.defensivePosition
+                          )}
+                        >
                           <Select
                             data-testid={`batting-position-${position.battingOrder}-defensive-position`}
                             placeholder="Select Position"
@@ -402,10 +433,20 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                               )
                             }
                             aria-label={`Defensive position for batting position ${position.battingOrder}`}
+                            borderColor={
+                              isPositionDuplicated(position.defensivePosition)
+                                ? 'red.300'
+                                : undefined
+                            }
+                            bg={
+                              isPositionDuplicated(position.defensivePosition)
+                                ? 'red.50'
+                                : undefined
+                            }
                           >
                             {DEFENSIVE_POSITIONS.map((pos) => (
-                              <option key={pos} value={pos}>
-                                {pos}
+                              <option key={pos.value} value={pos.value}>
+                                {pos.label}
                               </option>
                             ))}
                           </Select>
@@ -466,7 +507,11 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                             </Select>
                           </FormControl>
 
-                          <FormControl>
+                          <FormControl
+                            isInvalid={isPositionDuplicated(
+                              position.defensivePosition
+                            )}
+                          >
                             <Select
                               data-testid={`batting-position-${position.battingOrder}-defensive-position`}
                               placeholder="Select Position"
@@ -477,10 +522,20 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                                   e.target.value
                                 )
                               }
+                              borderColor={
+                                isPositionDuplicated(position.defensivePosition)
+                                  ? 'red.300'
+                                  : undefined
+                              }
+                              bg={
+                                isPositionDuplicated(position.defensivePosition)
+                                  ? 'red.50'
+                                  : undefined
+                              }
                             >
                               {DEFENSIVE_POSITIONS.map((pos) => (
-                                <option key={pos} value={pos}>
-                                  {pos}
+                                <option key={pos.value} value={pos.value}>
+                                  {pos.label}
                                 </option>
                               ))}
                             </Select>

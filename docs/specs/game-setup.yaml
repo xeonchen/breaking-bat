@@ -9,6 +9,9 @@ inputs:
     type: text
     required: true
     validation: min-length-2
+    default: auto-generated
+    component_hint: "Input(placeholder='Auto-generated from season and date', data-testid='game-name-input')"
+    auto_update: true # updates when season or game_type changes, unless manually modified
   - name: opponent_name
     type: text
     required: true
@@ -17,20 +20,37 @@ inputs:
     type: date
     required: true
     validation: not-past-date
+    default: today
+    component_hint: "DateInput(defaultValue={new Date().toISOString().split('T')[0]}, data-testid='game-date-input')"
   - name: season_id
     type: select
     required: false
     source: seasons
-    default: null
+    default: most_recent_or_first
+    component_hint: "Select(placeholder='Choose season', data-testid='season-select')"
   - name: game_type_id
     type: select
     required: false
     source: game_types
-    default: null
+    default: most_recent_or_first
+    component_hint: "Select(placeholder='Choose game type', data-testid='game-type-select')"
+  - name: team_id
+    type: select
+    required: true
+    source: teams
+    default: most_recent_or_first
+    component_hint: "Select(placeholder='Choose team', data-testid='team-select')"
   - name: home_away
     type: radio
     required: true
     options: [home, away]
+    default: home
+  - name: starting_positions_count
+    type: number
+    required: false
+    validation: range-9-12
+    default: 10
+    component_hint: "NumberInput(min={9}, max={12}, defaultValue={10}, data-testid='starting-positions-count')"
   - name: starting_lineup
     type: array
     required: true
@@ -57,7 +77,10 @@ inputs:
         center-field,
         right-field,
         short-fielder,
+        extra-player,
       ]
+    display_format: 'position_name (abbreviation)' # e.g., "Pitcher (P)"
+    smart_ordering: player_positions_first # show player's available positions first
 
 actions:
   - type: create
@@ -109,31 +132,89 @@ entities:
       - is_starting: boolean
 
 acceptance_criteria:
-  - games can be created with essential metadata only (name, opponent, date, team)
-  - games can be created with complete metadata including season and game type
-  - season and game type fields are optional for quick game creation
-  - teams and games can be selected from same interface
-  - new games can be created quickly when needed
-  - starting lineup must have 10 players minimum for slowpitch softball
-  - batting order can be configured and reordered
-  - defensive positions can be assigned to each player
-  - substitute players can be designated
-  - lineup changes are saved automatically
-  - validation ensures all required positions are filled
+  - id: AC001
+    description: games can be created with essential metadata (name, opponent, date, team)
+    workflow: game_creation
+  - id: AC002
+    description: new games are saved with status "setup"
+    workflow: game_creation
+  - id: AC003
+    description: created games appear in the games interface
+    workflow: game_creation
+  - id: AC004
+    description: date input displays today's date by default when form opens
+    workflow: game_creation
+  - id: AC005
+    description: form can be submitted without changing the default date
+    workflow: game_creation
+  - id: AC006
+    description: date input allows changing to any valid future or past date
+    workflow: game_creation
+  - id: AC007
+    description: setup lineup button appears on game cards after creation
+    workflow: lineup_management
+  - id: AC008
+    description: lineup management modal opens when setup lineup is clicked
+    workflow: lineup_management
+  - id: AC009
+    description: all team players are available for selection in lineup modal
+    workflow: lineup_management
+  - id: AC010
+    description: batting order can be set (1-9 positions minimum)
+    workflow: lineup_management
+  - id: AC011
+    description: defensive positions can be assigned to each player
+    workflow: lineup_management
+  - id: AC012
+    description: start game button is disabled until lineup is complete
+    workflow: game_creation
+  - id: AC013
+    description: lineup marked incomplete with fewer than 9 batting positions
+    workflow: lineup_management
+  - id: AC014
+    description: lineup marked incomplete without all defensive positions assigned
+    workflow: lineup_management
+  - id: AC015
+    description: start game button enabled with complete valid lineup
+    workflow: game_creation
+  - id: AC016
+    description: clicking start game changes status to in_progress
+    workflow: game_creation
+  - id: AC017
+    description: clicking start game redirects to scoring interface
+    workflow: game_creation
+  - id: AC018
+    description: setup lineup button changes to view/edit lineup after game starts
+    workflow: game_creation
+  - id: AC019
+    description: lineup changes are saved automatically
+    workflow: lineup_management
+  - id: AC020
+    description: lineup progress preserved when modal closed without completing
+    workflow: lineup_management
+  - id: AC021
+    description: game lineupId populated after lineup setup completion
+    workflow: lineup_management
 
 validation_rules:
-  - minimum 10 players in starting lineup for slowpitch softball
+  - minimum starting players equals configured count (9-12, default 10)
   - maximum 15 players total per game
   - batting order numbers must be unique and sequential
-  - each defensive position can only be assigned once (10 positions + EP)
+  - final lineup must have unique defensive positions (11 positions total)
+  - duplicate positions allowed during setup for user resolution
   - game date cannot be in the past
   - opponent name cannot be same as team name
+  - game name auto-generation preserves manual modifications
 
 business_rules:
-  - starting lineup determines initial batting order
-  - substitutes cannot be in batting order initially
-  - defensive positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF, SF (short fielder) for slowpitch
-  - extra player (EP) bats but does not play defense
+  - game name auto-generates as "[Season Name] - [Date]" format
+  - game name auto-updates when season/game type changes, unless manually modified
+  - form fields remember most recent selections (team, season, game type)
+  - starting lineup count configurable 9-12 in UI, default 10
+  - defensive positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF, SF, EP (11 total positions)
+  - players auto-assigned their first (default) position when added to lineup
+  - position dropdowns show player's available positions first, then other positions
+  - duplicate positions allowed during setup, resolved by user
   - batting order starts at position 1
   - game setup must be completed before scoring can begin
 
@@ -194,10 +275,46 @@ component_hints:
   player_select: "Select(placeholder='Select Player', data-testid='player-select')"
   start_game_button: "Button(colorScheme='green', isDisabled={!lineupComplete}, data-testid='start-game-button')"
 
+traceability:
+  source_story_id: 'game-setup'
+  acceptance_criteria_covered:
+    [
+      'AC001',
+      'AC002',
+      'AC003',
+      'AC004',
+      'AC005',
+      'AC006',
+      'AC007',
+      'AC008',
+      'AC009',
+      'AC010',
+      'AC011',
+      'AC012',
+      'AC013',
+      'AC014',
+      'AC015',
+      'AC016',
+      'AC017',
+      'AC018',
+      'AC019',
+      'AC020',
+      'AC021',
+    ]
+  test_files:
+    [
+      'tests/unit/presentation/pages/GamePage.test.tsx',
+      'tests/unit/presentation/components/LineupSetupModal.test.tsx',
+      'tests/e2e/game-creation-basic.spec.ts',
+      'tests/e2e/game-setup-lineup.spec.ts',
+    ]
+
 meta:
   status: active
-  version: 2.0.0
+  version: 3.0.0
   priority: high
   dependencies: [team-management]
   created_by: breaking-bat-team
   design_spec_url: 'lineup-setup-modal-wireframe.md'
+  created_date: '2025-01-15'
+  last_updated: '2025-01-15'
