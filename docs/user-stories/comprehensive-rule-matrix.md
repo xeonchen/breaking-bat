@@ -1,175 +1,83 @@
-# User Stories: Comprehensive Rule Matrix System
+# User Story: Comprehensive Rule Matrix System
 
-## Overview
+## ID
 
-The Breaking-Bat application requires a comprehensive rule validation system that ensures all recorded game scenarios follow real slow-pitch softball rules. This system serves two primary purposes: validating test data for accuracy and enhancing the user experience by providing only valid scoring options during live game recording.
+comprehensive-rule-matrix
 
-## Epic: Rule Matrix Engine
+## As a...
 
-### Epic Description
+Softball Scoring Application System
 
-As a softball scoring application, we need a comprehensive rule validation system that understands all possible game scenarios and can provide guidance for valid scoring options while preventing invalid game states.
+## I want to...
 
----
+Have a comprehensive rule validation system that understands all possible game scenarios and can provide guidance for valid scoring options while preventing invalid game states
 
-## User Story 1: Basic Hit Type Validation
+## So that I can...
 
-**As a scorer recording a live game**
-**I want the system to show only valid hitting results for the current base situation**
-**So that I cannot accidentally record impossible game scenarios**
+Ensure accurate and consistent scoring by automatically validating all batting results, base advancement scenarios, and RBI calculations according to official softball rules
 
-### Acceptance Criteria
+## Acceptance Criteria
 
-- [ ] System supports all 13 standard hit types (1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP)
-- [ ] Each hit type shows appropriate base advancement options
-- [ ] Invalid hit types are hidden based on current game state
-- [ ] RBI calculations are automatically provided for each outcome option
+### Rule Validation Engine
 
-### Technical Requirements
+- **AC001**: Given empty bases, all 13 standard hit types should be available (1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP)
+- **AC002**: Given runners on base, hit type availability should be filtered based on game situation (e.g., SF disabled without runners in scoring position)
+- **AC003**: Given any base situation, double play options should only be available when runners can be forced out
+- **AC004**: Given any scoring scenario, the system should automatically calculate correct RBI counts
 
-- Rule matrix covers all 8 possible baserunner configurations
-- Lookup time must be under 50ms for real-time UI responsiveness
-- Integration with existing AtBat entity and BattingResult value object
+### Base Advancement Logic
 
----
+- **AC005**: Given a single (1B) with runners on base, the system should provide multiple valid advancement options based on actual gameplay
+- **AC006**: Given a double (2B) with runners on base, the system should calculate probable advancement scenarios with corresponding RBI counts
+- **AC007**: Given a triple (3B) with runners on base, all runners should advance to home with appropriate RBI calculation
+- **AC008**: Given a home run (HR), all runners and the batter should score with automatic 4 RBI calculation for bases loaded
 
-## User Story 2: Outcome Selection with RBI Calculation
+### Sacrifice Play Rules
 
-**As a scorer**
-**I want to select from valid outcome scenarios for each hit type**
-**So that I can accurately record what happened without manual RBI calculation**
+- **AC009**: Given no runners in scoring position (2nd or 3rd base), sacrifice fly (SF) should be disabled
+- **AC010**: Given runner(s) in scoring position, sacrifice fly should be enabled with automatic RBI calculation if runner scores
+- **AC011**: Given runners on base, sacrifice bunt scenarios should be available with appropriate advancement options
 
-### Acceptance Criteria
+### Error and Fielder's Choice Logic
 
-- [ ] After selecting hit type, system shows valid outcome combinations
-- [ ] Each outcome shows: final baserunner state, RBI count, runs scored
-- [ ] User can select the outcome that matches what actually happened
-- [ ] System validates the selected combination is possible
+- **AC012**: Given an error (E), the system should allow manual specification of base advancement for all runners
+- **AC013**: Given a fielder's choice (FC), the system should track which runner was forced out and advancement of remaining runners
+- **AC014**: Given defensive plays, RBI credits should follow official scoring rules (no RBI on FC that results in out)
 
-### Example Scenarios
+### Advanced Scenarios
 
-```
-Current: Runner on 1st base, Hit: Double
-Options:
-- Runner scores, batter to 2nd → 1 RBI
-- Runner to 3rd, batter to 2nd → 0 RBI
-```
+- **AC015**: Given bases loaded situation, the system should handle complex advancement scenarios for all hit types
+- **AC016**: Given double play potential, the system should validate that proposed advancement combinations are physically possible
+- **AC017**: Given any scoring play, the system should prevent impossible base advancement combinations
+- **AC018**: Given multiple outcome options for a single at-bat result, the scorekeeper should be able to select what actually occurred
 
----
+### Automatic Calculations
 
-## User Story 3: Test Data Validation
+- **AC019**: Given any at-bat result, RBI count should be calculated automatically based on runners who score
+- **AC020**: Given any base advancement, the system should update baserunner positions automatically
+- **AC021**: Given any scoring play, team and game totals should be updated in real-time
+- **AC022**: Given complex plays (e.g., runner thrown out trying to advance), the system should handle partial advancement scenarios
 
-**As a developer**
-**I want all test scenarios to follow real softball rules**
-**So that the application behavior accurately reflects real-world gameplay**
+### Rule Compliance
 
-### Acceptance Criteria
+- **AC023**: Given any proposed scoring combination, the system should validate against official softball scoring rules
+- **AC024**: Given invalid combinations, the system should provide clear error messages explaining why the combination is not allowed
+- **AC025**: Given edge cases (e.g., interference, weather delays), the system should handle special rule scenarios
+- **AC026**: Given rule violations, the system should prevent saving invalid game states and require correction
 
-- [ ] Tool scans all existing tests for rule violations
-- [ ] Generates report of violations found with suggested corrections
-- [ ] All new tests must pass rule validation before being committed
-- [ ] Test data matches realistic game scenarios
+## Priority
 
-### Validation Areas
+High
 
-- Base advancement distances match hit types
-- RBI counts are accurate for runs scored
-- Baserunner states are valid (no two runners on same base)
-- Out counts don't exceed inning limits
+## Dependencies
 
----
+- live-scoring (requires real-time validation during game play)
+- data-persistence (must store validated results)
+- Player and Team entities (for roster validation)
 
-## User Story 4: Advanced Scenario Handling (Future)
+## Notes
 
-**As a scorer dealing with complex plays**
-**I want to record aggressive advancement attempts and fielding errors**
-**So that I can capture the complete story of what happened during the play**
-
-### Acceptance Criteria (Future Implementation)
-
-- [ ] Record aggressive advancement attempts that result in outs
-- [ ] Handle fielding errors that allow extra advancement
-- [ ] Support complex scenarios like double plays with partial completion
-- [ ] Validate that advanced scenarios follow softball rules
-
-### Example Advanced Scenarios
-
-```
-Aggressive Advancement:
-- Runner on 1st, hit 2B, runner attempts home but is out
-- Final state: Batter on 3rd (advanced during play), 1 out, 0 RBI
-
-Fielding Error:
-- Empty bases, hit 1B, error allows batter to reach 2nd
-- Record as: 1B + E, final state: runner on 2nd
-```
-
----
-
-## User Story 5: Rule Matrix Performance
-
-**As a user of the scoring interface**
-**I want instant feedback on available options**
-**So that the scoring process doesn't slow down the game**
-
-### Acceptance Criteria
-
-- [ ] Rule lookups complete in under 50ms
-- [ ] UI updates immediately when base situation changes
-- [ ] System handles concurrent rule validations efficiently
-- [ ] Memory usage remains reasonable for extended games
-
----
-
-## User Story 6: Expert Rule Validation
-
-**As a softball expert**
-**I want to verify that the rule matrix accurately represents slow-pitch softball**
-**So that the application provides correct guidance and validation**
-
-### Acceptance Criteria
-
-- [ ] All standard scenarios match official slow-pitch softball rules
-- [ ] Edge cases are handled appropriately
-- [ ] Rule matrix can be updated if rules change
-- [ ] Documentation clearly explains rule interpretations
-
----
-
-## Implementation Notes
-
-### Phase 1: Basic Matrix (MVP)
-
-- Implement standard advancement for all 13 hit types
-- Cover all 8 baserunner state combinations
-- Focus on most common scenarios first
-- Integrate with existing domain entities
-
-### Phase 2: Advanced Scenarios (Future)
-
-- Add aggressive advancement tracking
-- Implement fielding error scenarios
-- Handle complex double play situations
-- Support customizable rule variations
-
-### Technical Architecture
-
-- Domain-driven design with rule matrix as domain service
-- Clean separation between rule logic and UI presentation
-- Extensible design for future rule additions
-- Integration with existing Clean Architecture layers
-
-### Success Metrics
-
-- Zero rule violations in test suite
-- Sub-50ms rule lookup performance
-- Positive user feedback on scoring experience
-- Reduction in scoring errors during live games
-
----
-
-## Related Documents
-
-- `docs/specs/comprehensive-rule-matrix.yaml` - Technical specification
-- `docs/specs/domain-entities.md` - Existing domain model
-- `docs/user-stories/live-scoring.md` - Related scoring functionality
+- This is a foundational system component that ensures data integrity
+- Must be thoroughly tested with comprehensive edge case coverage
+- Should provide educational value by explaining rule applications
+- Critical for maintaining accurate statistics and preventing scoring errors
