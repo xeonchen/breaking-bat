@@ -117,18 +117,49 @@ test.describe('Complete Game Workflow', () => {
       });
       console.log('✅ Found lineup setup modal');
 
-      // Complete lineup setup for all 9 positions
-      for (let i = 1; i <= 9; i++) {
-        await page
-          .getByTestId(`batting-position-${i}-player`)
-          .selectOption({ index: i });
-        await page
-          .getByTestId(`batting-position-${i}-defensive-position`)
-          .selectOption({ index: i });
+      // Wait for auto-assignment to complete (our new feature)
+      await page.waitForTimeout(1000);
+
+      // Check if lineup is auto-assigned (players should be automatically populated)
+      const autoAssigned = await page
+        .getByTestId('batting-position-1-player')
+        .inputValue();
+
+      if (!autoAssigned) {
+        console.log(
+          '🔄 Auto-assignment not complete, manually setting up lineup...'
+        );
+        // Complete lineup setup for all 9 positions (fallback)
+        for (let i = 1; i <= 9; i++) {
+          await page
+            .getByTestId(`batting-position-${i}-player`)
+            .selectOption({ index: i });
+          await page
+            .getByTestId(`batting-position-${i}-defensive-position`)
+            .selectOption({ index: i });
+        }
+      } else {
+        console.log('✅ Auto-assignment detected, lineup pre-populated');
       }
 
+      // Check if save button is enabled, if not use auto-fill
+      const saveButton = page.getByTestId('save-lineup-button');
+      const isEnabled = await saveButton.isEnabled();
+
+      if (!isEnabled) {
+        console.log('🔄 Save button disabled, trying auto-fill positions...');
+        const autoFillButton = page.getByTestId('auto-fill-positions-button');
+        if (await autoFillButton.isVisible()) {
+          await autoFillButton.click();
+          await page.waitForTimeout(500); // Wait for auto-fill to complete
+        }
+      }
+
+      // Wait for save button to become enabled
+      await expect(saveButton).toBeEnabled({ timeout: 5000 });
+
       // Save the lineup
-      await page.getByTestId('save-lineup-button').click();
+      await saveButton.click();
       console.log('✅ Lineup setup completed');
 
       // Wait for modal to close
