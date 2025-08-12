@@ -69,14 +69,30 @@ entities:
       - imported_count: number
 
 acceptance_criteria:
-  - all operations automatically saved to local storage in real-time
-  - app automatically loads last unfinished game on startup
-  - data can be exported in both JSON and CSV formats
-  - previously exported data can be imported successfully
-  - all data persists between browser sessions and app restarts
-  - app works completely offline without network connection
-  - export includes comprehensive game statistics and team information
-  - import validates data integrity before loading
+  - id: AC001
+    description: All operations are automatically saved to local storage in real-time
+    workflow: auto_save_flow
+  - id: AC002
+    description: The app automatically loads the last unfinished game when I start the application
+    workflow: session_recovery
+  - id: AC003
+    description: I can export game data in both JSON and CSV formats
+    workflow: export_flow
+  - id: AC004
+    description: I can import previously exported game data
+    workflow: import_flow
+  - id: AC005
+    description: All data persists between browser sessions and app restarts
+    workflow: persistence_validation
+  - id: AC006
+    description: The app works completely offline without any network connection
+    workflow: offline_operation
+  - id: AC007
+    description: Data export includes comprehensive game statistics and team information
+    workflow: export_flow
+  - id: AC008
+    description: Import functionality validates data integrity before loading
+    workflow: import_flow
 
 validation_rules:
   - exported files must contain valid data structure
@@ -199,9 +215,17 @@ workflows:
       - import_data
       - verify_success
 
+traceability:
+  source_story_id: 'data-persistence'
+  acceptance_criteria_covered:
+    ['AC001', 'AC002', 'AC003', 'AC004', 'AC005', 'AC006', 'AC007', 'AC008']
+  test_files: ['data-persistence.feature', 'data-persistence.spec.ts']
+
 meta:
   status: active
   version: 1.0.0
   priority: high
   dependencies: [team-management, game-setup, live-scoring]
   created_by: breaking-bat-team
+  created_date: '2025-08-12'
+  last_updated: '2025-08-12'

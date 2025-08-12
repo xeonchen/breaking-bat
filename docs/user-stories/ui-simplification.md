@@ -16,11 +16,11 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 
 ### Acceptance Criteria
 
-- [x] Navigation reduced from 7 to 4 main sections
-- [x] Games page serves as the default landing page
-- [x] Mobile navigation provides larger touch targets with 4 items instead of 5
-- [x] All existing functionality remains accessible
-- [x] Navigation is consistent across desktop and mobile
+- **AC001**: [x] Navigation reduced from 7 to 4 main sections
+- **AC002**: [x] Games page serves as the default landing page
+- **AC003**: [x] Mobile navigation provides larger touch targets with 4 items instead of 5
+- **AC004**: [x] All existing functionality remains accessible
+- **AC005**: [x] Navigation is consistent across desktop and mobile
 
 ### Technical Requirements
 
@@ -45,12 +45,12 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 
 ### Acceptance Criteria
 
-- [x] Settings page features tabbed interface with General and Game Configuration sections
-- [x] Seasons management moved from separate page to Settings → Game Configuration
-- [x] Game Types management moved from separate page to Settings → Game Configuration
-- [x] General tab includes theme settings, data management, and app information
-- [x] All existing seasons and game types functionality preserved
-- [x] Mobile-responsive tab interface
+- **AC006**: [x] Settings page features tabbed interface with General and Game Configuration sections
+- **AC007**: [x] Seasons management moved from separate page to Settings → Game Configuration
+- **AC008**: [x] Game Types management moved from separate page to Settings → Game Configuration
+- **AC009**: [x] General tab includes theme settings, data management, and app information
+- **AC010**: [x] All existing seasons and game types functionality preserved
+- **AC011**: [x] Mobile-responsive tab interface
 
 ### Technical Requirements
 
@@ -77,12 +77,12 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 
 ### Acceptance Criteria
 
-- [x] Season and Game Type fields are optional in game creation
-- [x] Quick Create mode shows only essential fields by default
-- [x] Detailed Setup mode provides all options for advanced users
-- [x] Games without seasons/game types display appropriately
-- [x] Form validation updated to not require optional fields
-- [x] Progressive enhancement allows adding season/type later
+- **AC012**: [x] Season and Game Type fields are optional in game creation
+- **AC013**: [x] Quick Create mode shows only essential fields by default
+- **AC014**: [x] Detailed Setup mode provides all options for advanced users
+- **AC015**: [x] Games without seasons/game types display appropriately
+- **AC016**: [x] Form validation updated to not require optional fields
+- **AC017**: [x] Progressive enhancement allows adding season/type later
 
 ### Technical Requirements
 
@@ -109,12 +109,12 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 
 ### Acceptance Criteria
 
-- [x] Bottom navigation provides 25% larger touch targets (4 items vs 5)
-- [x] Games page optimized as mobile landing page
-- [x] Settings tabs work smoothly on mobile devices
-- [x] Game creation modal adapts well to mobile screens
-- [x] All interactions optimized for thumb navigation
-- [x] Consistent experience across mobile and tablet sizes
+- **AC018**: [x] Bottom navigation provides 25% larger touch targets (4 items vs 5)
+- **AC019**: [x] Games page optimized as mobile landing page
+- **AC020**: [x] Settings tabs work smoothly on mobile devices
+- **AC021**: [x] Game creation modal adapts well to mobile screens
+- **AC022**: [x] All interactions optimized for thumb navigation
+- **AC023**: [x] Consistent experience across mobile and tablet sizes
 
 ### Technical Requirements
 
@@ -154,12 +154,12 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 
 ### Acceptance Criteria
 
-- [x] All existing games, seasons, and game types remain functional
-- [x] Games with assigned seasons/game types display correctly
-- [x] Existing bookmarks and URLs redirect appropriately
-- [x] All current functionality accessible in new interface
-- [x] Data migration is seamless and automatic
-- [x] No loss of historical data or statistics
+- **AC024**: [x] All existing games, seasons, and game types remain functional
+- **AC025**: [x] Games with assigned seasons/game types display correctly
+- **AC026**: [x] Existing bookmarks and URLs redirect appropriately
+- **AC027**: [x] All current functionality accessible in new interface
+- **AC028**: [x] Data migration is seamless and automatic
+- **AC029**: [x] No loss of historical data or statistics
 
 ### Technical Requirements
 

@@ -6,28 +6,23 @@ import {
 } from './helpers/test-data-setup';
 
 /**
- * Mobile Complete Workflow E2E Tests
+ * UI Simplification and Enhanced User Experience E2E Tests
  *
  * Maps to user story: ui-simplification.md
- * Tests ACs: AC001-AC010 (Mobile Complete Workflow)
+ * Tests ACs: AC001-AC029 (UI Simplification)
  *
- * AC001: Full mobile workflow completion (iPhone 375x667)
- * AC002: Touch button requirements (≥44px height)
- * AC003: Mobile scoring interface optimization
- * AC004: Performance on slower connections
- * AC005: Intuitive mobile navigation
- * AC006: Landscape orientation support
- * AC007: Tablet scaling and touch targets
- * AC008: Immediate visual feedback
- * AC009: Clear mobile error handling
- * AC010: Network error handling and offline capabilities
+ * AC001-AC005: Streamlined Navigation (4 main sections, Games as default)
+ * AC006-AC011: Consolidated Settings Management (tabbed interface)
+ * AC012-AC017: Simplified Game Creation (optional fields, Quick/Detailed modes)
+ * AC018-AC023: Enhanced Mobile Experience (larger touch targets, optimization)
+ * AC024-AC029: Backward Compatibility and Data Preservation
  *
- * Tests the complete game workflow on mobile devices to ensure
- * the responsive design works correctly and all functionality
- * is accessible on smaller screens.
+ * Tests the complete UI simplification workflow including navigation,
+ * settings consolidation, game creation simplification, mobile optimization,
+ * and backward compatibility with existing data.
  */
 
-test.describe('Mobile Complete Workflow', () => {
+test.describe('UI Simplification and Enhanced User Experience', () => {
   // Use mobile viewport for all tests
   test.use({
     viewport: { width: 375, height: 667 }, // iPhone SE size
@@ -38,12 +33,12 @@ test.describe('Mobile Complete Workflow', () => {
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should complete full workflow on mobile - iPhone size (@AC003, @AC014, @AC015)', async ({
+  test('should complete full workflow on mobile - iPhone size (@AC018, @AC019, @AC022)', async ({
     page,
   }) => {
     console.log('=== MOBILE WORKFLOW TEST (iPhone SE 375x667) ===');
 
-    // Test complete mobile scoring workflow for AC003, AC014, AC015
+    // Test complete mobile scoring workflow for AC018, AC019, AC022
     await testMobileNavigation(page);
 
     if (page.isClosed()) {
@@ -184,7 +179,7 @@ test.describe('Mobile Complete Workflow', () => {
     }
   });
 
-  test('should test tablet-size workflow (@AC015)', async ({ page }) => {
+  test('should test tablet-size workflow (@AC023)', async ({ page }) => {
     console.log('=== TESTING TABLET WORKFLOW ===');
 
     // Set tablet viewport (iPad)
@@ -273,7 +268,7 @@ test.describe('Mobile Complete Workflow', () => {
     }
   });
 
-  test('should test mobile scoring interface (@AC015)', async ({ page }) => {
+  test('should test mobile scoring interface (@AC021)', async ({ page }) => {
     console.log('=== TESTING MOBILE SCORING INTERFACE ===');
 
     // Alternative approach: Use existing live scoring tests setup but in mobile viewport

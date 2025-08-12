@@ -18,14 +18,14 @@ Never lose my scoring data due to crashes or power loss, and manage my data acro
 
 ## Acceptance Criteria
 
-- All operations are automatically saved to local storage in real-time
-- The app automatically loads the last unfinished game when I start the application
-- I can export game data in both JSON and CSV formats
-- I can import previously exported game data
-- All data persists between browser sessions and app restarts
-- The app works completely offline without any network connection
-- Data export includes comprehensive game statistics and team information
-- Import functionality validates data integrity before loading
+- **AC001**: All operations are automatically saved to local storage in real-time
+- **AC002**: The app automatically loads the last unfinished game when I start the application
+- **AC003**: I can export game data in both JSON and CSV formats
+- **AC004**: I can import previously exported game data
+- **AC005**: All data persists between browser sessions and app restarts
+- **AC006**: The app works completely offline without any network connection
+- **AC007**: Data export includes comprehensive game statistics and team information
+- **AC008**: Import functionality validates data integrity before loading
 
 ## Priority
 
