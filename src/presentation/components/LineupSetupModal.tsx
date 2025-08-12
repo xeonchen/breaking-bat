@@ -26,8 +26,6 @@ import {
   Badge,
   Box,
   useColorModeValue,
-  Grid,
-  GridItem,
   IconButton,
   Flex,
 } from '@chakra-ui/react';
