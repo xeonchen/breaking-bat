@@ -72,11 +72,11 @@ acceptance_criteria:
     description: Excess players move to bench when positions decreased
     workflow: dynamic_layout_path
   - id: AC009
-    description: Use dropdown selectors for player selection (current design)
-    workflow: player_selection_path
+    description: Drag player rows to reorder batting lineup (dropdowns remain for assignment)
+    workflow: drag_drop_interface_path
   - id: AC010
-    description: Swap players between batting positions using dropdowns
-    workflow: player_reassignment_path
+    description: Drag a player row and drop it to a new batting position
+    workflow: drag_drop_interface_path
   - id: AC011
     description: Immediate visual feedback when selecting players
     workflow: visual_feedback_path
@@ -131,6 +131,21 @@ acceptance_criteria:
   - id: AC028
     description: Success state clearly indicated when lineup complete and valid
     workflow: completion_indication_path
+  - id: AC029
+    description: Drag bench players to starting lineup positions
+    workflow: cross_section_drag_drop_path
+  - id: AC030
+    description: Drag starting players to bench section
+    workflow: cross_section_drag_drop_path
+  - id: AC031
+    description: Position assignments maintained during cross-section drag-and-drop
+    workflow: cross_section_drag_drop_path
+  - id: AC032
+    description: Bench players have same visual style as starting lineup players
+    workflow: ui_consistency_path
+  - id: AC033
+    description: Bench players support same position assignment interface
+    workflow: ui_consistency_path
 
 workflows:
   default_display_path:

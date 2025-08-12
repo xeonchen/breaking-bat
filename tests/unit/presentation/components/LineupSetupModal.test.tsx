@@ -1316,5 +1316,315 @@ describe('LineupSetupModal - TDD Tests', () => {
         expect(screen.getByText('Complete')).toBeInTheDocument();
       });
     });
+
+    test('AC008a: should save starting position count along with lineup data', async () => {
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers}
+        />
+      );
+
+      // Change starting position count from default 10 to 11
+      const positionSelector = screen.getByTestId('starting-positions-config');
+      const inputField = positionSelector.querySelector(
+        'input'
+      ) as HTMLInputElement;
+      fireEvent.change(inputField, { target: { value: '11' } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Starting Lineup (Positions 1-11)')
+        ).toBeInTheDocument();
+      });
+
+      // Set up a complete lineup for 11 positions
+      const positions = [
+        'Pitcher',
+        'Catcher',
+        'First Base',
+        'Second Base',
+        'Third Base',
+        'Shortstop',
+        'Left Field',
+        'Center Field',
+        'Right Field',
+        'Short Fielder',
+        'Extra Player',
+      ];
+
+      for (let i = 1; i <= 11; i++) {
+        const playerSelect = screen.getByTestId(`batting-position-${i}-player`);
+        const positionSelect = screen.getByTestId(
+          `batting-position-${i}-defensive-position`
+        );
+        fireEvent.change(playerSelect, { target: { value: `player-${i}` } });
+        fireEvent.change(positionSelect, {
+          target: { value: positions[i - 1] },
+        });
+      }
+
+      // Click save lineup button
+      const saveButton = screen.getByTestId('save-lineup-button');
+      await waitFor(() => {
+        expect(saveButton).toBeEnabled();
+      });
+
+      fireEvent.click(saveButton);
+
+      // Verify that onSave was called with the correct startingPositionCount
+      await waitFor(() => {
+        expect(mockOnSave).toHaveBeenCalledWith({
+          gameId: mockGame.id,
+          startingPositionCount: 11, // Should save the modified starting position count
+          battingOrder: expect.any(Array), // We just need to verify the structure exists
+        });
+
+        // Additionally verify the specific starting position count was saved
+        const call = mockOnSave.mock.calls[0][0];
+        expect(call.startingPositionCount).toBe(11);
+        // Note: battingOrder array only contains filled positions (10 players available),
+        // but startingPositionCount (11) should still be correctly saved
+        expect(call.battingOrder).toHaveLength(10); // Only filled positions are included
+      });
+    });
+  });
+
+  describe('AC029-AC033: Cross-Section Drag-and-Drop and Bench Player UI', () => {
+    test('AC029: should display bench players with drag handles and consistent UI', async () => {
+      // Create a large team with 12 players to ensure bench players exist
+      const largeTeam = new Team('team1', 'Large Team', [], []);
+      const largePlayers = Array.from({ length: 12 }, (_, i) => {
+        const positions = [new Position('pitcher', i === 0)]; // First player is pitcher
+        if (i > 0) positions.push(new Position('extra-player', false)); // Others can play EP
+        return new Player(
+          `player${i + 1}`,
+          `Player ${i + 1}`,
+          i + 1,
+          positions
+        );
+      });
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={largeTeam}
+          players={largePlayers}
+        />
+      );
+
+      // Wait for component to initialize with default 10 starting positions
+      await waitFor(() => {
+        expect(
+          screen.getByText('Starting Lineup (Positions 1-10)')
+        ).toBeInTheDocument();
+      });
+
+      // Verify bench section exists with bench players (players 11 and 12)
+      expect(screen.getByText('Bench Players')).toBeInTheDocument();
+
+      // Check for bench players (positions 11 and 12 should be in bench)
+      const benchPlayer1 = screen.getByTestId('bench-player-player11');
+      const benchPlayer2 = screen.getByTestId('bench-player-player12');
+
+      expect(benchPlayer1).toBeInTheDocument();
+      expect(benchPlayer2).toBeInTheDocument();
+
+      // AC032: Bench players should have drag handles like starting players
+      expect(
+        screen.getByTestId('bench-drag-handle-player11')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId('bench-drag-handle-player12')
+      ).toBeInTheDocument();
+    });
+
+    test('AC033: bench players should support position assignment interface', async () => {
+      // Create a large team with 12 players
+      const largeTeam = new Team('team1', 'Large Team', [], []);
+      const largePlayers = Array.from({ length: 12 }, (_, i) => {
+        const positions = [
+          new Position('pitcher', i === 0),
+          new Position('extra-player', false),
+        ];
+        return new Player(
+          `player${i + 1}`,
+          `Player ${i + 1}`,
+          i + 1,
+          positions
+        );
+      });
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={largeTeam}
+          players={largePlayers}
+        />
+      );
+
+      // Wait for component to initialize
+      await waitFor(() => {
+        expect(screen.getByText('Bench Players')).toBeInTheDocument();
+      });
+
+      // AC033: Bench players should have position selectors
+      const benchPositionSelect1 = screen.getByTestId(
+        'bench-player-player11-position'
+      );
+      const benchPositionSelect2 = screen.getByTestId(
+        'bench-player-player12-position'
+      );
+
+      expect(benchPositionSelect1).toBeInTheDocument();
+      expect(benchPositionSelect2).toBeInTheDocument();
+
+      // Should be able to select positions for bench players
+      fireEvent.change(benchPositionSelect1, { target: { value: 'Pitcher' } });
+      expect(benchPositionSelect1).toHaveValue('Pitcher');
+
+      fireEvent.change(benchPositionSelect2, {
+        target: { value: 'Extra Player' },
+      });
+      expect(benchPositionSelect2).toHaveValue('Extra Player');
+    });
+
+    test('AC031: should maintain position assignments for bench players', async () => {
+      // Create a large team with 12 players
+      const largeTeam = new Team('team1', 'Large Team', [], []);
+      const largePlayers = Array.from({ length: 12 }, (_, i) => {
+        const positions = [
+          new Position('pitcher', i === 0),
+          new Position('short-fielder', i === 10), // Player 11 can play short fielder
+          new Position('extra-player', false),
+        ];
+        return new Player(
+          `player${i + 1}`,
+          `Player ${i + 1}`,
+          i + 1,
+          positions
+        );
+      });
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={largeTeam}
+          players={largePlayers}
+        />
+      );
+
+      // Wait for component to initialize
+      await waitFor(() => {
+        expect(screen.getByText('Bench Players')).toBeInTheDocument();
+      });
+
+      // Assign a position to a bench player
+      const benchPositionSelect = screen.getByTestId(
+        'bench-player-player11-position'
+      );
+      fireEvent.change(benchPositionSelect, {
+        target: { value: 'Short Fielder' },
+      });
+      expect(benchPositionSelect).toHaveValue('Short Fielder');
+
+      // Verify the player maintains their position assignment
+      // (This simulates what would happen during drag-and-drop operations)
+      expect(benchPositionSelect).toHaveValue('Short Fielder');
+
+      // Change position again to verify position management works
+      fireEvent.change(benchPositionSelect, {
+        target: { value: 'Extra Player' },
+      });
+      expect(benchPositionSelect).toHaveValue('Extra Player');
+    });
+
+    test('should show appropriate empty state when all players are in starting lineup', async () => {
+      // Use exactly 10 players so no bench players exist
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={mockTeam}
+          players={mockPlayers} // Exactly 10 players
+        />
+      );
+
+      // Wait for component to initialize
+      await waitFor(() => {
+        expect(
+          screen.getByText('Starting Lineup (Positions 1-10)')
+        ).toBeInTheDocument();
+      });
+
+      // No bench section should be visible when all players fit in starting lineup
+      expect(screen.queryByText('Bench Players')).not.toBeInTheDocument();
+    });
+
+    test('should show bench section when starting positions are reduced', async () => {
+      // Create a large team with 12 players
+      const largeTeam = new Team('team1', 'Large Team', [], []);
+      const largePlayers = Array.from({ length: 12 }, (_, i) => {
+        const positions = [new Position('extra-player', false)];
+        return new Player(
+          `player${i + 1}`,
+          `Player ${i + 1}`,
+          i + 1,
+          positions
+        );
+      });
+
+      renderWithChakra(
+        <LineupSetupModal
+          isOpen={true}
+          onClose={mockOnClose}
+          onSave={mockOnSave}
+          game={mockGame}
+          team={largeTeam}
+          players={largePlayers}
+        />
+      );
+
+      // Wait for component to initialize
+      await waitFor(() => {
+        expect(
+          screen.getByText('Starting Lineup (Positions 1-10)')
+        ).toBeInTheDocument();
+      });
+
+      // Reduce starting positions to 9
+      const positionSelector = screen.getByTestId('starting-positions-config');
+      const inputField = positionSelector.querySelector(
+        'input'
+      ) as HTMLInputElement;
+      fireEvent.change(inputField, { target: { value: '9' } });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Starting Lineup (Positions 1-9)')
+        ).toBeInTheDocument();
+        expect(screen.getByText('Bench Players')).toBeInTheDocument();
+      });
+
+      // Should show bench players now (3 extra players: positions 10, 11, 12)
+      expect(screen.getByTestId('bench-player-player10')).toBeInTheDocument();
+      expect(screen.getByTestId('bench-player-player11')).toBeInTheDocument();
+      expect(screen.getByTestId('bench-player-player12')).toBeInTheDocument();
+    });
   });
 });

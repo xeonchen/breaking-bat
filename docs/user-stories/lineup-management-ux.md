@@ -35,7 +35,7 @@ Quickly set up lineups with minimal clicking through drag-and-drop reordering, c
 
 ### Drag-and-Drop Batting Order Interface
 
-- **AC009**: Given I want to set the lineup, all players should be displayed as draggable rows (no player dropdown needed)
+- **AC009**: Given I want to reorder the batting lineup, I should be able to drag player rows to reorder them (player selection dropdowns remain for initial assignment)
 - **AC010**: Given I want to reorder players, I should be able to drag a player row and drop it to a new batting position
 - **AC011**: Given I drag a player, the interface should provide immediate visual feedback with drag handles and drop zones
 - **AC012**: Given I drop a player in a new position, the batting order should automatically renumber and other players should shift accordingly
@@ -67,6 +67,17 @@ Quickly set up lineups with minimal clicking through drag-and-drop reordering, c
 - **AC026**: Given a player has no available positions for a role, this should be clearly indicated
 - **AC027**: Given the lineup is incomplete, a progress indicator should show what's missing
 - **AC028**: Given the lineup is complete and valid, this should be clearly indicated with a success state
+
+### Cross-Section Drag-and-Drop
+
+- **AC029**: Given I want to move a bench player to the starting lineup, I should be able to drag a bench player row to any starting lineup position
+- **AC030**: Given I want to move a starting player to the bench, I should be able to drag a starting lineup row to the bench section
+- **AC031**: Given I perform cross-section drag-and-drop, position assignments should be maintained and the interface should update immediately
+
+### Bench Player Interface Consistency
+
+- **AC032**: Given I view bench players, they should have the same visual style and layout as starting lineup players to support consistent drag-and-drop interaction
+- **AC033**: Given a bench player has a defensive position assigned, I should be able to view and modify their position assignment using the same interface as starting players
 
 ## Priority
 

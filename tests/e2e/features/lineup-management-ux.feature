@@ -69,13 +69,21 @@ Feature: Enhanced Lineup Management UX
     And the starting lineup should only show 9 positions
     And the moved players should be available for reassignment
 
-  # Player Selection Interface (AC009-AC012)
+  @AC008a
+  Scenario: Starting position count is saved with lineup data
+    Given I have set the starting position count to 11
+    And I have configured a complete lineup
+    When I click the "Save Lineup" button
+    Then the starting position count of 11 should be saved along with the batting order and positions
+
+  # Drag-and-Drop Interface (AC009-AC012)
   @AC009
-  Scenario: Use dropdown selectors for player selection
-    When I click on a batting position slot
-    Then I should see a dropdown selector for player selection
-    And the dropdown should list all available players
-    And I should be able to search within the dropdown
+  Scenario: Drag player rows to reorder batting lineup
+    Given I have players assigned to batting positions
+    When I drag a player row to a different position
+    Then the player should move to the new batting position
+    And the batting order should automatically renumber
+    And player selection dropdowns remain available for initial assignment
 
   @AC010
   Scenario: Swap players between batting positions using dropdowns
@@ -122,6 +130,7 @@ Feature: Enhanced Lineup Management UX
     Then I should see positions formatted as "Pitcher (P)"
     And I should see "First Base (1B)", "Catcher (C)", etc.
     And the format should be consistent for all positions
+
 
   @AC016
   Scenario: Position abbreviation clearly displayed when assigned
@@ -239,6 +248,47 @@ Feature: Enhanced Lineup Management UX
     Then I should see an error message "Team needs at least 9 active players"
     And the save button should be disabled
     And I should get guidance on adding more players
+
+  # Cross-Section Drag-and-Drop (AC029-AC031)
+  @AC029
+  Scenario: Drag bench player to starting lineup position
+    Given I have Player A in the bench section
+    And position 5 in the starting lineup is empty
+    When I drag Player A from bench to position 5
+    Then Player A should move to batting position 5
+    And Player A should be removed from the bench section
+    And their defensive position should be maintained if assigned
+
+  @AC030
+  Scenario: Drag starting player to bench section
+    Given Player B is in batting position 3 of the starting lineup
+    When I drag Player B from position 3 to the bench section
+    Then Player B should move to the bench
+    And batting position 3 should become empty
+    And their defensive position should be maintained
+
+  @AC031
+  Scenario: Position assignments maintained during cross-section drag-and-drop
+    Given Player C is assigned as "Pitcher (P)" in the starting lineup
+    When I drag Player C to the bench section
+    Then Player C should retain their "Pitcher (P)" assignment in the bench
+    And I should be able to drag them back with position intact
+
+  # Bench Player Interface Consistency (AC032-AC033)
+  @AC032
+  Scenario: Bench players have same visual style as starting lineup
+    When I view both starting lineup and bench sections
+    Then bench player rows should have the same layout as starting lineup rows
+    And bench players should have drag handles like starting players
+    And the visual styling should be consistent between sections
+
+  @AC033
+  Scenario: Bench players support same position assignment interface
+    Given I have Player D in the bench section
+    When I click on Player D's position assignment
+    Then I should see the same position dropdown as starting players
+    And I should be able to select from all available positions
+    And the interface should work identically to starting lineup
 
   @error-handling
   Scenario: Handle large team rosters efficiently

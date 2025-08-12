@@ -38,6 +38,9 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -101,6 +104,141 @@ interface DraggableLineupRowProps {
   dragHandleProps?: any;
 }
 
+interface DraggableBenchPlayerProps {
+  player: Player;
+  position?: LineupPosition;
+  isDisplaced?: boolean;
+  originalPosition?: number;
+  cardBg: string;
+  borderColor: string;
+  onPositionChange?: (position: string) => void;
+  availablePositions: Array<{ value: string; label: string }>;
+}
+
+const DraggableBenchPlayer: React.FC<DraggableBenchPlayerProps> = ({
+  player,
+  position,
+  isDisplaced = false,
+  originalPosition,
+  cardBg,
+  borderColor,
+  onPositionChange,
+  availablePositions,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `bench-${player.id}`,
+  });
+
+  const style = {
+    transform: isDragging ? 'none' : CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
+  return (
+    <Box
+      ref={setNodeRef}
+      style={style}
+      bg={cardBg}
+      border="1px"
+      borderColor={borderColor}
+      borderRadius="md"
+      p={3}
+      mb={2}
+      data-testid={`bench-player-${player.id}`}
+    >
+      <Flex alignItems="center" gap={3} width="100%">
+        {/* Drag handle */}
+        <IconButton
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag bench player ${player.name}`}
+          icon={<DragHandleIcon />}
+          size="sm"
+          variant="ghost"
+          cursor="grab"
+          _active={{ cursor: 'grabbing' }}
+          data-testid={`bench-drag-handle-${player.id}`}
+        />
+
+        {/* Player info */}
+        <Box flex="1">
+          <Text fontWeight="bold">
+            #{player.jerseyNumber} {player.name}
+          </Text>
+          <Text fontSize="sm" color="gray.600">
+            {isDisplaced && originalPosition
+              ? `Previously in position ${originalPosition}`
+              : position?.battingOrder
+                ? `Position ${position.battingOrder}`
+                : player.getPositionsDisplay()}
+          </Text>
+        </Box>
+
+        {/* Position selector for bench players (AC033) */}
+        {onPositionChange && (
+          <FormControl maxW="200px">
+            <Select
+              data-testid={`bench-player-${player.id}-position`}
+              placeholder="Select Position"
+              value={position?.defensivePosition || ''}
+              onChange={(e) => onPositionChange(e.target.value)}
+              size="sm"
+            >
+              {availablePositions.map((pos) => (
+                <option key={pos.value} value={pos.value}>
+                  {pos.label}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {/* Show current position if assigned */}
+        {position?.defensivePosition && !onPositionChange && (
+          <Text fontSize="sm" fontWeight="semibold">
+            {position.defensivePosition}
+          </Text>
+        )}
+      </Flex>
+    </Box>
+  );
+};
+
+interface DroppableBenchSectionProps {
+  children: React.ReactNode;
+}
+
+const DroppableBenchSection: React.FC<DroppableBenchSectionProps> = ({
+  children,
+}) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'bench-section',
+  });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      minH="100px"
+      p={3}
+      borderRadius="md"
+      border="2px dashed"
+      borderColor={isOver ? 'blue.400' : 'gray.300'}
+      bg={isOver ? 'blue.50' : 'transparent'}
+      transition="all 0.2s"
+    >
+      {children}
+    </Box>
+  );
+};
+
 const DraggableLineupRow: React.FC<DraggableLineupRowProps> = ({
   position,
   player,
@@ -126,9 +264,10 @@ const DraggableLineupRow: React.FC<DraggableLineupRowProps> = ({
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    // Don't apply transform to the dragged item (handled by overlay)
+    transform: isDragging ? 'none' : CSS.Transform.toString(transform),
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.3 : 1, // Reduced opacity for original item during drag
   };
 
   return (
@@ -242,9 +381,17 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
     })
   );
 
-  // AC012: Handle drag end - reorder batting positions and renumber
+  // AC011: Handle drag start - set active item for overlay
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+  };
+
+  // AC012: Handle drag end - reorder batting positions and renumber, plus cross-section drag-and-drop
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+
+    setActiveId(null); // Clear active drag state
 
     if (!over || active.id === over.id) {
       return;
@@ -253,20 +400,160 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Extract batting order numbers from IDs
-    const activeIndex = parseInt(activeId.replace('lineup-', '')) - 1;
-    const overIndex = parseInt(overId.replace('lineup-', '')) - 1;
+    // Handle cross-section drag-and-drop (AC029-AC031)
+    if (activeId.startsWith('bench-') && overId.startsWith('lineup-')) {
+      // Dragging from bench to starting lineup
+      const benchPlayerId = activeId.replace('bench-', '');
+      const targetPosition = parseInt(overId.replace('lineup-', ''));
 
-    // Reorder the lineup positions array
-    setLineupPositions((prev) => {
-      const newPositions = arrayMove(prev, activeIndex, overIndex);
+      setLineupPositions((prev) => {
+        return prev.map((pos) => {
+          if (pos.battingOrder === targetPosition) {
+            // Find the bench player's current defensive position if any
+            const benchPlayer = players.find((p) => p.id === benchPlayerId);
+            const currentBenchPosition = prev.find(
+              (p) => p.playerId === benchPlayerId
+            );
 
-      // Renumber batting orders to maintain sequential order
-      return newPositions.map((position, index) => ({
-        ...position,
-        battingOrder: index + 1,
-      }));
-    });
+            return {
+              ...pos,
+              playerId: benchPlayerId,
+              defensivePosition:
+                currentBenchPosition?.defensivePosition ||
+                (benchPlayer ? getDefaultPositionForPlayer(benchPlayer) : null),
+            };
+          }
+          // Clear the bench position if player was previously assigned
+          if (pos.playerId === benchPlayerId) {
+            return { ...pos, playerId: null, defensivePosition: null };
+          }
+          return pos;
+        });
+      });
+      return;
+    }
+
+    if (activeId.startsWith('lineup-') && overId === 'bench-section') {
+      // Dragging from starting lineup to bench (AC030)
+      const activePosition = parseInt(activeId.replace('lineup-', ''));
+
+      setLineupPositions((prev) => {
+        return prev.map((pos) => {
+          if (pos.battingOrder === activePosition) {
+            // Find the first available bench position or create new one
+            const benchPositions = prev.slice(startingPositionCount);
+            const firstEmptyBench = benchPositions.find((p) => !p.playerId);
+
+            if (firstEmptyBench) {
+              // Move to existing empty bench position
+              return pos; // Will be handled by the target position update below
+            } else {
+              // Create new bench position
+              return pos; // Will be handled by adding new position
+            }
+          }
+          return pos;
+        });
+      });
+
+      // Handle the actual move
+      setLineupPositions((prev) => {
+        const activePositionData = prev.find(
+          (p) => p.battingOrder === activePosition
+        );
+        if (!activePositionData || !activePositionData.playerId) return prev;
+
+        // Find first empty bench position
+        const benchPositions = prev.slice(startingPositionCount);
+        const firstEmptyBench = benchPositions.find((p) => !p.playerId);
+
+        if (firstEmptyBench) {
+          // Move to existing bench position
+          return prev.map((pos) => {
+            if (pos.battingOrder === activePosition) {
+              return { ...pos, playerId: null, defensivePosition: null };
+            }
+            if (pos.battingOrder === firstEmptyBench.battingOrder) {
+              return {
+                ...pos,
+                playerId: activePositionData.playerId,
+                defensivePosition: activePositionData.defensivePosition,
+              };
+            }
+            return pos;
+          });
+        } else {
+          // Add new bench position
+          const newBenchPosition: LineupPosition = {
+            battingOrder: prev.length + 1,
+            playerId: activePositionData.playerId,
+            defensivePosition: activePositionData.defensivePosition,
+          };
+
+          return [
+            ...prev.map((pos) =>
+              pos.battingOrder === activePosition
+                ? { ...pos, playerId: null, defensivePosition: null }
+                : pos
+            ),
+            newBenchPosition,
+          ];
+        }
+      });
+      return;
+    }
+
+    // Regular starting lineup reordering
+    if (activeId.startsWith('lineup-') && overId.startsWith('lineup-')) {
+      const activeIndex = parseInt(activeId.replace('lineup-', '')) - 1;
+      const overIndex = parseInt(overId.replace('lineup-', '')) - 1;
+
+      // Only allow reordering within starting lineup
+      if (
+        activeIndex < startingPositionCount &&
+        overIndex < startingPositionCount
+      ) {
+        setLineupPositions((prev) => {
+          const startingPositions = prev.slice(0, startingPositionCount);
+          const benchPositions = prev.slice(startingPositionCount);
+
+          const reorderedStarting = arrayMove(
+            startingPositions,
+            activeIndex,
+            overIndex
+          );
+
+          // Renumber batting orders to maintain sequential order
+          const renumberedStarting = reorderedStarting.map(
+            (position, index) => ({
+              ...position,
+              battingOrder: index + 1,
+            })
+          );
+
+          return [...renumberedStarting, ...benchPositions];
+        });
+      }
+    }
+  };
+
+  // Helper function to get default position for a player
+  const getDefaultPositionForPlayer = (player: Player): string | null => {
+    const defaultPos = player.getDefaultPosition();
+    const positionMap: Record<string, string> = {
+      pitcher: 'Pitcher',
+      catcher: 'Catcher',
+      'first-base': 'First Base',
+      'second-base': 'Second Base',
+      'third-base': 'Third Base',
+      shortstop: 'Shortstop',
+      'left-field': 'Left Field',
+      'center-field': 'Center Field',
+      'right-field': 'Right Field',
+      'short-fielder': 'Short Fielder',
+      'extra-player': 'Extra Player',
+    };
+    return positionMap[defaultPos.value] || null;
   };
 
   // Helper function to get smart-ordered positions for a player
@@ -384,6 +671,9 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   const [manualPositionAssignments, setManualPositionAssignments] = useState<
     Set<number>
   >(new Set());
+
+  // State for drag overlay
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   // Handle starting position count changes - adjust lineup positions array size
   useEffect(() => {
@@ -545,6 +835,20 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
     setLineupPositions((prev) =>
       prev.map((pos) =>
         pos.battingOrder === battingOrder
+          ? { ...pos, defensivePosition: position || null }
+          : pos
+      )
+    );
+  };
+
+  // Handle bench player position changes (AC033)
+  const handleBenchPlayerPositionChange = (
+    playerId: string,
+    position: string
+  ) => {
+    setLineupPositions((prev) =>
+      prev.map((pos) =>
+        pos.playerId === playerId
           ? { ...pos, defensivePosition: position || null }
           : pos
       )
@@ -873,23 +1177,38 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
             {/* Players are now auto-assigned by default, no need for separate display */}
 
-            {/* Starting Lineup Section - AC009-AC012: Drag-and-Drop Interface */}
-            <Box data-testid="starting-lineup-section">
-              <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                Starting Lineup (Positions 1-{startingPositionCount})
-              </Text>
-
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={lineupPositions
+            {/* Combined Drag-and-Drop Context for Starting Lineup and Bench */}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={[
+                  // Starting lineup items
+                  ...lineupPositions
                     .slice(0, startingPositionCount)
-                    .map((pos) => `lineup-${pos.battingOrder}`)}
-                  strategy={verticalListSortingStrategy}
-                >
+                    .map((pos) => `lineup-${pos.battingOrder}`),
+                  // Bench player items
+                  ...players
+                    .filter((player) => {
+                      // Include players that are in bench positions or displaced
+                      const inStarting = lineupPositions
+                        .slice(0, startingPositionCount)
+                        .some((pos) => pos.playerId === player.id);
+                      return !inStarting;
+                    })
+                    .map((player) => `bench-${player.id}`),
+                ]}
+                strategy={verticalListSortingStrategy}
+              >
+                {/* Starting Lineup Section - AC009-AC012: Drag-and-Drop Interface */}
+                <Box data-testid="starting-lineup-section">
+                  <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                    Starting Lineup (Positions 1-{startingPositionCount})
+                  </Text>
+
                   <VStack spacing={3}>
                     {lineupPositions
                       .slice(0, startingPositionCount)
@@ -930,104 +1249,225 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                         );
                       })}
                   </VStack>
-                </SortableContext>
-              </DndContext>
-            </Box>
+                </Box>
 
-            {/* Bench Section - show unassigned players when positions are reduced */}
-            {(startingPositionCount < players.length ||
-              displacedPlayers.length > 0) && (
-              <Box data-testid="bench-players-section">
-                <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                  Bench Players
-                </Text>
+                {/* Bench Section - AC029-AC033: Cross-Section Drag-and-Drop */}
+                {(startingPositionCount < players.length ||
+                  displacedPlayers.length > 0) && (
+                  <Box data-testid="bench-players-section" mt={6}>
+                    <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                      Bench Players
+                    </Text>
 
-                {/* Show displaced players from removed positions */}
-                {displacedPlayers.map((displaced) => (
+                    <DroppableBenchSection>
+                      {/* Show displaced players from removed positions */}
+                      {displacedPlayers.map((displaced) => (
+                        <DraggableBenchPlayer
+                          key={`displaced-${displaced.player.id}`}
+                          player={displaced.player}
+                          isDisplaced={true}
+                          originalPosition={displaced.originalPosition}
+                          cardBg={cardBg}
+                          borderColor={borderColor}
+                          availablePositions={getSmartOrderedPositions(
+                            displaced.player.id
+                          )}
+                          onPositionChange={(position) =>
+                            handleBenchPlayerPositionChange(
+                              displaced.player.id,
+                              position
+                            )
+                          }
+                        />
+                      ))}
+
+                      {/* Show players in positions beyond starting count (current bench) */}
+                      {lineupPositions
+                        .slice(startingPositionCount)
+                        .filter((pos) => pos.playerId)
+                        .map((position) => {
+                          const assignedPlayer = players.find(
+                            (p) => p.id === position.playerId
+                          );
+
+                          return assignedPlayer ? (
+                            <DraggableBenchPlayer
+                              key={`bench-${assignedPlayer.id}`}
+                              player={assignedPlayer}
+                              position={position}
+                              cardBg={cardBg}
+                              borderColor={borderColor}
+                              availablePositions={getSmartOrderedPositions(
+                                assignedPlayer.id
+                              )}
+                              onPositionChange={(positionValue) =>
+                                handleBenchPlayerPositionChange(
+                                  assignedPlayer.id,
+                                  positionValue
+                                )
+                              }
+                            />
+                          ) : null;
+                        })}
+
+                      {/* Show any other unassigned players */}
+                      {players
+                        .filter((player) => {
+                          const inStarting = lineupPositions
+                            .slice(0, startingPositionCount)
+                            .some((pos) => pos.playerId === player.id);
+                          const inBench = lineupPositions
+                            .slice(startingPositionCount)
+                            .some((pos) => pos.playerId === player.id);
+                          const isDisplaced = displacedPlayers.some(
+                            (displaced) => displaced.player.id === player.id
+                          );
+                          return !inStarting && !inBench && !isDisplaced;
+                        })
+                        .map((player) => (
+                          <DraggableBenchPlayer
+                            key={`unassigned-${player.id}`}
+                            player={player}
+                            cardBg={cardBg}
+                            borderColor={borderColor}
+                            availablePositions={getSmartOrderedPositions(
+                              player.id
+                            )}
+                            onPositionChange={(position) =>
+                              handleBenchPlayerPositionChange(
+                                player.id,
+                                position
+                              )
+                            }
+                          />
+                        ))}
+
+                      {/* Empty state message */}
+                      {players.filter((player) => {
+                        const inStarting = lineupPositions
+                          .slice(0, startingPositionCount)
+                          .some((pos) => pos.playerId === player.id);
+                        return !inStarting;
+                      }).length === 0 &&
+                        displacedPlayers.length === 0 && (
+                          <Text color="gray.500" textAlign="center" py={4}>
+                            All players are in the starting lineup
+                          </Text>
+                        )}
+                    </DroppableBenchSection>
+                  </Box>
+                )}
+              </SortableContext>
+
+              <DragOverlay>
+                {activeId ? (
                   <Box
-                    key={`displaced-${displaced.player.id}`}
                     bg={cardBg}
                     border="1px"
                     borderColor={borderColor}
                     borderRadius="md"
-                    p={3}
-                    mb={2}
-                    data-testid={`bench-player-${displaced.player.id}`}
+                    p={4}
+                    width="100%"
+                    opacity={0.9}
+                    transform="rotate(5deg)"
+                    boxShadow="lg"
                   >
-                    <Text>
-                      #{displaced.player.jerseyNumber} {displaced.player.name}
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      Previously in position {displaced.originalPosition}
-                    </Text>
+                    {(() => {
+                      if (activeId.startsWith('lineup-')) {
+                        const activeIndex =
+                          parseInt(activeId.replace('lineup-', '')) - 1;
+                        const activePosition = lineupPositions[activeIndex];
+                        const activePlayer = activePosition
+                          ? players.find(
+                              (p) => p.id === activePosition.playerId
+                            )
+                          : null;
+
+                        return (
+                          <Flex alignItems="center" gap={4} width="100%">
+                            <IconButton
+                              aria-label="Dragging"
+                              icon={<DragHandleIcon />}
+                              size="sm"
+                              variant="ghost"
+                              cursor="grabbing"
+                            />
+
+                            <Badge
+                              colorScheme="blue"
+                              fontSize="md"
+                              textAlign="center"
+                              minW="50px"
+                            >
+                              {activePosition?.battingOrder}
+                            </Badge>
+
+                            <Box flex="1">
+                              <Text fontWeight="bold">
+                                {activePlayer
+                                  ? `#${activePlayer.jerseyNumber} ${activePlayer.name}`
+                                  : 'Select Player'}
+                              </Text>
+                              {activePlayer && (
+                                <Text fontSize="sm" color="gray.600">
+                                  {activePlayer.getPositionsDisplay()}
+                                </Text>
+                              )}
+                            </Box>
+
+                            {activePosition?.defensivePosition && (
+                              <Text fontSize="sm" fontWeight="semibold">
+                                {activePosition.defensivePosition}
+                              </Text>
+                            )}
+                          </Flex>
+                        );
+                      } else if (activeId.startsWith('bench-')) {
+                        const benchPlayerId = activeId.replace('bench-', '');
+                        const benchPlayer = players.find(
+                          (p) => p.id === benchPlayerId
+                        );
+                        const benchPosition = lineupPositions.find(
+                          (p) => p.playerId === benchPlayerId
+                        );
+
+                        return (
+                          <Flex alignItems="center" gap={3} width="100%">
+                            <IconButton
+                              aria-label="Dragging"
+                              icon={<DragHandleIcon />}
+                              size="sm"
+                              variant="ghost"
+                              cursor="grabbing"
+                            />
+
+                            <Box flex="1">
+                              <Text fontWeight="bold">
+                                {benchPlayer
+                                  ? `#${benchPlayer.jerseyNumber} ${benchPlayer.name}`
+                                  : 'Unknown Player'}
+                              </Text>
+                              {benchPlayer && (
+                                <Text fontSize="sm" color="gray.600">
+                                  {benchPlayer.getPositionsDisplay()}
+                                </Text>
+                              )}
+                            </Box>
+
+                            {benchPosition?.defensivePosition && (
+                              <Text fontSize="sm" fontWeight="semibold">
+                                {benchPosition.defensivePosition}
+                              </Text>
+                            )}
+                          </Flex>
+                        );
+                      }
+                      return null;
+                    })()}
                   </Box>
-                ))}
-
-                {/* Show players in positions beyond starting count (current bench) */}
-                {lineupPositions
-                  .slice(startingPositionCount) // All positions beyond starting count
-                  .filter((pos) => pos.playerId) // Only show positions that have players assigned
-                  .map((position) => {
-                    const assignedPlayer = players.find(
-                      (p) => p.id === position.playerId
-                    );
-
-                    return assignedPlayer ? (
-                      <Box
-                        key={`bench-${assignedPlayer.id}`}
-                        bg={cardBg}
-                        border="1px"
-                        borderColor={borderColor}
-                        borderRadius="md"
-                        p={3}
-                        mb={2}
-                        data-testid={`bench-player-${assignedPlayer.id}`}
-                      >
-                        <Text>
-                          #{assignedPlayer.jerseyNumber} {assignedPlayer.name}
-                        </Text>
-                        <Text fontSize="sm" color="gray.600">
-                          Position {position.battingOrder}
-                        </Text>
-                      </Box>
-                    ) : null;
-                  })}
-
-                {/* Show any other unassigned players */}
-                {players
-                  .filter(
-                    (player) =>
-                      !lineupPositions
-                        .slice(0, startingPositionCount)
-                        .some((pos) => pos.playerId === player.id) &&
-                      !displacedPlayers.some(
-                        (displaced) => displaced.player.id === player.id
-                      ) &&
-                      !lineupPositions
-                        .slice(startingPositionCount)
-                        .some((pos) => pos.playerId === player.id)
-                  )
-                  .map((player) => (
-                    <Box
-                      key={`unassigned-${player.id}`}
-                      bg={cardBg}
-                      border="1px"
-                      borderColor={borderColor}
-                      borderRadius="md"
-                      p={3}
-                      mb={2}
-                      data-testid={`bench-player-${player.id}`}
-                    >
-                      <Text>
-                        #{player.jerseyNumber} {player.name}
-                      </Text>
-                      <Text fontSize="sm" color="gray.600">
-                        Unassigned
-                      </Text>
-                    </Box>
-                  ))}
-              </Box>
-            )}
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           </VStack>
         </ModalBody>
 
