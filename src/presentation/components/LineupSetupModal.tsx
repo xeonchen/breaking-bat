@@ -25,7 +25,6 @@ import {
   AlertDescription,
   Badge,
   Box,
-  Divider,
   useColorModeValue,
   Grid,
   GridItem,
@@ -38,6 +37,7 @@ interface LineupSetupModalProps {
   onClose: () => void;
   onSave: (lineupData: {
     gameId: string;
+    startingPositionCount: number;
     battingOrder: Array<{
       battingOrder: number;
       playerId: string;
@@ -89,9 +89,45 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
 
+  // Helper function to get smart-ordered positions for a player
+  const getSmartOrderedPositions = (playerId: string | null) => {
+    if (!playerId) return DEFENSIVE_POSITIONS;
+
+    const player = players.find((p) => p.id === playerId);
+    if (!player) return DEFENSIVE_POSITIONS;
+
+    // Get player's available positions and preserve their order
+    const playerPosOptions: Array<{ value: string; label: string }> = [];
+    const otherPosOptions: Array<{ value: string; label: string }> = [];
+
+    // First, add player positions in the order they appear in the player's positions array
+    player.positions.forEach((pos) => {
+      const posFullName = pos.getFullName();
+      const matchingDefPos = DEFENSIVE_POSITIONS.find(
+        (defPos) => defPos.value === posFullName
+      );
+      if (matchingDefPos) {
+        playerPosOptions.push(matchingDefPos);
+      }
+    });
+
+    // Then, add all other positions that the player doesn't have
+    const playerPositionValues = player.positions.map((pos) =>
+      pos.getFullName()
+    );
+    DEFENSIVE_POSITIONS.forEach((pos) => {
+      if (!playerPositionValues.includes(pos.value)) {
+        otherPosOptions.push(pos);
+      }
+    });
+
+    // Return player positions first (in their original order), then others
+    return [...playerPosOptions, ...otherPosOptions];
+  };
+
   // Initialize lineup positions when modal opens
   useEffect(() => {
-    if (isOpen && lineupPositions.length === 0) {
+    if (isOpen && players.length > 0 && lineupPositions.length === 0) {
       // Try to load draft from sessionStorage first
       const savedDraft = sessionStorage.getItem(draftKey);
 
@@ -99,7 +135,14 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
       if (savedDraft) {
         try {
-          initialPositions = JSON.parse(savedDraft);
+          const parsed = JSON.parse(savedDraft);
+          // Validate that saved draft matches current player count
+          if (parsed.length === players.length) {
+            initialPositions = parsed;
+          } else {
+            // Player count changed, recreate with auto-assignment
+            initialPositions = createDefaultPositions();
+          }
         } catch {
           // If parsing fails, create default positions
           initialPositions = createDefaultPositions();
@@ -110,20 +153,111 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
       setLineupPositions(initialPositions);
     }
-  }, [isOpen, lineupPositions.length, draftKey]);
+  }, [isOpen, players.length, lineupPositions.length, draftKey]);
 
-  // Helper function to create default positions
+  // Helper function to create default positions with all players auto-assigned
   const createDefaultPositions = (): LineupPosition[] => {
     const positions: LineupPosition[] = [];
-    for (let i = 1; i <= 15; i++) {
+    const playerCount = players.length;
+
+    // Create slots equal to the number of players
+    for (let i = 1; i <= playerCount; i++) {
+      const player = players[i - 1]; // Get player for this position
+      // Map position value to display format expected by DEFENSIVE_POSITIONS
+      let defaultPosition = null;
+      if (player) {
+        const positionValue = player.getDefaultPosition().value;
+        const positionMap: Record<string, string> = {
+          pitcher: 'Pitcher',
+          catcher: 'Catcher',
+          'first-base': 'First Base',
+          'second-base': 'Second Base',
+          'third-base': 'Third Base',
+          shortstop: 'Shortstop',
+          'left-field': 'Left Field',
+          'center-field': 'Center Field',
+          'right-field': 'Right Field',
+          'short-fielder': 'Short Fielder',
+          'extra-player': 'Extra Player',
+        };
+        defaultPosition = positionMap[positionValue] || null;
+      }
+
       positions.push({
         battingOrder: i,
-        playerId: null,
-        defensivePosition: null,
+        playerId: player ? player.id : null,
+        defensivePosition: defaultPosition,
       });
     }
     return positions;
   };
+
+  // State to track displaced players when positions are reduced
+  const [displacedPlayers, setDisplacedPlayers] = useState<
+    Array<{
+      player: Player;
+      originalPosition: number;
+    }>
+  >([]);
+
+  // State to track manually assigned positions (AC024: don't override manual changes)
+  const [manualPositionAssignments, setManualPositionAssignments] = useState<
+    Set<number>
+  >(new Set());
+
+  // Handle starting position count changes - adjust lineup positions array size
+  useEffect(() => {
+    if (lineupPositions.length > 0) {
+      const currentMaxPositions = Math.max(
+        startingPositionCount,
+        players.length
+      );
+
+      if (lineupPositions.length !== currentMaxPositions) {
+        const newPositions = [...lineupPositions];
+
+        if (currentMaxPositions > lineupPositions.length) {
+          // Add empty positions if we need more slots
+          for (
+            let i = lineupPositions.length + 1;
+            i <= currentMaxPositions;
+            i++
+          ) {
+            newPositions.push({
+              battingOrder: i,
+              playerId: null,
+              defensivePosition: null,
+            });
+          }
+        } else if (currentMaxPositions < lineupPositions.length) {
+          // Before removing positions, save displaced players
+          const displaced = lineupPositions
+            .slice(currentMaxPositions)
+            .filter((pos) => pos.playerId)
+            .map((pos) => {
+              const player = players.find((p) => p.id === pos.playerId);
+              return player
+                ? {
+                    player,
+                    originalPosition: pos.battingOrder,
+                  }
+                : null;
+            })
+            .filter(Boolean) as Array<{
+            player: Player;
+            originalPosition: number;
+          }>;
+
+          setDisplacedPlayers(displaced);
+
+          // Remove excess positions
+          newPositions.splice(currentMaxPositions);
+        }
+
+        setLineupPositions(newPositions);
+      }
+    }
+  }, [startingPositionCount, players.length, lineupPositions.length, players]);
 
   // Save draft to sessionStorage whenever positions change
   useEffect(() => {
@@ -136,34 +270,55 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   useEffect(() => {
     if (lineupPositions.length === 0) return;
 
-    const filledPositions = lineupPositions.filter(
+    // Only validate starting lineup positions for duplicates
+    const startingPositions = lineupPositions.slice(0, startingPositionCount);
+    const filledStartingPositions = startingPositions.filter(
       (pos) => pos.playerId && pos.defensivePosition
     );
 
-    if (filledPositions.length === 0) {
+    if (filledStartingPositions.length === 0) {
       setValidationErrors([]);
       return;
     }
 
     setIsValidating(true);
 
-    // Use partial validation for real-time feedback
-    const result = validator.validatePartial(lineupPositions, players);
+    // Use partial validation for real-time feedback - only on starting lineup
+    const result = validator.validatePartial(startingPositions, players);
     setValidationErrors(result.errors);
     setIsValidating(false);
-  }, [lineupPositions, players, validator]);
+  }, [lineupPositions, players, validator, startingPositionCount]);
 
   const handlePlayerChange = (battingOrder: number, playerId: string) => {
+    // When player changes, clear manual position assignment and position for that slot
+    // This allows auto-fill to work on reassigned players
+    setManualPositionAssignments((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(battingOrder);
+      return newSet;
+    });
+
     setLineupPositions((prev) =>
       prev.map((pos) =>
         pos.battingOrder === battingOrder
-          ? { ...pos, playerId: playerId || null }
+          ? { ...pos, playerId: playerId || null, defensivePosition: null }
           : pos
       )
     );
   };
 
   const handlePositionChange = (battingOrder: number, position: string) => {
+    // Track manual position assignments
+    if (position) {
+      setManualPositionAssignments((prev) => new Set(prev).add(battingOrder));
+    } else {
+      setManualPositionAssignments((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(battingOrder);
+        return newSet;
+      });
+    }
+
     setLineupPositions((prev) =>
       prev.map((pos) =>
         pos.battingOrder === battingOrder
@@ -193,6 +348,7 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
     onSave({
       gameId: game.id,
+      startingPositionCount,
       battingOrder,
     });
 
@@ -200,6 +356,43 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
     sessionStorage.removeItem(draftKey);
 
     onClose();
+  };
+
+  // AC021-AC024: Auto-fill functionality
+  const handleAutoFillPositions = () => {
+    setLineupPositions((prev) =>
+      prev.map((pos) => {
+        // Skip positions that were manually assigned (AC024)
+        if (manualPositionAssignments.has(pos.battingOrder)) {
+          return pos;
+        }
+
+        // Auto-fill default position for assigned players without positions
+        if (pos.playerId && !pos.defensivePosition) {
+          const player = players.find((p) => p.id === pos.playerId);
+          if (player) {
+            // Get default position in display format
+            const defaultPos = player.getDefaultPosition();
+            const positionMap: Record<string, string> = {
+              pitcher: 'Pitcher',
+              catcher: 'Catcher',
+              'first-base': 'First Base',
+              'second-base': 'Second Base',
+              'third-base': 'Third Base',
+              shortstop: 'Shortstop',
+              'left-field': 'Left Field',
+              'center-field': 'Center Field',
+              'right-field': 'Right Field',
+              'short-fielder': 'Short Fielder',
+              'extra-player': 'Extra Player',
+            };
+            const displayPosition = positionMap[defaultPos.value] || null;
+            return { ...pos, defensivePosition: displayPosition };
+          }
+        }
+        return pos;
+      })
+    );
   };
 
   const getFilledPositionCount = () => {
@@ -232,26 +425,33 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
   // Get positions that have duplicates for highlighting
   const getDuplicatePositions = () => {
-    const filledPositions = lineupPositions.filter(
-      (pos) => pos.playerId && pos.defensivePosition
-    );
+    // Only check starting lineup positions (not bench) for duplicates
+    const startingPositions = lineupPositions
+      .slice(0, startingPositionCount)
+      .filter((pos) => pos.playerId && pos.defensivePosition);
 
     const positionCounts: Record<string, number> = {};
-    filledPositions.forEach((pos) => {
+    startingPositions.forEach((pos) => {
       if (pos.defensivePosition) {
         positionCounts[pos.defensivePosition] =
           (positionCounts[pos.defensivePosition] || 0) + 1;
       }
     });
 
+    // Extra Player (EP) can have duplicates, so exclude it from duplicate checking
     return Object.keys(positionCounts).filter(
-      (position) => positionCounts[position] > 1
+      (position) => positionCounts[position] > 1 && position !== 'Extra Player'
     );
   };
 
-  // Check if a specific position is duplicated
-  const isPositionDuplicated = (position: string | null) => {
+  // Check if a specific position is duplicated (only for starting lineup)
+  const isPositionDuplicated = (
+    position: string | null,
+    battingOrder: number
+  ) => {
     if (!position) return false;
+    // Only highlight duplicates in starting lineup, not bench
+    if (battingOrder > startingPositionCount) return false;
     return getDuplicatePositions().includes(position);
   };
 
@@ -372,8 +572,8 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
             <Box data-testid="lineup-progress-indicator">
               <HStack justify="space-between" align="center">
                 <Text fontSize="sm" color="gray.600">
-                  Lineup Progress: {getFilledPositionCount()}/
-                  {Math.min(startingPositionCount, 9)} minimum positions filled
+                  Lineup Progress: {getFilledPositionCount()}/9 minimum
+                  positions filled
                 </Text>
                 <Badge
                   colorScheme={isLineupComplete() ? 'green' : 'yellow'}
@@ -387,6 +587,20 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                   {isLineupComplete() ? 'Complete' : 'Incomplete'}
                 </Badge>
               </HStack>
+            </Box>
+
+            {/* AC021: Auto-fill positions button */}
+            <Box>
+              <Button
+                data-testid="auto-fill-positions-button"
+                onClick={handleAutoFillPositions}
+                colorScheme="blue"
+                variant="outline"
+                size="sm"
+                leftIcon={<span>⚡</span>}
+              >
+                Auto-Fill Default Positions
+              </Button>
             </Box>
 
             {/* Validation errors */}
@@ -413,59 +627,28 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
               </Alert>
             )}
 
-            {/* All Players Display */}
-            <Box data-testid="all-players-display">
-              <Text fontSize="md" fontWeight="semibold" mb={2}>
-                Available Players ({players.length})
-              </Text>
-              <Grid templateColumns="repeat(3, 1fr)" gap={2} mb={4}>
-                {players.map((player) => {
-                  const isAssigned = lineupPositions.some(
-                    (pos) => pos.playerId === player.id
-                  );
-                  const assignedPosition = lineupPositions.find(
-                    (pos) => pos.playerId === player.id
-                  );
-                  const battingOrderNum = assignedPosition?.battingOrder;
+            {/* AC026: Unavailable positions indicator */}
+            <Alert status="info" data-testid="unavailable-positions-indicator">
+              <AlertIcon />
+              <VStack align="start" spacing={1}>
+                <Text fontSize="sm" fontWeight="semibold">
+                  Position Guidelines:
+                </Text>
+                <Text fontSize="sm">
+                  • Each player's preferred positions are shown first in
+                  dropdown menus
+                </Text>
+                <Text fontSize="sm">
+                  • Extra Player (EP) can be assigned to multiple positions
+                </Text>
+                <Text fontSize="sm">
+                  • All other positions must be unique across the starting
+                  lineup
+                </Text>
+              </VStack>
+            </Alert>
 
-                  return (
-                    <Box
-                      key={player.id}
-                      data-testid={`player-option-${player.id}`}
-                      bg={isAssigned ? 'blue.50' : 'gray.50'}
-                      border="1px"
-                      borderColor={isAssigned ? 'blue.200' : 'gray.200'}
-                      borderRadius="md"
-                      p={2}
-                      fontSize="sm"
-                    >
-                      <Text fontWeight="medium">
-                        #{player.jerseyNumber} {player.name}
-                      </Text>
-                      <Text fontSize="xs" color="gray.600">
-                        {player.getPositionsDisplay() || 'No positions'}
-                      </Text>
-                      {isAssigned &&
-                        battingOrderNum &&
-                        battingOrderNum <= startingPositionCount && (
-                          <Badge size="sm" colorScheme="blue">
-                            Batting #{battingOrderNum}
-                          </Badge>
-                        )}
-                      {isAssigned &&
-                        battingOrderNum &&
-                        battingOrderNum > startingPositionCount && (
-                          <Badge size="sm" colorScheme="gray">
-                            Bench
-                          </Badge>
-                        )}
-                    </Box>
-                  );
-                })}
-              </Grid>
-            </Box>
-
-            <Divider />
+            {/* Players are now auto-assigned by default, no need for separate display */}
 
             {/* Starting Lineup Section */}
             <Box data-testid="starting-lineup-section">
@@ -523,7 +706,8 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                           {/* Defensive position select */}
                           <FormControl
                             isInvalid={isPositionDuplicated(
-                              position.defensivePosition
+                              position.defensivePosition,
+                              position.battingOrder
                             )}
                           >
                             <Select
@@ -538,21 +722,37 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
                               }
                               aria-label={`Defensive position for batting position ${position.battingOrder}`}
                               borderColor={
-                                isPositionDuplicated(position.defensivePosition)
+                                isPositionDuplicated(
+                                  position.defensivePosition,
+                                  position.battingOrder
+                                )
                                   ? 'red.300'
                                   : undefined
                               }
                               bg={
-                                isPositionDuplicated(position.defensivePosition)
+                                isPositionDuplicated(
+                                  position.defensivePosition,
+                                  position.battingOrder
+                                )
                                   ? 'red.50'
                                   : undefined
                               }
+                              className={
+                                isPositionDuplicated(
+                                  position.defensivePosition,
+                                  position.battingOrder
+                                )
+                                  ? 'position-conflict-highlight'
+                                  : undefined
+                              }
                             >
-                              {DEFENSIVE_POSITIONS.map((pos) => (
-                                <option key={pos.value} value={pos.value}>
-                                  {pos.label}
-                                </option>
-                              ))}
+                              {getSmartOrderedPositions(position.playerId).map(
+                                (pos) => (
+                                  <option key={pos.value} value={pos.value}>
+                                    {pos.label}
+                                  </option>
+                                )
+                              )}
                             </Select>
                           </FormControl>
                         </Grid>
@@ -562,110 +762,98 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
               </Grid>
             </Box>
 
-            {/* Bench Section */}
-            {startingPositionCount < 15 && (
+            {/* Bench Section - show unassigned players when positions are reduced */}
+            {(startingPositionCount < players.length ||
+              displacedPlayers.length > 0) && (
               <Box data-testid="bench-players-section">
                 <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                  Bench Players (Positions {startingPositionCount + 1}-15)
+                  Bench Players
                 </Text>
-                <Grid templateColumns="repeat(1, 1fr)" gap={3}>
-                  {lineupPositions
-                    .slice(startingPositionCount, 15)
-                    .map((position) => {
-                      const assignedPlayer = players.find(
-                        (p) => p.id === position.playerId
-                      );
 
-                      return (
-                        <GridItem key={position.battingOrder}>
-                          <Box
-                            bg={cardBg}
-                            border="1px"
-                            borderColor={borderColor}
-                            borderRadius="md"
-                            p={4}
-                            data-testid={
-                              assignedPlayer
-                                ? `bench-player-${assignedPlayer.id}`
-                                : `empty-bench-${position.battingOrder}`
-                            }
-                          >
-                            <Grid
-                              templateColumns="60px 1fr 1fr"
-                              gap={4}
-                              alignItems="center"
-                            >
-                              <Badge
-                                colorScheme="gray"
-                                fontSize="md"
-                                textAlign="center"
-                              >
-                                {position.battingOrder}
-                              </Badge>
+                {/* Show displaced players from removed positions */}
+                {displacedPlayers.map((displaced) => (
+                  <Box
+                    key={`displaced-${displaced.player.id}`}
+                    bg={cardBg}
+                    border="1px"
+                    borderColor={borderColor}
+                    borderRadius="md"
+                    p={3}
+                    mb={2}
+                    data-testid={`bench-player-${displaced.player.id}`}
+                  >
+                    <Text>
+                      #{displaced.player.jerseyNumber} {displaced.player.name}
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Previously in position {displaced.originalPosition}
+                    </Text>
+                  </Box>
+                ))}
 
-                              <FormControl>
-                                <Select
-                                  data-testid={`batting-position-${position.battingOrder}-player`}
-                                  placeholder="Select Player"
-                                  value={position.playerId || ''}
-                                  onChange={(e) =>
-                                    handlePlayerChange(
-                                      position.battingOrder,
-                                      e.target.value
-                                    )
-                                  }
-                                >
-                                  {players.map((player) => (
-                                    <option key={player.id} value={player.id}>
-                                      #{player.jerseyNumber} {player.name}
-                                    </option>
-                                  ))}
-                                </Select>
-                              </FormControl>
+                {/* Show players in positions beyond starting count (current bench) */}
+                {lineupPositions
+                  .slice(startingPositionCount) // All positions beyond starting count
+                  .filter((pos) => pos.playerId) // Only show positions that have players assigned
+                  .map((position) => {
+                    const assignedPlayer = players.find(
+                      (p) => p.id === position.playerId
+                    );
 
-                              <FormControl
-                                isInvalid={isPositionDuplicated(
-                                  position.defensivePosition
-                                )}
-                              >
-                                <Select
-                                  data-testid={`batting-position-${position.battingOrder}-defensive-position`}
-                                  placeholder="Select Position"
-                                  value={position.defensivePosition || ''}
-                                  onChange={(e) =>
-                                    handlePositionChange(
-                                      position.battingOrder,
-                                      e.target.value
-                                    )
-                                  }
-                                  borderColor={
-                                    isPositionDuplicated(
-                                      position.defensivePosition
-                                    )
-                                      ? 'red.300'
-                                      : undefined
-                                  }
-                                  bg={
-                                    isPositionDuplicated(
-                                      position.defensivePosition
-                                    )
-                                      ? 'red.50'
-                                      : undefined
-                                  }
-                                >
-                                  {DEFENSIVE_POSITIONS.map((pos) => (
-                                    <option key={pos.value} value={pos.value}>
-                                      {pos.label}
-                                    </option>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                          </Box>
-                        </GridItem>
-                      );
-                    })}
-                </Grid>
+                    return assignedPlayer ? (
+                      <Box
+                        key={`bench-${assignedPlayer.id}`}
+                        bg={cardBg}
+                        border="1px"
+                        borderColor={borderColor}
+                        borderRadius="md"
+                        p={3}
+                        mb={2}
+                        data-testid={`bench-player-${assignedPlayer.id}`}
+                      >
+                        <Text>
+                          #{assignedPlayer.jerseyNumber} {assignedPlayer.name}
+                        </Text>
+                        <Text fontSize="sm" color="gray.600">
+                          Position {position.battingOrder}
+                        </Text>
+                      </Box>
+                    ) : null;
+                  })}
+
+                {/* Show any other unassigned players */}
+                {players
+                  .filter(
+                    (player) =>
+                      !lineupPositions
+                        .slice(0, startingPositionCount)
+                        .some((pos) => pos.playerId === player.id) &&
+                      !displacedPlayers.some(
+                        (displaced) => displaced.player.id === player.id
+                      ) &&
+                      !lineupPositions
+                        .slice(startingPositionCount)
+                        .some((pos) => pos.playerId === player.id)
+                  )
+                  .map((player) => (
+                    <Box
+                      key={`unassigned-${player.id}`}
+                      bg={cardBg}
+                      border="1px"
+                      borderColor={borderColor}
+                      borderRadius="md"
+                      p={3}
+                      mb={2}
+                      data-testid={`bench-player-${player.id}`}
+                    >
+                      <Text>
+                        #{player.jerseyNumber} {player.name}
+                      </Text>
+                      <Text fontSize="sm" color="gray.600">
+                        Unassigned
+                      </Text>
+                    </Box>
+                  ))}
               </Box>
             )}
           </VStack>

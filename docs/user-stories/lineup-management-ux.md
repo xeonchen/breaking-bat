@@ -10,11 +10,11 @@ Scorekeeper
 
 ## I want to...
 
-Manage game lineups with an intuitive drag-and-drop interface that shows all players by default and provides real-time validation
+Manage game lineups with an intuitive drag-and-drop batting order interface that shows all players by default and provides real-time validation
 
 ## So that I can...
 
-Quickly set up lineups with minimal clicking, clear visual feedback, and immediate error detection
+Quickly set up lineups with minimal clicking through drag-and-drop reordering, clear visual feedback, and immediate error detection
 
 ## Acceptance Criteria
 
@@ -31,18 +31,19 @@ Quickly set up lineups with minimal clicking, clear visual feedback, and immedia
 - **AC006**: Given I change the starting position count, the interface should adjust the starting/bench sections accordingly
 - **AC007**: Given I increase starting positions, additional slots should appear in the starting section
 - **AC008**: Given I decrease starting positions, excess players should move to the bench section
+- **AC008a**: Given I save a lineup, the starting position count should be saved along with the batting order and positions
 
-### Player Selection Interface
+### Drag-and-Drop Batting Order Interface
 
-- **AC009**: Given I want to set the lineup, I should use dropdown selectors to choose players for each batting position (current design)
-- **AC010**: Given I want to reorder players, I should be able to swap players between batting positions using the dropdown selectors
-- **AC011**: Given I select a player for a batting position, the interface should provide immediate visual feedback
-- **AC012**: Given I select a player already assigned to another position, the interface should handle the reassignment gracefully
+- **AC009**: Given I want to set the lineup, all players should be displayed as draggable rows (no player dropdown needed)
+- **AC010**: Given I want to reorder players, I should be able to drag a player row and drop it to a new batting position
+- **AC011**: Given I drag a player, the interface should provide immediate visual feedback with drag handles and drop zones
+- **AC012**: Given I drop a player in a new position, the batting order should automatically renumber and other players should shift accordingly
 
 ### Position Assignment and Display
 
-- **AC013**: Given a player has multiple positions available, their default position should be pre-selected
-- **AC014**: Given I need to select a player's position, I should see all 11 positions (P/C/1B/2B/3B/SS/LF/CF/RF/SF/EP) with smart ordering: player's available positions first, followed by other positions
+- **AC013**: Given a player has multiple positions available, their default defensive position should be pre-selected in the position dropdown
+- **AC014**: Given I need to select a player's defensive position, I should use dropdown selectors showing all 11 positions (P/C/1B/2B/3B/SS/LF/CF/RF/SF/EP) with smart ordering: player's available positions first, followed by other positions
 - **AC015**: Given I am viewing positions, they should display in format "Pitcher (P)", "First Base (1B)", "Catcher (C)", etc.
 - **AC016**: Given a player is assigned to a position, I should see the position abbreviation clearly displayed
 
