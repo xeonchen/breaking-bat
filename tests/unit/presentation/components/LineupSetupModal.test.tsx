@@ -60,7 +60,7 @@ const mockPlayers = [
     Position.rightField(),
   ]),
   new Player('player-10', 'Player Ten', 10, 'test-team-id', [
-    Position.leftField(),
+    Position.shortFielder(),
   ]),
 ];
 
@@ -459,12 +459,18 @@ describe('LineupSetupModal - TDD Tests', () => {
         ).toBeInTheDocument();
       });
 
-      // Wait for validation to complete and check if lineup is ready
-      await waitFor(() => {
-        const saveButton = screen.getByTestId('save-lineup-button');
-        // Skip the disabled check for now since auto-assignment is complex
-        fireEvent.click(saveButton);
-      });
+      // Wait for the lineup to be complete (save button should be enabled)
+      await waitFor(
+        () => {
+          const saveButton = screen.getByTestId('save-lineup-button');
+          expect(saveButton).not.toBeDisabled();
+        },
+        { timeout: 3000 }
+      );
+
+      // Now click the save button
+      const saveButton = screen.getByTestId('save-lineup-button');
+      fireEvent.click(saveButton);
 
       await waitFor(() => {
         expect(mockOnSave).toHaveBeenCalledTimes(1);
@@ -1185,9 +1191,9 @@ describe('LineupSetupModal - TDD Tests', () => {
       );
 
       const progressIndicator = screen.getByTestId('lineup-progress-indicator');
-      // Since players are auto-assigned by default, progress should show 10/10
+      // Since players are auto-assigned by default, progress should show 10/9 minimum positions filled
       expect(progressIndicator).toHaveTextContent(
-        'Lineup Progress: 10/10 positions filled'
+        'Lineup Progress: 10/9 minimum positions filled'
       );
 
       // Badge should show 'Complete' since all positions are filled
