@@ -322,15 +322,31 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
     }
 
     setLineupPositions((prev) =>
-      prev.map((pos) =>
-        pos.battingOrder === battingOrder
-          ? {
-              ...pos,
-              playerId: playerId || null,
-              defensivePosition: defaultPosition,
-            }
-          : pos
-      )
+      prev.map((pos) => {
+        // AC012: Graceful reassignment - if this player is already assigned elsewhere, clear that position
+        if (
+          playerId &&
+          pos.playerId === playerId &&
+          pos.battingOrder !== battingOrder
+        ) {
+          // Clear the previous assignment and manual position tracking
+          setManualPositionAssignments((prevManual) => {
+            const newSet = new Set(prevManual);
+            newSet.delete(pos.battingOrder);
+            return newSet;
+          });
+          return { ...pos, playerId: null, defensivePosition: null };
+        }
+        // Update the target position
+        if (pos.battingOrder === battingOrder) {
+          return {
+            ...pos,
+            playerId: playerId || null,
+            defensivePosition: defaultPosition,
+          };
+        }
+        return pos;
+      })
     );
   };
 
