@@ -28,7 +28,27 @@ import {
   useColorModeValue,
   Grid,
   GridItem,
+  IconButton,
+  Flex,
 } from '@chakra-ui/react';
+import { DragHandleIcon } from '@chakra-ui/icons';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Game, Team, Player } from '../../domain/entities';
 import { LineupValidator } from '../../domain/services/LineupValidator';
 
@@ -69,6 +89,133 @@ const DEFENSIVE_POSITIONS = [
   { value: 'Extra Player', label: 'Extra Player (EP)' },
 ];
 
+interface DraggableLineupRowProps {
+  position: LineupPosition;
+  player: Player | null;
+  players: Player[];
+  isStartingPosition: boolean;
+  isPositionDuplicated: boolean;
+  availablePositions: Array<{ value: string; label: string }>;
+  onPlayerChange: (playerId: string) => void;
+  onPositionChange: (position: string) => void;
+  cardBg: string;
+  borderColor: string;
+  dragHandleProps?: any;
+}
+
+const DraggableLineupRow: React.FC<DraggableLineupRowProps> = ({
+  position,
+  player,
+  players,
+  isStartingPosition,
+  isPositionDuplicated,
+  availablePositions,
+  onPlayerChange,
+  onPositionChange,
+  cardBg,
+  borderColor,
+  ...dragProps
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `lineup-${position.battingOrder}`,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Box
+      ref={setNodeRef}
+      style={style}
+      bg={cardBg}
+      border="1px"
+      borderColor={borderColor}
+      borderRadius="md"
+      p={4}
+      width="100%"
+      {...dragProps}
+    >
+      <Flex alignItems="center" gap={4} width="100%">
+        {/* AC011: Drag handle for visual feedback */}
+        <IconButton
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag player in position ${position.battingOrder}`}
+          icon={<DragHandleIcon />}
+          size="sm"
+          variant="ghost"
+          cursor="grab"
+          _active={{ cursor: 'grabbing' }}
+          data-testid={`drag-handle-${position.battingOrder}`}
+        />
+
+        {/* Batting order badge */}
+        <Badge colorScheme="blue" fontSize="md" textAlign="center" minW="50px">
+          {position.battingOrder}
+        </Badge>
+
+        {/* Player selection */}
+        <Box flex="1">
+          <FormControl>
+            <Select
+              data-testid={`batting-position-${position.battingOrder}-player`}
+              placeholder="Select Player"
+              value={position.playerId || ''}
+              onChange={(e) => onPlayerChange(e.target.value)}
+              aria-label={`Player for batting position ${position.battingOrder}`}
+            >
+              {players.map((p) => (
+                <option key={p.id} value={p.id}>
+                  #{p.jerseyNumber} {p.name}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+          {player && (
+            <Text fontSize="sm" color="gray.600" mt={1}>
+              {player.getPositionsDisplay()}
+            </Text>
+          )}
+        </Box>
+
+        {/* Defensive position select - only for starting lineup */}
+        {isStartingPosition && (
+          <FormControl maxW="200px" isInvalid={isPositionDuplicated}>
+            <Select
+              data-testid={`batting-position-${position.battingOrder}-defensive-position`}
+              placeholder="Select Position"
+              value={position.defensivePosition || ''}
+              onChange={(e) => onPositionChange(e.target.value)}
+              aria-label={`Defensive position for batting position ${position.battingOrder}`}
+              borderColor={isPositionDuplicated ? 'red.300' : undefined}
+              bg={isPositionDuplicated ? 'red.50' : undefined}
+              className={
+                isPositionDuplicated ? 'position-conflict-highlight' : undefined
+              }
+            >
+              {availablePositions.map((pos) => (
+                <option key={pos.value} value={pos.value}>
+                  {pos.label}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+      </Flex>
+    </Box>
+  );
+};
+
 export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   isOpen,
   onClose,
@@ -88,6 +235,41 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
   const validator = useMemo(() => new LineupValidator(), []);
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+
+  // AC010: Drag and drop sensors for batting order reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // AC012: Handle drag end - reorder batting positions and renumber
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Extract batting order numbers from IDs
+    const activeIndex = parseInt(activeId.replace('lineup-', '')) - 1;
+    const overIndex = parseInt(overId.replace('lineup-', '')) - 1;
+
+    // Reorder the lineup positions array
+    setLineupPositions((prev) => {
+      const newPositions = arrayMove(prev, activeIndex, overIndex);
+
+      // Renumber batting orders to maintain sequential order
+      return newPositions.map((position, index) => ({
+        ...position,
+        battingOrder: index + 1,
+      }));
+    });
+  };
 
   // Helper function to get smart-ordered positions for a player
   const getSmartOrderedPositions = (playerId: string | null) => {
@@ -693,116 +875,65 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
 
             {/* Players are now auto-assigned by default, no need for separate display */}
 
-            {/* Starting Lineup Section */}
+            {/* Starting Lineup Section - AC009-AC012: Drag-and-Drop Interface */}
             <Box data-testid="starting-lineup-section">
               <Text fontSize="lg" fontWeight="semibold" mb={3}>
                 Starting Lineup (Positions 1-{startingPositionCount})
               </Text>
-              <Grid templateColumns="repeat(1, 1fr)" gap={3}>
-                {lineupPositions
-                  .slice(0, startingPositionCount)
-                  .map((position) => (
-                    <GridItem key={position.battingOrder}>
-                      <Box
-                        bg={cardBg}
-                        border="1px"
-                        borderColor={borderColor}
-                        borderRadius="md"
-                        p={4}
-                      >
-                        <Grid
-                          templateColumns="60px 1fr 1fr"
-                          gap={4}
-                          alignItems="center"
-                        >
-                          {/* Batting order */}
-                          <Badge
-                            colorScheme="blue"
-                            fontSize="md"
-                            textAlign="center"
-                          >
-                            {position.battingOrder}
-                          </Badge>
 
-                          {/* Player select */}
-                          <FormControl>
-                            <Select
-                              data-testid={`batting-position-${position.battingOrder}-player`}
-                              placeholder="Select Player"
-                              value={position.playerId || ''}
-                              onChange={(e) =>
-                                handlePlayerChange(
-                                  position.battingOrder,
-                                  e.target.value
-                                )
-                              }
-                              aria-label={`Player for batting position ${position.battingOrder}`}
-                            >
-                              {players.map((player) => (
-                                <option key={player.id} value={player.id}>
-                                  #{player.jerseyNumber} {player.name}
-                                </option>
-                              ))}
-                            </Select>
-                          </FormControl>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={lineupPositions
+                    .slice(0, startingPositionCount)
+                    .map((pos) => `lineup-${pos.battingOrder}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <VStack spacing={3}>
+                    {lineupPositions
+                      .slice(0, startingPositionCount)
+                      .map((position) => {
+                        const assignedPlayer = players.find(
+                          (p) => p.id === position.playerId
+                        );
 
-                          {/* Defensive position select */}
-                          <FormControl
-                            isInvalid={isPositionDuplicated(
+                        return (
+                          <DraggableLineupRow
+                            key={position.battingOrder}
+                            position={position}
+                            player={assignedPlayer || null}
+                            players={players}
+                            isStartingPosition={true}
+                            isPositionDuplicated={isPositionDuplicated(
                               position.defensivePosition,
                               position.battingOrder
                             )}
-                          >
-                            <Select
-                              data-testid={`batting-position-${position.battingOrder}-defensive-position`}
-                              placeholder="Select Position"
-                              value={position.defensivePosition || ''}
-                              onChange={(e) =>
-                                handlePositionChange(
-                                  position.battingOrder,
-                                  e.target.value
-                                )
-                              }
-                              aria-label={`Defensive position for batting position ${position.battingOrder}`}
-                              borderColor={
-                                isPositionDuplicated(
-                                  position.defensivePosition,
-                                  position.battingOrder
-                                )
-                                  ? 'red.300'
-                                  : undefined
-                              }
-                              bg={
-                                isPositionDuplicated(
-                                  position.defensivePosition,
-                                  position.battingOrder
-                                )
-                                  ? 'red.50'
-                                  : undefined
-                              }
-                              className={
-                                isPositionDuplicated(
-                                  position.defensivePosition,
-                                  position.battingOrder
-                                )
-                                  ? 'position-conflict-highlight'
-                                  : undefined
-                              }
-                            >
-                              {getSmartOrderedPositions(position.playerId).map(
-                                (pos) => (
-                                  <option key={pos.value} value={pos.value}>
-                                    {pos.label}
-                                  </option>
-                                )
-                              )}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                      </Box>
-                    </GridItem>
-                  ))}
-              </Grid>
+                            availablePositions={getSmartOrderedPositions(
+                              position.playerId
+                            )}
+                            onPlayerChange={(playerId) =>
+                              handlePlayerChange(
+                                position.battingOrder,
+                                playerId
+                              )
+                            }
+                            onPositionChange={(positionValue) =>
+                              handlePositionChange(
+                                position.battingOrder,
+                                positionValue
+                              )
+                            }
+                            cardBg={cardBg}
+                            borderColor={borderColor}
+                          />
+                        );
+                      })}
+                  </VStack>
+                </SortableContext>
+              </DndContext>
             </Box>
 
             {/* Bench Section - show unassigned players when positions are reduced */}
