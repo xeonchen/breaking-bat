@@ -24,12 +24,24 @@ Maintain accurate game statistics and scores without missing any plays or making
 - **AC002**: The system automatically selects the current batter based on the lineup order and advances to the next batter after each at-bat
 - **AC003**: I can quickly input batting results using fast-action buttons (1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP)
 
-### Baserunner Management (Currently Missing)
+### Baserunner Management and Advancement
 
 - **AC004**: After entering a batting result, the system applies standard softball baserunner advancement rules automatically
 - **AC005**: I can manually override any runner advancement when unusual situations occur (e.g., runner scores from second on a single)
 - **AC006**: The system tracks which runners score and calculates RBIs accurately
 - **AC007**: I can see a visual representation of current baserunners at all times
+- **AC017**: Given I record a single, runners should advance one base automatically with modal confirmation options
+- **AC018**: Given I record a double, runners should advance two bases automatically with modal confirmation options
+- **AC019**: Given I record a triple, runners should advance three bases automatically with modal confirmation options
+- **AC020**: Given I record a home run, all runners including the batter should score automatically
+- **AC021**: Given I record a walk, runners should advance only when forced by the batter taking first base
+- **AC022**: Given I record a strikeout, no runners should advance automatically
+- **AC023**: Given there are runners on base, I should see a baserunner advancement modal for applicable batting results
+- **AC024**: Given the baserunner advancement modal appears, I should be able to confirm or modify the default advancement
+- **AC025**: Given I confirm runner advancement, the system should update runner positions and scoring immediately
+- **AC026**: Given a runner scores, the system should increment the team score and track RBIs for the batter
+- **AC027**: Given multiple at-bats are recorded, the system should maintain accurate runner positions throughout the inning
+- **AC028**: Given the side is retired (3 outs), all runners should be cleared and the inning should progress
 
 ### Inning and Out Management (Currently Missing)
 
@@ -98,3 +110,4 @@ Critical
 - Must be highly responsive and error-free
 - Interface should work well with touch input on tablets
 - Consider implementing undo functionality for corrections
+- E2E test coverage: at-bat-recording.spec.ts, baserunner-advancement.spec.ts

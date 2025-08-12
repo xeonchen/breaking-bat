@@ -1,6 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { NavigationHelpers } from './helpers/navigation';
 
+/**
+ * Seasons Management E2E Tests
+ *
+ * Maps to user story: game-setup.md
+ * Tests ACs: AC038-AC043 (Prerequisites Management - Seasons)
+ *
+ * AC038: Dedicated seasons interface
+ * AC039: Create seasons (name required, year, optional dates)
+ * AC040: Date validation (end after start)
+ * AC041: Edit seasons while maintaining integrity
+ * AC042: Delete seasons with confirmation
+ * AC043: Status badges for date ranges
+ */
+
 test.describe('Seasons Management', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');

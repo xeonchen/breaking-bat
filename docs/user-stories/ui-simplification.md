@@ -131,6 +131,19 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 **After**: Comfortable touch targets, direct access to primary workflow
 **Improvement**: Better mobile usability and fewer accidental taps
 
+### Mobile Complete Workflow
+
+- **AC001**: Given I am using a mobile device (iPhone size 375x667), I can complete the full game workflow from creation to scoring
+- **AC002**: Given I am using the mobile interface, touch buttons should meet minimum size requirements (≥44px height) for comfortable interaction
+- **AC003**: Given I am using the mobile scoring interface, buttons should be optimized for quick, accurate input during live gameplay
+- **AC004**: Given I am using a mobile device, the interface should load and perform well on slower connections
+- **AC005**: Given I am using the mobile interface, navigation should be intuitive with clear visual hierarchy
+- **AC006**: Given I am using a mobile device in landscape orientation, the interface should remain usable across different orientations
+- **AC007**: Given I am using a tablet device, the interface should scale appropriately with larger touch targets and optimal spacing
+- **AC008**: Given I am using mobile touch interactions, all critical interface elements should provide immediate visual feedback
+- **AC009**: Given I am using the mobile interface, error handling should be clear and recovery options easily accessible
+- **AC010**: Given I am using mobile devices, the interface should handle network errors gracefully and provide offline capabilities where appropriate
+
 ---
 
 ## User Story 5: Backward Compatibility and Data Preservation
@@ -219,6 +232,7 @@ As a Breaking-Bat user, I want a simplified and intuitive interface that reduces
 - `docs/ui-design/game-creation-flow.md` - Game creation improvements
 - `docs/ui-design/visual-mockups.md` - Interface mockups and wireframes
 - `docs/ui-design/user-flow-analysis.md` - User journey analysis
+- E2E test coverage: mobile-complete-workflow.spec.ts
 
 ## Definition of Done
 

@@ -8,6 +8,20 @@ import {
 /**
  * Mobile Complete Workflow E2E Tests
  *
+ * Maps to user story: ui-simplification.md
+ * Tests ACs: AC001-AC010 (Mobile Complete Workflow)
+ *
+ * AC001: Full mobile workflow completion (iPhone 375x667)
+ * AC002: Touch button requirements (≥44px height)
+ * AC003: Mobile scoring interface optimization
+ * AC004: Performance on slower connections
+ * AC005: Intuitive mobile navigation
+ * AC006: Landscape orientation support
+ * AC007: Tablet scaling and touch targets
+ * AC008: Immediate visual feedback
+ * AC009: Clear mobile error handling
+ * AC010: Network error handling and offline capabilities
+ *
  * Tests the complete game workflow on mobile devices to ensure
  * the responsive design works correctly and all functionality
  * is accessible on smaller screens.

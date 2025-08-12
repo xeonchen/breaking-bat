@@ -1,6 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { NavigationHelpers } from './helpers/navigation';
 
+/**
+ * Game Types Management E2E Tests
+ *
+ * Maps to user story: game-setup.md
+ * Tests ACs: AC032-AC037 (Prerequisites Management - Game Types)
+ *
+ * AC032: Dedicated game types interface
+ * AC033: Create game types (name required, description optional)
+ * AC034: Validation (name 1-100 chars, description ≤500 chars)
+ * AC035: Edit game types
+ * AC036: Delete game types with confirmation
+ * AC037: Grid layout display
+ */
+
 test.describe('Game Types Management', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');

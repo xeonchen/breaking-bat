@@ -8,10 +8,16 @@ import {
 /**
  * Game State Transitions E2E Tests
  *
+ * Maps to user story: game-setup.md
+ * Tests ACs: AC025-AC031 (Game State Management)
+ *
  * Tests all possible game state transitions and validates that the UI
  * correctly reflects state changes and provides appropriate actions:
  *
  * Game States: setup → in_progress → suspended → resumed → completed
+ * AC025: setup state, AC026: in_progress state, AC027: suspended state
+ * AC028: resume functionality, AC029: completion, AC030: UI updates
+ * AC031: state persistence
  *
  * This test identifies exactly where the game starting process breaks down
  * and what UI elements are missing or not working correctly.

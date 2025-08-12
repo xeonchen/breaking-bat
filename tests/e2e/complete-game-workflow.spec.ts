@@ -8,14 +8,17 @@ import {
 /**
  * Complete Game Workflow E2E Tests
  *
+ * Maps to user story: game-setup.md
+ * Tests ACs: AC022, AC023, AC024 (Complete Workflow Integration)
+ *
  * Tests the entire game workflow from creation through completion:
- * 1. Create prerequisites (team, season, game type, players)
+ * 1. Create prerequisites (team, season, game type, players) - AC022
  * 2. Create game
- * 3. Set up lineup (identify UI gaps)
- * 4. Start game
+ * 3. Set up lineup (identify UI gaps) - AC023
+ * 4. Start game - AC023
  * 5. Record at-bats
  * 6. Complete innings
- * 7. Finish game
+ * 7. Finish game - AC024
  */
 
 test.describe('Complete Game Workflow', () => {
