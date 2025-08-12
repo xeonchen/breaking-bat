@@ -74,6 +74,13 @@ const renderWithChakra = (component: React.ReactElement) => {
 describe('LineupSetupModal - TDD Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Clear sessionStorage to prevent test interference
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    // Ensure sessionStorage is clean after each test
+    sessionStorage.clear();
   });
 
   describe('Modal Display and Structure', () => {
