@@ -496,6 +496,37 @@ describe('LineupSetupModal - TDD Tests', () => {
         />
       );
 
+      // Wait for initial render
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('lineup-progress-indicator')
+        ).toBeInTheDocument();
+      });
+
+      // Make the lineup invalid by removing some players to create incomplete lineup
+      const playerSelect1 = screen.getByTestId('batting-position-1-player');
+      const playerSelect2 = screen.getByTestId('batting-position-2-player');
+      const playerSelect3 = screen.getByTestId('batting-position-3-player');
+      const playerSelect4 = screen.getByTestId('batting-position-4-player');
+      const playerSelect5 = screen.getByTestId('batting-position-5-player');
+      const playerSelect6 = screen.getByTestId('batting-position-6-player');
+      const playerSelect7 = screen.getByTestId('batting-position-7-player');
+
+      // Clear most players to make lineup incomplete
+      fireEvent.change(playerSelect1, { target: { value: '' } });
+      fireEvent.change(playerSelect2, { target: { value: '' } });
+      fireEvent.change(playerSelect3, { target: { value: '' } });
+      fireEvent.change(playerSelect4, { target: { value: '' } });
+      fireEvent.change(playerSelect5, { target: { value: '' } });
+      fireEvent.change(playerSelect6, { target: { value: '' } });
+      fireEvent.change(playerSelect7, { target: { value: '' } });
+
+      // Wait for validation to complete
+      await waitFor(() => {
+        const saveButton = screen.getByTestId('save-lineup-button');
+        expect(saveButton).toBeDisabled();
+      });
+
       // Try to save incomplete lineup
       const saveButton = screen.getByTestId('save-lineup-button');
       fireEvent.click(saveButton);

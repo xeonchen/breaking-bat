@@ -298,10 +298,37 @@ export const LineupSetupModal: React.FC<LineupSetupModalProps> = ({
       return newSet;
     });
 
+    // AC013: Pre-select player's default position when assigned
+    let defaultPosition = null;
+    if (playerId) {
+      const player = players.find((p) => p.id === playerId);
+      if (player) {
+        const defaultPos = player.getDefaultPosition();
+        const positionMap: Record<string, string> = {
+          pitcher: 'Pitcher',
+          catcher: 'Catcher',
+          'first-base': 'First Base',
+          'second-base': 'Second Base',
+          'third-base': 'Third Base',
+          shortstop: 'Shortstop',
+          'left-field': 'Left Field',
+          'center-field': 'Center Field',
+          'right-field': 'Right Field',
+          'short-fielder': 'Short Fielder',
+          'extra-player': 'Extra Player',
+        };
+        defaultPosition = positionMap[defaultPos.value] || null;
+      }
+    }
+
     setLineupPositions((prev) =>
       prev.map((pos) =>
         pos.battingOrder === battingOrder
-          ? { ...pos, playerId: playerId || null, defensivePosition: null }
+          ? {
+              ...pos,
+              playerId: playerId || null,
+              defensivePosition: defaultPosition,
+            }
           : pos
       )
     );
