@@ -305,6 +305,97 @@ export const useGameStore = create<GameState>()(
               atBatData.batterId
             );
 
+            // Apply manual baserunner advancement if provided, otherwise use automatic
+            let finalBaserunnerState = advancement.newState;
+            let finalRunsScored = advancement.runsScored;
+
+            // Check if meaningful manual advancement was provided (not just empty values)
+            const hasManualAdvancement =
+              atBatData.baserunnerAdvancement &&
+              Object.keys(atBatData.baserunnerAdvancement).length > 0 &&
+              Object.values(atBatData.baserunnerAdvancement).some(
+                (value) => value && value.trim() !== ''
+              );
+
+            console.log('🔍 Baserunner Debug:', {
+              result: atBatData.result.value,
+              manualAdvancement: atBatData.baserunnerAdvancement,
+              hasManualAdvancement,
+              automaticAdvancement: advancement.newState,
+              currentState: currentBaserunnerState,
+            });
+
+            if (hasManualAdvancement) {
+              // Manual advancement provided - apply it instead of automatic
+              const manualAdvancement = atBatData.baserunnerAdvancement!;
+              finalRunsScored = [];
+
+              // Start with current state and apply manual advancement
+              let firstBase: string | null = null;
+              let secondBase: string | null = null;
+              let thirdBase: string | null = null;
+
+              // Handle existing runners based on manual advancement
+              if (currentBaserunnerState.firstBase && manualAdvancement.first) {
+                switch (manualAdvancement.first) {
+                  case 'second':
+                    secondBase = currentBaserunnerState.firstBase;
+                    break;
+                  case 'third':
+                    thirdBase = currentBaserunnerState.firstBase;
+                    break;
+                  case 'home':
+                    finalRunsScored.push(currentBaserunnerState.firstBase);
+                    break;
+                  case 'stay':
+                    firstBase = currentBaserunnerState.firstBase;
+                    break;
+                  // 'out' case - runner is removed (no assignment)
+                }
+              }
+
+              if (
+                currentBaserunnerState.secondBase &&
+                manualAdvancement.second
+              ) {
+                switch (manualAdvancement.second) {
+                  case 'third':
+                    thirdBase = currentBaserunnerState.secondBase;
+                    break;
+                  case 'home':
+                    finalRunsScored.push(currentBaserunnerState.secondBase);
+                    break;
+                  case 'stay':
+                    secondBase = currentBaserunnerState.secondBase;
+                    break;
+                  // 'out' case - runner is removed (no assignment)
+                }
+              }
+
+              if (currentBaserunnerState.thirdBase && manualAdvancement.third) {
+                switch (manualAdvancement.third) {
+                  case 'home':
+                    finalRunsScored.push(currentBaserunnerState.thirdBase);
+                    break;
+                  case 'stay':
+                    thirdBase = currentBaserunnerState.thirdBase;
+                    break;
+                  // 'out' case - runner is removed (no assignment)
+                }
+              }
+
+              // Add batter to first base if they reached base safely
+              if (atBatData.result.reachesBase()) {
+                firstBase = atBatData.batterId;
+              }
+
+              finalBaserunnerState = new BaserunnerState(
+                firstBase,
+                secondBase,
+                thirdBase
+              );
+            }
+
             // Calculate outs produced by this at-bat
             const outsProduced = scoringService.calculateOuts(atBatData.result);
             const newOuts = state.currentOuts + outsProduced;
@@ -317,9 +408,9 @@ export const useGameStore = create<GameState>()(
             //   atBatData.batterId,
             //   atBatData.result,
             //   currentBaserunnerState,
-            //   advancement.newState,
-            //   advancement.runsScored.length,
-            //   advancement.runsScored,
+            //   finalBaserunnerState,
+            //   finalRunsScored.length,
+            //   finalRunsScored,
             //   outsProduced,
             //   state.currentInning,
             //   state.isTopInning,
@@ -330,7 +421,7 @@ export const useGameStore = create<GameState>()(
 
             // Convert new baserunner state back to UI format
             const newBaserunners = convertFromBaserunnerState(
-              advancement.newState,
+              finalBaserunnerState,
               state.lineup
             );
 
@@ -343,8 +434,8 @@ export const useGameStore = create<GameState>()(
             });
 
             // Update score if runs were scored
-            if (advancement.runsScored.length > 0) {
-              await get().updateScore(advancement.runsScored.length);
+            if (finalRunsScored.length > 0) {
+              await get().updateScore(finalRunsScored.length);
             }
 
             // Advance to next batter
@@ -358,7 +449,7 @@ export const useGameStore = create<GameState>()(
             // Return enhanced result
             return {
               ...atBatData,
-              runsScored: advancement.runsScored.length,
+              runsScored: finalRunsScored.length,
               newBaserunners,
               advanceInning: newOuts >= 3,
             };

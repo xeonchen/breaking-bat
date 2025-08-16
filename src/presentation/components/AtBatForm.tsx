@@ -641,6 +641,54 @@ export function AtBatForm({
                 Walk
               </Button>
               <Button
+                data-testid="ibb-button"
+                colorScheme="blue"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() =>
+                  handleAtBatComplete(BattingResult.intentionalWalk())
+                }
+                isDisabled={disabled}
+              >
+                IBB
+              </Button>
+              <Button
+                data-testid="sf-button"
+                colorScheme="orange"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() =>
+                  handleAtBatComplete(BattingResult.sacrificeFly())
+                }
+                isDisabled={disabled}
+              >
+                Sac Fly
+              </Button>
+              <Button
+                data-testid="error-button"
+                colorScheme="yellow"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() => handleAtBatComplete(BattingResult.error())}
+                isDisabled={disabled}
+              >
+                Error
+              </Button>
+            </HStack>
+            <HStack spacing={2} justify="center" wrap="wrap">
+              <Button
+                data-testid="fc-button"
+                colorScheme="purple"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() =>
+                  handleAtBatComplete(BattingResult.fieldersChoice())
+                }
+                isDisabled={disabled}
+              >
+                FC
+              </Button>
+              <Button
                 data-testid="strikeout-button"
                 colorScheme="red"
                 variant="outline"
@@ -659,6 +707,26 @@ export function AtBatForm({
                 isDisabled={disabled}
               >
                 Ground Out
+              </Button>
+              <Button
+                data-testid="air-out-button"
+                colorScheme="red"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() => handleAtBatComplete(BattingResult.airOut())}
+                isDisabled={disabled}
+              >
+                Air Out
+              </Button>
+              <Button
+                data-testid="dp-button"
+                colorScheme="red"
+                variant="outline"
+                size={isMobile ? 'sm' : 'md'}
+                onClick={() => handleAtBatComplete(BattingResult.doublePlay())}
+                isDisabled={disabled}
+              >
+                Double Play
               </Button>
             </HStack>
           </VStack>

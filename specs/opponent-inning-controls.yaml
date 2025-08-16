@@ -1,0 +1,95 @@
+id: opponent-inning-controls
+title: Opponent Half-Inning Management Controls
+actor: Scorekeeper
+goal: Manage workflow during opponent's turn to bat with clear options to continue game flow
+inputs: []
+actions:
+  - type: button
+    label: Skip to Our Turn
+    component_hint: "Button(variant='outlined', colorScheme='blue', size='sm')"
+    data_testid: 'skip-opponent-inning-button'
+  - type: button
+    label: Record Opponent Score
+    component_hint: "Button(variant='outlined', colorScheme='gray', size='sm')"
+    data_testid: 'record-opponent-score-button'
+acceptance_criteria:
+  - id: AC043
+    description: Display controls when it's opponent's turn to bat
+    workflow: display_controls
+  - id: AC044
+    description: Skip opponent turn advances to our team's half-inning
+    workflow: skip_opponent_turn
+  - id: AC045
+    description: Record opponent scoring opens simplified input interface
+    workflow: record_opponent_score
+  - id: AC046
+    description: After opponent scoring or skip, advance to our team's turn
+    workflow: advance_to_our_turn
+error_states:
+  - name: AdvanceInningFailed
+    http_status: 500
+    response_body:
+      error_code: 'INNING_ADVANCE_ERROR'
+      message: 'Failed to advance inning. Please try again.'
+  - name: InvalidGameState
+    http_status: 400
+    response_body:
+      error_code: 'INVALID_GAME_STATE'
+      message: 'Cannot advance inning in current game state.'
+defensive_actions:
+  retry_policy: 'simple-retry (max 2)'
+  input_validation: 'strict'
+  error_logging: 'structured-json'
+  state_preservation: 'maintain-game-state'
+traceability:
+  source_story_id: 'live-game-scoring'
+  acceptance_criteria_covered: ['AC043', 'AC044', 'AC045', 'AC046']
+  test_files:
+    ['opponent_inning_controls.feature', 'opponent_inning_controls.test.tsx']
+ui_schema:
+  components:
+    - field: opponent_controls
+      component: Alert
+      props:
+        status: 'info'
+        data_testid: 'opponent-batting-alert'
+      children:
+        - component: AlertIcon
+        - component: Box
+          props:
+            flex: '1'
+          children:
+            - component: Text
+              props:
+                fontWeight: 'semibold'
+                text: "Opponent's Turn to Bat"
+            - component: Text
+              props:
+                fontSize: 'sm'
+                marginBottom: 3
+                text: 'Recording interface is disabled while [opponent] is batting.'
+            - component: HStack
+              props:
+                spacing: 3
+                wrap: 'wrap'
+              children:
+                - component: Button
+                  props:
+                    data_testid: 'skip-opponent-inning-button'
+                    size: 'sm'
+                    colorScheme: 'blue'
+                    variant: 'outline'
+                    text: 'Skip to Our Turn'
+                - component: Button
+                  props:
+                    data_testid: 'record-opponent-score-button'
+                    size: 'sm'
+                    colorScheme: 'gray'
+                    variant: 'outline'
+                    text: 'Record Opponent Score'
+meta:
+  status: ready-for-dev
+  version: 1.0.0
+  owner: frontend-team@example.com
+  created_date: '2025-01-16'
+  last_updated: '2025-01-16'

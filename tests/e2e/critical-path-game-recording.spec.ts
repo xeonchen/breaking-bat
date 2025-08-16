@@ -250,6 +250,7 @@ async function recordAtBat(page: Page, buttonId: string): Promise<void> {
   // Handle baserunner advancement modal if it appears
   const modal = page.getByTestId('baserunner-advancement-modal');
   if (await modal.isVisible({ timeout: 2000 })) {
+    // For critical path test, confirm with automatic advancement (no manual selection)
     await page.getByTestId('confirm-advancement').click();
   }
 

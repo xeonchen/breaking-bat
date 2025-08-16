@@ -65,6 +65,10 @@ Maintain accurate game statistics and scores without missing any plays, making e
 - **AC028**: Given I am recording a home game, the interface should clearly indicate "Bottom of [Inning]" when it's our turn to bat
 - **AC029**: Given it's the opponent's turn to bat, I should not be able to record at-bats for my team
 - **AC030**: Given the inning switches, the interface should automatically disable my team's batting interface during opponent innings
+- **AC043**: Given it's the opponent's turn to bat, I should have controls to either "Skip to Our Turn" or "Record Opponent Score"
+- **AC044**: Given I choose to skip the opponent's turn, the system should advance to my team's half-inning and enable the batting interface
+- **AC045**: Given I choose to record opponent scoring, I should have a simplified interface to input opponent runs for this half-inning
+- **AC046**: Given opponent scoring is recorded or skipped, the system should update the scoreboard and advance to my team's turn automatically
 
 ### Game Flow Integration
 
