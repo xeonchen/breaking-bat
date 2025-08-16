@@ -20,7 +20,7 @@ Given('I have game data in the system', async () => {
   }
 });
 
-// @AC001 - Auto-save functionality
+// @app-framework:AC010 - Auto-save functionality
 When('I make changes to game data', async () => {
   // Navigate to teams and make a change
   await page.goto('/teams');
@@ -45,7 +45,7 @@ Then('the changes should be automatically saved to local storage', async () => {
   await expect(page.locator('[data-testid*="team-"]')).toBeVisible();
 });
 
-// @AC002 - Session recovery
+// @app-framework:AC011 - Session recovery
 Given('I have an unfinished game', async () => {
   // Create and start a game but don't complete it
   await page.goto('/games');
@@ -94,7 +94,7 @@ Then('the unfinished game should be automatically loaded', async () => {
   }
 });
 
-// @AC003 - Data export
+// @app-framework:AC015 - Data export
 When('I export game data in {string} format', async (format: string) => {
   await page.goto('/settings');
 
@@ -130,7 +130,7 @@ Then('the export should complete successfully', async () => {
   }
 });
 
-// @AC004 - Data import
+// @app-framework:AC016 - Data import
 When('I import previously exported data', async () => {
   await page.goto('/settings');
 
@@ -159,7 +159,7 @@ Then('the import should complete successfully', async () => {
   }
 });
 
-// @AC005 - Data persistence across sessions
+// @app-framework:AC012 - Data persistence across sessions
 Then('all data should persist between browser sessions', async () => {
   // This is inherently tested by the other scenarios that reload the page
   // and verify data is still present
@@ -167,7 +167,7 @@ Then('all data should persist between browser sessions', async () => {
   await expect(page.locator('[data-testid*="team-"]')).toBeVisible();
 });
 
-// @AC006 - Offline functionality
+// @app-framework:AC013 - Offline functionality
 Given('the application is offline', async () => {
   // Simulate offline mode
   await page.setOfflineMode(true);

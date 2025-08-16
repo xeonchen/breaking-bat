@@ -6,7 +6,7 @@ Feature: Load Sample Data for Testing
     And I navigate to the Settings page
     And I am on the "General" tab
 
-  @AC001
+  @sample-data-management:AC001
   Scenario: Display Load Sample Data button with description
     Given I am on the Settings General tab
     Then I should see a "Load Sample Data" button
@@ -14,7 +14,7 @@ Feature: Load Sample Data for Testing
     And the button should have an add icon
     And the button should be blue colored
 
-  @AC002
+  @sample-data-management:AC002
   Scenario: Successfully load sample data
     Given I am on the Settings General tab
     And the application has no existing sample data
@@ -26,7 +26,7 @@ Feature: Load Sample Data for Testing
     And the toast should contain "Sample Data Loaded Successfully!"
     And the toast should mention "3 teams with 33 MLB players, 3 seasons, 5 game types"
 
-  @AC005
+  @sample-data-management:AC005
   Scenario: Handle existing sample data gracefully
     Given I am on the Settings General tab
     And sample data already exists in the application
@@ -35,7 +35,7 @@ Feature: Load Sample Data for Testing
     And I should still see a success notification
     And the existing data should remain intact
 
-  @AC004
+  @sample-data-management:AC004
   Scenario: Display error notification on failure
     Given I am on the Settings General tab
     And there is a dependency initialization error
@@ -45,7 +45,7 @@ Feature: Load Sample Data for Testing
     And the toast should contain a helpful error message
     And the button should return to normal state
 
-  @AC007
+  @sample-data-management:AC007
   Scenario: Verify created sample data is accessible
     Given I have successfully loaded sample data
     When I navigate to the Teams page
@@ -61,7 +61,7 @@ Feature: Load Sample Data for Testing
     When I navigate to the Settings Game Configuration tab
     Then I should see 5 game types: "Regular Season", "Playoff", "Championship", "Tournament", "Scrimmage"
 
-  @AC007-players
+  @sample-data-management:AC007-players
   Scenario: Verify MLB players have correct details
     Given I have successfully loaded sample data
     When I navigate to the Teams page
@@ -75,7 +75,7 @@ Feature: Load Sample Data for Testing
     And I should see "Juan Soto" wearing jersey #22 in Right Field position
     And I should see "Gerrit Cole" wearing jersey #45 in Pitcher position
 
-  @AC006
+  @sample-data-management:AC006
   Scenario: Handle loading state properly
     Given I am on the Settings General tab
     When I click the "Load Sample Data" button

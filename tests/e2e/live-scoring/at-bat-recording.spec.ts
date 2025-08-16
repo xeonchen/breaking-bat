@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createTestGame, setupTestLineup } from '../helpers/test-data-setup';
 
-test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => {
+test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-game-scoring:AC002, @live-game-scoring:AC003)', () => {
   test.beforeEach(async ({ page }) => {
     // Set up console logging from the beginning
     page.on('console', (msg) => console.log('BROWSER CONSOLE:', msg.text()));
@@ -52,7 +52,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     await expect(page.getByTestId('scoring-page')).toBeVisible();
   });
 
-  test('should record at-bat with functional business logic integration (@AC001)', async ({
+  test('should record at-bat with functional business logic integration (@live-game-scoring:AC001)', async ({
     page,
   }) => {
     // Given: Live scoring page with current batter displayed
@@ -95,7 +95,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     await expect(page.getByTestId('baserunner-third')).toContainText('Empty');
   });
 
-  test('should persist at-bat data immediately to prevent data loss (@AC001)', async ({
+  test('should persist at-bat data immediately to prevent data loss (@live-game-scoring:AC001)', async ({
     page,
   }) => {
     // Given: Initial state with first batter
@@ -127,7 +127,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     ); // Should advance to next batter
   });
 
-  test('should automatically advance to next batter after each at-bat (@AC002)', async ({
+  test('should automatically advance to next batter after each at-bat (@live-game-scoring:AC002)', async ({
     page,
   }) => {
     // Given: First batter up
@@ -162,7 +162,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     );
   });
 
-  test('should provide touch-friendly batting result buttons (@AC003)', async ({
+  test('should provide touch-friendly batting result buttons (@live-game-scoring:AC003)', async ({
     page,
   }) => {
     // Given: Scoring page loaded
@@ -189,7 +189,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     }
   });
 
-  test('should show proper baserunner diagram with current state (@AC007)', async ({
+  test('should show proper baserunner diagram with current state (@live-game-scoring:AC009)', async ({
     page,
   }) => {
     // Given: Empty bases initially (check baserunner display section exists)
@@ -218,7 +218,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     await expect(page.getByTestId('baserunner-third')).toContainText('Empty');
   });
 
-  test('should update in real-time without page refresh (@AC014)', async ({
+  test('should update in real-time without page refresh (@live-game-scoring:AC004)', async ({
     page,
   }) => {
     // Given: Initial state
@@ -245,7 +245,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     );
   });
 
-  test('should provide immediate visual feedback for all actions (@AC016)', async ({
+  test('should provide immediate visual feedback for all actions (@live-game-scoring:AC034)', async ({
     page,
   }) => {
     // Given: Scoring interface ready

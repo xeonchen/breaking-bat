@@ -9,7 +9,7 @@ describe('BaserunnerAdvancementService', () => {
     service = new BaserunnerAdvancementService();
   });
 
-  describe('Standard Advancement Rules (@AC004)', () => {
+  describe('Standard Advancement Rules (@live-game-scoring:AC006)', () => {
     it('should advance runners correctly for a single', () => {
       // Given: runners on 1st and 3rd
       const initialState: BaserunnerState = {
@@ -157,7 +157,7 @@ describe('BaserunnerAdvancementService', () => {
     });
   });
 
-  describe('Manual Override Capability (@AC005)', () => {
+  describe('Manual Override Capability (@live-game-scoring:AC007)', () => {
     it('should allow manual override of standard advancement', () => {
       // Given: standard advancement would score runner from 2nd on single
       const initialState: BaserunnerState = {
@@ -230,7 +230,7 @@ describe('BaserunnerAdvancementService', () => {
     });
   });
 
-  describe('RBI Calculation (@AC006)', () => {
+  describe('RBI Calculation (@live-game-scoring:AC008)', () => {
     it('should calculate RBIs based on scoring runners', () => {
       const initialState: BaserunnerState = {
         first: null,

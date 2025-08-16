@@ -217,7 +217,7 @@ Feature: Live Game Scoring and Statistics
     And the interface should remain fully functional
 
   # Innings Management for Home/Away Teams
-  @AC029 @AC031
+  @live-game-scoring:AC029 @live-game-scoring:AC031
   Scenario: Away team records only top half innings
     Given my team "Red Sox" is playing away against "Yankees"
     And we are in the top of the 1st inning
@@ -226,7 +226,7 @@ Feature: Live Game Scoring and Statistics
     And the at-bat recording interface should be enabled for my team
     And I should be able to record batting results for Red Sox players
 
-  @AC030 @AC032
+  @live-game-scoring:AC030 @live-game-scoring:AC032
   Scenario: Home team records only bottom half innings
     Given my team "Blue Jays" is playing at home against "Tigers"
     And we are in the bottom of the 2nd inning
@@ -235,7 +235,7 @@ Feature: Live Game Scoring and Statistics
     And the at-bat recording interface should be enabled for my team
     And I should be able to record batting results for Blue Jays players
 
-  @AC033 @AC034
+  @live-game-scoring:AC033 @live-game-scoring:AC034
   Scenario: Interface disabled during opponent's batting turn (away team)
     Given my team "Red Sox" is playing away
     And we are in the bottom of the 3rd inning (Yankees batting)
@@ -245,7 +245,7 @@ Feature: Live Game Scoring and Statistics
     And I should see a message "Opponent's turn to bat - interface disabled"
     And all batting input controls should be inactive
 
-  @AC033 @AC034
+  @live-game-scoring:AC033 @live-game-scoring:AC034
   Scenario: Interface disabled during opponent's batting turn (home team)
     Given my team "Blue Jays" is playing at home
     And we are in the top of the 4th inning (Tigers batting)
@@ -255,7 +255,7 @@ Feature: Live Game Scoring and Statistics
     And I should see a message "Opponent's turn to bat - interface disabled"
     And all batting input controls should be inactive
 
-  @AC031 @AC032
+  @live-game-scoring:AC031 @live-game-scoring:AC032
   Scenario: Clear inning indicator throughout the game (away team)
     Given my team "Cardinals" is playing away
     When I am in different innings
@@ -267,7 +267,7 @@ Feature: Live Game Scoring and Statistics
       | 2 | Bottom | Bottom of 2nd - Opponent | Disabled |
       | 3 | Top | Top of 3rd | Enabled |
 
-  @AC031 @AC032
+  @live-game-scoring:AC031 @live-game-scoring:AC032
   Scenario: Clear inning indicator throughout the game (home team)
     Given my team "Giants" is playing at home
     When I am in different innings
@@ -279,7 +279,7 @@ Feature: Live Game Scoring and Statistics
       | 2 | Bottom | Bottom of 2nd | Enabled |
       | 3 | Top | Top of 3rd - Opponent | Disabled |
 
-  @AC034
+  @live-game-scoring:AC034
   Scenario: Automatic interface state changes when inning switches (away)
     Given my team "Dodgers" is playing away
     And I am recording the top of the 5th inning (our turn)
@@ -290,7 +290,7 @@ Feature: Live Game Scoring and Statistics
     And all at-bat controls should become inactive
     And the current batter should be cleared/hidden
 
-  @AC034
+  @live-game-scoring:AC034
   Scenario: Automatic interface state changes when inning switches (home)
     Given my team "Padres" is playing at home
     And we are in the top of the 6th inning (opponent's turn)
@@ -301,7 +301,7 @@ Feature: Live Game Scoring and Statistics
     And all at-bat controls should become active
     And the current batter should be displayed
 
-  @AC029 @AC030
+  @live-game-scoring:AC029 @live-game-scoring:AC030
   Scenario: Scoreboard shows correct team batting context
     Given my team "Mariners" is playing away
     When I view the scoreboard during different innings

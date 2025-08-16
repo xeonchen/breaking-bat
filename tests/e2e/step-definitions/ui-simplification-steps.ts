@@ -9,7 +9,7 @@ Given('I am using the application', async () => {
   await page.waitForTimeout(1000);
 });
 
-// @AC001-005 - Streamlined Navigation
+// @app-framework:AC001-005 - Streamlined Navigation
 Then('I should see 4 main navigation sections instead of 7', async () => {
   // Check desktop navigation
   const navItems = page.locator(
@@ -41,7 +41,7 @@ Then('I should be redirected to the games page by default', async () => {
   await expect(page.getByTestId('games-page')).toBeVisible();
 });
 
-// @AC006-011 - Consolidated Settings Management
+// @app-settings:AC006-011 - Consolidated Settings Management
 When('I navigate to settings', async () => {
   // Look for settings navigation
   const settingsLink = page.locator(
@@ -108,7 +108,7 @@ Then(
   }
 );
 
-// @AC012-017 - Simplified Game Creation
+// @game-creation:AC012-017 - Simplified Game Creation
 When('I create a new game', async () => {
   await page.goto('/games');
 
@@ -143,7 +143,7 @@ Then('season and game type fields should be optional', async () => {
   await expect(modal).not.toBeVisible();
 });
 
-// @AC018-023 - Enhanced Mobile Experience
+// @app-framework:AC006-009 - Enhanced Mobile Experience
 Given('I am using a mobile device', async () => {
   // Set mobile viewport
   await page.setViewportSize({ width: 375, height: 667 });
@@ -184,7 +184,7 @@ Then('all interactions should be optimized for thumb navigation', async () => {
   await page.setViewportSize({ width: 1280, height: 720 });
 });
 
-// @AC024-029 - Backward Compatibility
+// @app-framework:AC020-024 - Backward Compatibility
 Then('all existing functionality should remain accessible', async () => {
   // Test key navigation paths still work
   await page.goto('/teams');

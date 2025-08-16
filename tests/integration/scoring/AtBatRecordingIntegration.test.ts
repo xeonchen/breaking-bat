@@ -7,7 +7,7 @@ import { BattingResult, Game, AtBat } from '@/domain';
 import { DatabaseHelper } from '@/tests/helpers/DatabaseHelper';
 import Dexie from 'dexie';
 
-describe.skip('At-Bat Recording Integration Tests (@AC001, @AC002, @AC005) - SKIPPED: Requires live game state management implementation', () => {
+describe.skip('At-Bat Recording Integration Tests (@live-game-scoring:AC001, @live-game-scoring:AC002, @live-game-scoring:AC007) - SKIPPED: Requires live game state management implementation', () => {
   let integration: AtBatRecordingIntegration;
   let gameRepository: IndexedDBGameRepository;
   let atBatRepository: IndexedDBAtBatRepository;
@@ -51,7 +51,7 @@ describe.skip('At-Bat Recording Integration Tests (@AC001, @AC002, @AC005) - SKI
     }
   });
 
-  describe('End-to-End At-Bat Recording (@AC001)', () => {
+  describe('End-to-End At-Bat Recording (@live-game-scoring:AC001)', () => {
     it('should record complete at-bat with real database persistence', async () => {
       // Given: A real game setup with lineup
       const game = new Game(
@@ -161,7 +161,7 @@ describe.skip('At-Bat Recording Integration Tests (@AC001, @AC002, @AC005) - SKI
     });
   });
 
-  describe('Baserunner Integration with Manual Override (@AC005)', () => {
+  describe('Baserunner Integration with Manual Override (@live-game-scoring:AC007)', () => {
     it('should integrate manual override with database persistence', async () => {
       // Given: Game with runners in position
       const game = new Game(
@@ -215,7 +215,7 @@ describe.skip('At-Bat Recording Integration Tests (@AC001, @AC002, @AC005) - SKI
     });
   });
 
-  describe('Automatic Batter Advancement Integration (@AC002)', () => {
+  describe('Automatic Batter Advancement Integration (@live-game-scoring:AC002)', () => {
     it('should advance through lineup with database persistence', async () => {
       // Given: Game with 3-batter lineup
       const game = new Game(

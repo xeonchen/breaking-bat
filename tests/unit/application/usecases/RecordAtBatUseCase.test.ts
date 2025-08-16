@@ -38,7 +38,7 @@ describe('RecordAtBatUseCase', () => {
     );
   });
 
-  describe('Functional Integration (@AC001)', () => {
+  describe('Functional Integration (@live-game-scoring:AC001)', () => {
     it('should record at-bat with complete business logic integration', async () => {
       // Given: A game in progress with current state
       const gameId = 'game-1';
@@ -189,7 +189,7 @@ describe('RecordAtBatUseCase', () => {
     });
   });
 
-  describe('Automatic Batter Advancement (@AC002)', () => {
+  describe('Automatic Batter Advancement (@live-game-scoring:AC002)', () => {
     it('should advance to next batter in lineup after recording at-bat', async () => {
       // Given: Game with lineup and current batter
       const gameId = 'game-1';
@@ -294,7 +294,7 @@ describe('RecordAtBatUseCase', () => {
     });
   });
 
-  describe('Manual Override Integration (@AC005)', () => {
+  describe('Manual Override Integration (@live-game-scoring:AC007)', () => {
     it('should apply manual overrides when provided', async () => {
       // Given: At-bat with manual runner advancement overrides
       const gameId = 'game-1';
@@ -394,7 +394,7 @@ describe('RecordAtBatUseCase', () => {
     });
   });
 
-  describe('Game State Validation (@AC012)', () => {
+  describe('Game State Validation (@live-game-scoring:AC032)', () => {
     it('should reject recording at-bat for non-active game', async () => {
       // Given: Game not in progress
       const gameId = 'game-1';

@@ -6,7 +6,7 @@ Feature: Opponent Half-Inning Management Controls
     And a game is in progress
     And it is the opponent's turn to bat
 
-  @AC043
+  @live-game-scoring:AC043
   Scenario: Display controls when it's opponent's turn to bat
     When the opponent's turn to bat begins
     Then I should see an alert indicating "Opponent's Turn to Bat"
@@ -14,7 +14,7 @@ Feature: Opponent Half-Inning Management Controls
     And I should see a "Record Opponent Score" button
     And the at-bat recording interface should be disabled
 
-  @AC044
+  @live-game-scoring:AC044
   Scenario: Skip opponent turn advances to our team's half-inning
     When I click the "Skip to Our Turn" button
     Then the system should advance to my team's half-inning
@@ -22,7 +22,7 @@ Feature: Opponent Half-Inning Management Controls
     And I should see a success message "Inning advanced"
     And the inning indicator should show it's our turn to bat
 
-  @AC044-error-handling
+  @live-game-scoring:AC044-error-handling
   Scenario: Handle errors when skipping opponent turn
     Given the inning advancement will fail
     When I click the "Skip to Our Turn" button
@@ -30,19 +30,19 @@ Feature: Opponent Half-Inning Management Controls
     And the opponent controls should remain visible
     And the game state should be unchanged
 
-  @AC045
+  @live-game-scoring:AC045
   Scenario: Record opponent scoring opens simplified input interface
     When I click the "Record Opponent Score" button
     Then I should see a simplified opponent scoring interface
     # Note: For now, this shows a "Coming Soon" message per implementation
 
-  @AC045-coming-soon
+  @live-game-scoring:AC045-coming-soon
   Scenario: Record opponent scoring shows coming soon message
     When I click the "Record Opponent Score" button
     Then I should see an info message "Coming Soon"
     And the message should indicate "Opponent scoring interface will be available in a future update"
 
-  @AC046
+  @live-game-scoring:AC046
   Scenario: After opponent scoring is handled, advance to our team's turn
     Given I have completed recording opponent scoring
     When the opponent scoring workflow is finished

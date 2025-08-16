@@ -9,7 +9,7 @@ Given('I am on the teams page', async () => {
   await expect(page.getByTestId('teams-page')).toBeVisible();
 });
 
-// @AC001-004 - Team/season/game type creation
+// @team-management:AC001-004 - Team/season/game type creation
 When('I create a new team named {string}', async (teamName: string) => {
   const createBtn = page.locator('[data-testid="create-team-button"]');
   await expect(createBtn).toBeVisible();
@@ -33,7 +33,7 @@ Then('the team should be created successfully', async () => {
   await expect(page.locator('[data-testid*="team-"]')).toBeVisible();
 });
 
-// @AC005-010 - Player management
+// @roster-management:AC005-010 - Player management
 When(
   'I add a player named {string} with jersey number {string}',
   async (playerName: string, jerseyNumber: string) => {
@@ -108,7 +108,7 @@ Then("the player's position should be updated", async () => {
   await expect(playerCard).toBeVisible();
 });
 
-// @AC011-013 - Lineup management basics
+// @lineup-configuration:AC011-013 - Lineup management basics
 Given('I have a team with multiple players', async () => {
   // Ensure we have a team with several players
   await page.goto('/teams');
