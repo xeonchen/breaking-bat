@@ -327,6 +327,85 @@ tests/
   helpers/
 ```
 
+### 4.2. Test Level Decision Framework
+
+**Critical Rule**: Choose the lowest-level test that can adequately verify the acceptance criteria.
+
+#### Test Level Decision Matrix
+
+| Acceptance Criteria Type        | Primary Test Level | Rationale                                             | Secondary Tests                     |
+| ------------------------------- | ------------------ | ----------------------------------------------------- | ----------------------------------- |
+| **Pure Business Logic**         | Unit               | Fast feedback, isolated testing                       | None usually needed                 |
+| **UI Component Behavior**       | Component          | Tests component in isolation with mocked dependencies | E2E for critical paths              |
+| **Component State Management**  | Component          | Tests React hooks, localStorage, user interactions    | Unit for complex logic              |
+| **Cross-Component Integration** | Integration        | Tests multiple components working together            | Component for individual pieces     |
+| **User Workflows**              | E2E                | Tests complete user journeys through real UI          | Component for sub-workflows         |
+| **API/Database Integration**    | Integration        | Tests data flow between layers                        | Unit for business logic             |
+| **Error Handling & Edge Cases** | Unit + Component   | Fast feedback for error scenarios                     | Integration for complex error flows |
+
+#### Specific Decision Guidelines
+
+**Use Component Tests When:**
+
+- Testing UI component props, state, and user interactions
+- Verifying form validation and input handling
+- Testing modal behavior, toggles, and UI state changes
+- Validating component rendering based on different data states
+- Testing accessibility features and responsive behavior
+
+**Use Unit Tests When:**
+
+- Testing pure functions and business logic
+- Testing utility functions and algorithms
+- Testing error handling in isolated functions
+- Testing data transformations and calculations
+- Testing validation rules and business rules
+
+**Use Integration Tests When:**
+
+- Testing component integration with external services
+- Testing data flow between multiple components
+- Testing API interactions and database operations
+- Testing complex state management across components
+- Testing error propagation between layers
+
+**Use E2E Tests When:**
+
+- Testing complete user workflows (login → action → result)
+- Testing critical business processes end-to-end
+- Testing cross-browser compatibility
+- Testing performance under realistic conditions
+- Validating final user experience
+
+#### AC046A-C Example Application
+
+For the three new requirements, here's the recommended test strategy:
+
+**AC046A (Pitch tracking defaults to collapsed):**
+
+- **Primary**: Component tests - UI state and localStorage behavior
+- **Secondary**: E2E scenario - User experience verification
+
+**AC046B (Default baserunner advancement values):**
+
+- **Primary**: Component tests - Modal pre-population logic
+- **Secondary**: Unit tests - Business rule calculations
+- **Tertiary**: Integration tests - Data flow verification
+
+**AC046C (Home run clears baserunners immediately):**
+
+- **Primary**: Unit tests - Core business logic (clearing runners, scoring)
+- **Secondary**: Component tests - UI behavior (no modal appears)
+- **Tertiary**: Integration tests - End-to-end scoring flow
+
+#### Decision Process
+
+1. **Identify the core behavior** being tested in the acceptance criteria
+2. **Determine the minimal test scope** needed to verify that behavior
+3. **Choose the lowest-level test** that can provide adequate coverage
+4. **Add higher-level tests** only for critical user journeys
+5. **Avoid test duplication** across levels unless specifically needed for confidence
+
 ---
 
 ## 5. Quality Gate Pipeline

@@ -23,7 +23,9 @@ Maintain accurate game statistics and scores without missing any plays, making e
 - **live-game-scoring:AC001**: I can record at-bat results that are functionally connected to the business logic and persist to the database
 - **live-game-scoring:AC002**: The system automatically selects the current batter based on the lineup order and advances to the next batter after each at-bat
 - **live-game-scoring:AC003**: I can quickly input batting results using fast-action buttons (1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP)
+- **live-game-scoring:AC003A**: Given the current game situation, fast-action buttons should be enabled/disabled based on validity (e.g., no Double Play when no runners)
 - **live-game-scoring:AC004**: The interface is optimized for quick, accurate input during live gameplay
+- **live-game-scoring:AC004A**: Given I don't need pitch tracking, I should be able to collapse the pitch tracking section to focus on at-bat results
 - **live-game-scoring:AC005**: The interface works well with touch input on tablets and mobile devices
 
 ### Baserunner Management and Advancement
@@ -32,6 +34,7 @@ Maintain accurate game statistics and scores without missing any plays, making e
 - **live-game-scoring:AC007**: I can manually override any runner advancement when unusual situations occur (e.g., runner scores from second on a single)
 - **live-game-scoring:AC008**: The system tracks which runners score and calculates RBIs accurately
 - **live-game-scoring:AC009**: I can see a visual representation of current baserunners at all times
+- **live-game-scoring:AC009A**: Given I need to see baserunner positions, they should be displayed in field-accurate layout (3rd-2nd-1st from left to right, with 2nd elevated)
 
 ### Detailed Runner Advancement Rules
 
@@ -45,7 +48,11 @@ Maintain accurate game statistics and scores without missing any plays, making e
 ### Baserunner Management Interface
 
 - **live-game-scoring:AC016**: Given there are runners on base, I should see a baserunner advancement modal for applicable batting results
+- **live-game-scoring:AC016A**: Given there are no runners on base, the system should not show the baserunner advancement modal
 - **live-game-scoring:AC017**: Given the baserunner advancement modal appears, I should be able to confirm or modify the default advancement
+- **live-game-scoring:AC017A**: Given the baserunner advancement modal appears, all runner advancement selections must be made before confirmation
+- **live-game-scoring:AC017B**: Given I make advancement selections, the system must validate that no runners disappear without scoring or being out
+- **live-game-scoring:AC017C**: Given I make advancement selections, the system must prevent multiple runners on the same base
 - **live-game-scoring:AC018**: Given I confirm runner advancement, the system should update runner positions and scoring immediately
 - **live-game-scoring:AC019**: Given a runner scores, the system should increment the team score and track RBIs for the batter
 - **live-game-scoring:AC020**: Given multiple at-bats are recorded, the system should maintain accurate runner positions throughout the inning
