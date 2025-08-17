@@ -92,7 +92,7 @@ describe('AtBatForm Component', () => {
         />
       );
 
-      expect(screen.getByTestId('pitch-tracking')).toBeInTheDocument();
+      expect(screen.getByTestId('pitch-tracking-section')).toBeInTheDocument();
       expect(screen.getByTestId('ball-button')).toBeInTheDocument();
       expect(screen.getByTestId('strike-button')).toBeInTheDocument();
       expect(screen.getByTestId('foul-button')).toBeInTheDocument();
@@ -516,7 +516,7 @@ describe('AtBatForm Component', () => {
         />
       );
 
-      const pitchTracking = screen.getByTestId('pitch-tracking');
+      const pitchTracking = screen.getByTestId('pitch-tracking-section');
       expect(pitchTracking).toHaveClass('mobile-compact');
     });
   });

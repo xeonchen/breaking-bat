@@ -684,19 +684,20 @@ describe('ScoringPage Component', () => {
     it('should support keyboard navigation', () => {
       renderWithChakra(<ScoringPage />);
 
-      const ballButton = screen.getByTestId('ball-button');
-      const strikeButton = screen.getByTestId('strike-button');
+      // AC046A: Pitch tracking is collapsed by default, so check main outcome buttons
       const singleButton = screen.getByTestId('single-button');
+      const doubleButton = screen.getByTestId('double-button');
+      const strikeoutButton = screen.getByTestId('strikeout-button');
 
-      // Check that buttons are focusable (tabIndex 0 is default for buttons)
-      expect(ballButton).toBeVisible();
-      expect(strikeButton).toBeVisible();
+      // Check that main buttons are visible and focusable (tabIndex 0 is default for buttons)
       expect(singleButton).toBeVisible();
+      expect(doubleButton).toBeVisible();
+      expect(strikeoutButton).toBeVisible();
 
       // Button elements are focusable by default - check that they're interactive
-      expect(ballButton).not.toBeDisabled();
-      expect(strikeButton).not.toBeDisabled();
       expect(singleButton).not.toBeDisabled();
+      expect(doubleButton).not.toBeDisabled();
+      expect(strikeoutButton).not.toBeDisabled();
     });
 
     it('should announce score changes to screen readers', async () => {

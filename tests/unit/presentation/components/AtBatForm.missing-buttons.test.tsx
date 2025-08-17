@@ -89,20 +89,15 @@ describe('Missing Buttons - AC003 Coverage', () => {
         />
       );
 
-      // This test will fail until IBB button exists
-      try {
-        const ibbButton = screen.getByTestId('ibb-button');
-        await user.click(ibbButton);
+      // IBB button is now implemented - test functionality
+      const ibbButton = screen.getByTestId('ibb-button');
+      await user.click(ibbButton);
 
-        expect(onAtBatComplete).toHaveBeenCalledWith(
-          expect.objectContaining({
-            result: expect.objectContaining({ type: 'walk', value: 'IBB' }),
-          })
-        );
-      } catch (error) {
-        // Expected to fail until button is implemented
-        expect(error.message).toContain('Unable to find an element');
-      }
+      expect(onAtBatComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          result: expect.objectContaining({ value: 'IBB' }),
+        })
+      );
     });
 
     it('should handle SF (Sacrifice Fly) with RBI logic', async () => {
@@ -188,24 +183,23 @@ describe('Missing Buttons - AC003 Coverage', () => {
         'walk-button',
         'strikeout-button',
         'ground-out-button',
+        'ibb-button',
+        'sf-button',
+        'error-button',
+        'fc-button',
+        'dp-button',
+        'air-out-button',
       ];
 
       fastActionButtons.forEach((buttonId) => {
         expect(screen.getByTestId(buttonId)).toBeInTheDocument();
       });
 
-      // Currently have 7 out of 13 required AC003 buttons
-      expect(fastActionButtons).toHaveLength(7);
+      // All 13 fast-action buttons are now implemented
+      expect(fastActionButtons).toHaveLength(13);
 
-      // Missing 6 buttons: IBB, SF, E, FC, AO, DP
-      const missingButtons = [
-        'ibb-button',
-        'sf-button',
-        'error-button',
-        'fc-button',
-        'air-out-button',
-        'dp-button',
-      ];
+      // All previously missing buttons are now implemented
+      const missingButtons = [];
 
       missingButtons.forEach((buttonId) => {
         expect(screen.queryByTestId(buttonId)).toBeNull();

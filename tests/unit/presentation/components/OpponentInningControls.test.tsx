@@ -8,6 +8,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import ScoringPage from '@/presentation/pages/ScoringPage';
 import { useGameStore } from '@/presentation/stores/gameStore';
@@ -23,21 +24,41 @@ const mockGameStoreState = {
     id: 'test-game',
     name: 'Test Game',
     opponent: 'Test Opponent',
+    teamId: 'team-1',
     isHomeGame: () => true,
     isAwayGame: () => false,
+    getVenueText: () => 'vs',
+    getSummary: () => 'Test Game vs Test Opponent',
     status: 'in_progress',
   },
+  teams: [
+    { id: 'team-1', name: 'Home Team' },
+    { id: 'team-2', name: 'Away Team' },
+  ],
+  currentBatter: null,
   currentInning: 3,
   isTopInning: true, // Opponent's turn when home game
+  baserunners: {},
+  currentCount: { balls: 0, strikes: 0 },
   currentOuts: 1,
   loading: false,
   error: null,
+  getCurrentGame: jest.fn(),
+  loadGame: jest.fn(),
+  startGame: jest.fn(),
+  recordAtBat: jest.fn(),
   advanceInning: jest.fn(),
+  getTeams: jest.fn().mockResolvedValue([]),
+  getLineup: jest.fn().mockResolvedValue([]),
   // ... other required store properties
 };
 
 const renderWithChakra = (component: React.ReactElement) => {
-  return render(<ChakraProvider>{component}</ChakraProvider>);
+  return render(
+    <MemoryRouter>
+      <ChakraProvider>{component}</ChakraProvider>
+    </MemoryRouter>
+  );
 };
 
 describe('Opponent Half-Inning Management Controls', () => {
@@ -62,8 +83,8 @@ describe('Opponent Half-Inning Management Controls', () => {
       expect(recordButton).toBeVisible();
       expect(recordButton).toBeDisabled();
 
-      // ASSERT: At-bat interface should be disabled
-      expect(screen.getByTestId('at-bat-form')).toHaveAttribute('disabled');
+      // ASSERT: At-bat interface should not be present during opponent's turn
+      expect(screen.queryByTestId('at-bat-form')).not.toBeInTheDocument();
     });
 
     it('MUST show appropriate messaging for home vs away games', () => {
