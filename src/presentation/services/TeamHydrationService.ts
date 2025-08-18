@@ -56,7 +56,7 @@ export class TeamHydrationService {
       name: domainPlayer.name,
       jerseyNumber: domainPlayer.jerseyNumber.toString(), // Convert to string for forms
       positions: domainPlayer.positions.map((pos) =>
-        PresentationValueConverter.toPresentationPosition(pos)
+        PresentationValueConverter.toPresentationPosition(pos.value)
       ),
       isActive: domainPlayer.isActive,
     };

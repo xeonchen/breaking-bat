@@ -56,7 +56,7 @@ export class GameAdapter {
       isTopInning: true, // This would come from game state
       homeScore: game.finalScore?.homeScore || 0,
       awayScore: game.finalScore?.awayScore || 0,
-      lineupId: game.lineupId,
+      lineupId: game.lineupId || undefined,
       currentBatterId: undefined, // This would come from game state
       currentBaserunners: {
         first: null,

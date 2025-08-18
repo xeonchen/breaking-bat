@@ -12,7 +12,6 @@ import {
   PresentationPosition,
   PresentationBattingResult,
   PresentationGameStatus,
-  PresentationBaserunnerState,
   PresentationBattingHelper,
 } from '../types/presentation-values';
 import { GameAdapter } from '../adapters/gameAdapter';
