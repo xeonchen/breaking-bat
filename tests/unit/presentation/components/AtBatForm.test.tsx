@@ -215,7 +215,7 @@ describe('AtBatForm Component', () => {
       await waitFor(() => {
         expect(onAtBatComplete).toHaveBeenCalledWith(
           expect.objectContaining({
-            result: BattingResult.walk(),
+            result: 'BB',
             finalCount: { balls: 4, strikes: 1 },
           })
         );
@@ -241,7 +241,7 @@ describe('AtBatForm Component', () => {
       await waitFor(() => {
         expect(onAtBatComplete).toHaveBeenCalledWith(
           expect.objectContaining({
-            result: BattingResult.strikeout(),
+            result: 'SO',
             finalCount: { balls: 2, strikes: 3 },
           })
         );
@@ -268,7 +268,7 @@ describe('AtBatForm Component', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: BattingResult.single(),
+          result: '1B',
           finalCount: { balls: 1, strikes: 2 },
         })
       );
@@ -292,7 +292,7 @@ describe('AtBatForm Component', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: BattingResult.homeRun(),
+          result: 'HR',
           finalCount: { balls: 2, strikes: 1 },
         })
       );
@@ -392,7 +392,7 @@ describe('AtBatForm Component', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: BattingResult.single(),
+          result: '1B',
           baserunnerAdvancement: expect.objectContaining({
             first: 'third',
           }),

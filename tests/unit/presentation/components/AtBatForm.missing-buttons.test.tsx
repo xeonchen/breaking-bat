@@ -95,7 +95,7 @@ describe('Missing Buttons - AC003 Coverage', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: expect.objectContaining({ value: 'IBB' }),
+          result: 'IBB',
         })
       );
     });

@@ -15,6 +15,7 @@ import { IndexedDBSeasonRepository } from '@/infrastructure/repositories/Indexed
 import { IndexedDBGameTypeRepository } from '@/infrastructure/repositories/IndexedDBGameTypeRepository';
 import { TeamHydrationService } from '@/presentation/services/TeamHydrationService';
 import { ScoringService } from '@/domain/services/ScoringService';
+import { StatisticsCalculationService } from '@/domain/services/StatisticsCalculationService';
 
 interface DependencyProviderProps {
   children: ReactNode;
@@ -31,7 +32,8 @@ export function DependencyProvider({ children }: DependencyProviderProps) {
 
     // Initialize services
     const teamHydrationService = new TeamHydrationService(playerRepository);
-    const scoringService = new ScoringService();
+    const statisticsService = new StatisticsCalculationService();
+    const scoringService = new ScoringService(statisticsService);
 
     // Initialize use cases
     const createTeamUseCase = new CreateTeamUseCase(teamRepository);

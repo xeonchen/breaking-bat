@@ -200,7 +200,7 @@ describe('AC046A: Pitch tracking defaults to collapsed for streamlined scoring e
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           batterId: 'player1',
-          result: expect.objectContaining({ value: '1B' }),
+          result: '1B',
         })
       );
     });

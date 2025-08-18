@@ -1,17 +1,18 @@
 import { BattingResult, BaserunnerState } from '../values';
 import { Player, AtBat } from '../entities';
-
-export interface BaserunnerAdvancementCalculation {
-  newState: BaserunnerState;
-  runsScored: string[]; // player IDs
-  battingAdvancement: number; // bases advanced by batter
-  automaticAdvancement: boolean; // true if calculated automatically
-}
+import {
+  IScoringService,
+  BaserunnerAdvancementCalculation,
+} from '../interfaces/IScoringService';
+import { IStatisticsCalculationService } from '../interfaces/IStatisticsCalculationService';
 
 /**
- * Domain service for softball scoring logic and calculations
+ * Domain service for core softball scoring logic
+ * Implements IScoringService interface and delegates to specialized services
  */
-export class ScoringService {
+export class ScoringService implements IScoringService {
+  constructor(private statisticsService: IStatisticsCalculationService) {}
+
   /**
    * Record an at-bat result and calculate consequences
    */
@@ -118,6 +119,7 @@ export class ScoringService {
 
   /**
    * Calculate RBIs based on batting result and baserunner advancement
+   * Delegates to StatisticsCalculationService
    */
   public calculateRBIs(
     result: BattingResult,
@@ -125,118 +127,36 @@ export class ScoringService {
     _baserunnersAfter: BaserunnerState,
     runsScored: string[]
   ): number {
-    // No RBIs for walks (unless bases loaded) or errors
-    if (
-      (result.value === 'BB' || result.value === 'IBB') &&
-      !baserunnersBefore.isLoaded()
-    ) {
-      return 0;
-    }
-
-    if (result.value === 'E') {
-      return 0;
-    }
-
-    // RBIs equal the number of runs that scored due to the at-bat
-    let rbis = runsScored.length;
-
-    // For home runs, batter also gets RBI for themselves
-    if (result.value === 'HR') {
-      // Already included in runsScored
-    }
-
-    // For sacrifice flies, batter gets RBI even though they're out
-    if (result.value === 'SF' && runsScored.length > 0) {
-      rbis = runsScored.length;
-    }
-
-    return Math.min(rbis, 4); // Maximum 4 RBIs per at-bat
+    const batterId = ''; // Not needed for RBI calculation
+    const rbiResult = this.statisticsService.calculateRBIs(
+      result,
+      baserunnersBefore,
+      runsScored,
+      batterId
+    );
+    return rbiResult.rbis;
   }
 
   /**
    * Update player statistics based on an at-bat
+   * Delegates to StatisticsCalculationService
    */
   public updatePlayerStatistics(
     player: Player,
     atBat: AtBat
   ): Player['statistics'] {
-    const stats = { ...player.statistics };
-
-    // Increment at-bats (except for walks and sacrifice flies)
-    if (!['BB', 'IBB', 'SF'].includes(atBat.result.value)) {
-      stats.atBats++;
-    }
-
-    // Update hit statistics
-    if (atBat.isHit()) {
-      stats.hits++;
-
-      switch (atBat.result.value) {
-        case '1B':
-          stats.singles++;
-          break;
-        case '2B':
-          stats.doubles++;
-          break;
-        case '3B':
-          stats.triples++;
-          break;
-        case 'HR':
-          stats.homeRuns++;
-          break;
-      }
-    }
-
-    // Update RBIs
-    stats.rbis += atBat.rbis;
-
-    // Update walks
-    if (['BB', 'IBB'].includes(atBat.result.value)) {
-      stats.walks++;
-    }
-
-    // Update strikeouts
-    if (atBat.result.value === 'SO') {
-      stats.strikeouts++;
-    }
-
-    // Check if player scored (their ID is in runsScored)
-    if (atBat.runsScored.includes(player.id)) {
-      stats.runs++;
-    }
-
-    // Recalculate derived statistics
-    stats.battingAverage = this.calculateBattingAverage(
-      stats.hits,
-      stats.atBats
-    );
-    stats.onBasePercentage = this.calculateOnBasePercentage(
-      stats.hits,
-      stats.walks,
-      0, // hit by pitch (not implemented)
-      stats.atBats,
-      0 // sacrifice flies as separate stat
-    );
-    stats.sluggingPercentage = this.calculateSluggingPercentage(
-      stats.singles,
-      stats.doubles,
-      stats.triples,
-      stats.homeRuns,
-      stats.atBats
-    );
-
-    return stats;
+    return this.statisticsService.updatePlayerStatistics(player, atBat);
   }
 
   /**
-   * Calculate batting average
+   * Calculate batting average - delegates to StatisticsCalculationService
    */
   public calculateBattingAverage(hits: number, atBats: number): number {
-    return atBats > 0 ? hits / atBats : 0;
+    return this.statisticsService.calculateBattingAverage(hits, atBats);
   }
 
   /**
-   * Calculate on-base percentage
+   * Calculate on-base percentage - delegates to StatisticsCalculationService
    */
   public calculateOnBasePercentage(
     hits: number,
@@ -245,15 +165,17 @@ export class ScoringService {
     atBats: number,
     sacrificeFlies: number
   ): number {
-    const totalPlateAppearances = atBats + walks + hitByPitch + sacrificeFlies;
-    if (totalPlateAppearances === 0) return 0;
-
-    const timesOnBase = hits + walks + hitByPitch;
-    return timesOnBase / totalPlateAppearances;
+    return this.statisticsService.calculateOnBasePercentage(
+      hits,
+      walks,
+      hitByPitch,
+      atBats,
+      sacrificeFlies
+    );
   }
 
   /**
-   * Calculate slugging percentage
+   * Calculate slugging percentage - delegates to StatisticsCalculationService
    */
   public calculateSluggingPercentage(
     singles: number,
@@ -262,10 +184,13 @@ export class ScoringService {
     homeRuns: number,
     atBats: number
   ): number {
-    if (atBats === 0) return 0;
-
-    const totalBases = singles + doubles * 2 + triples * 3 + homeRuns * 4;
-    return totalBases / atBats;
+    return this.statisticsService.calculateSluggingPercentage(
+      singles,
+      doubles,
+      triples,
+      homeRuns,
+      atBats
+    );
   }
 
   /**
@@ -301,17 +226,9 @@ export class ScoringService {
 
   /**
    * Calculate team batting average for multiple players
+   * Delegates to StatisticsCalculationService
    */
   public calculateTeamBattingAverage(players: Player[]): number {
-    const totalHits = players.reduce(
-      (sum, player) => sum + player.statistics.hits,
-      0
-    );
-    const totalAtBats = players.reduce(
-      (sum, player) => sum + player.statistics.atBats,
-      0
-    );
-
-    return this.calculateBattingAverage(totalHits, totalAtBats);
+    return this.statisticsService.calculateTeamBattingAverage(players);
   }
 }

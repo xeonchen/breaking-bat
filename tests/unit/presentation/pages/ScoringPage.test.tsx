@@ -368,7 +368,7 @@ describe('ScoringPage Component', () => {
         expect(mockRecordAtBat).toHaveBeenCalledWith(
           expect.objectContaining({
             batterId: 'player-1',
-            result: expect.objectContaining({ value: '1B' }),
+            result: '1B',
             finalCount: { balls: 2, strikes: 1 },
           })
         );
@@ -414,7 +414,7 @@ describe('ScoringPage Component', () => {
         expect(mockRecordAtBat).toHaveBeenCalledWith(
           expect.objectContaining({
             batterId: expect.any(String),
-            result: expect.any(Object),
+            result: expect.any(String),
           })
         );
       });

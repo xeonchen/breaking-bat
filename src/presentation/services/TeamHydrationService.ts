@@ -3,7 +3,7 @@ import {
   Player as DomainPlayer,
   PlayerRepository,
 } from '@/domain';
-import { Position } from '@/domain/values';
+import { PresentationValueConverter } from '../types/presentation-values';
 import { PresentationTeam, PresentationPlayer } from '../types/TeamWithPlayers';
 
 /**
@@ -55,7 +55,9 @@ export class TeamHydrationService {
       id: domainPlayer.id,
       name: domainPlayer.name,
       jerseyNumber: domainPlayer.jerseyNumber.toString(), // Convert to string for forms
-      positions: domainPlayer.positions,
+      positions: domainPlayer.positions.map((pos) =>
+        PresentationValueConverter.toPresentationPosition(pos)
+      ),
       isActive: domainPlayer.isActive,
     };
   }
@@ -68,13 +70,15 @@ export class TeamHydrationService {
   ): {
     name: string;
     jerseyNumber: number;
-    positions: Position[];
+    positions: string[];
     isActive: boolean;
   } {
     return {
       name: presentationPlayer.name,
       jerseyNumber: parseInt(presentationPlayer.jerseyNumber, 10),
-      positions: presentationPlayer.positions,
+      positions: presentationPlayer.positions.map((pos) =>
+        PresentationValueConverter.toDomainPosition(pos)
+      ),
       isActive: presentationPlayer.isActive,
     };
   }

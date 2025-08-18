@@ -302,11 +302,8 @@ export class BaserunnerAdvancementService {
       }
     }
 
-    // Add batter to scoring if home run
-    if (battingResult.value === 'HR') {
-      scoringRunners.push(batterId);
-      rbis++;
-    }
+    // Note: Batter scoring for HR is already handled in calculateStandardAdvancement
+    // This prevents duplicate scoring of the batter
 
     return {
       finalBaserunners,

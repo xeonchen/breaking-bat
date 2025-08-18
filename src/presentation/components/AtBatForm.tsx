@@ -28,7 +28,11 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
 } from '@chakra-ui/icons';
-import { Position, BattingResult } from '@/domain';
+import {
+  PresentationPosition,
+  PresentationBattingResult,
+  PresentationBattingHelper,
+} from '../types/presentation-values';
 import { useState, useEffect, useCallback } from 'react';
 
 /**
@@ -61,7 +65,7 @@ interface CurrentBatter {
   playerId: string;
   playerName: string;
   jerseyNumber: string;
-  position: Position;
+  position: PresentationPosition;
   battingOrder: number;
 }
 
@@ -89,7 +93,7 @@ interface AtBatFormProps {
   currentOuts?: number; // Enhanced AC003A: out count for contextual button enablement
   onAtBatComplete: (result: {
     batterId: string;
-    result: BattingResult;
+    result: PresentationBattingResult;
     finalCount: { balls: number; strikes: number };
     pitchSequence?: string[];
     baserunnerAdvancement?: Record<string, string>;
@@ -159,9 +163,8 @@ export function AtBatForm({
   );
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [pendingResult, setPendingResult] = useState<BattingResult | null>(
-    null
-  );
+  const [pendingResult, setPendingResult] =
+    useState<PresentationBattingResult | null>(null);
 
   const toast = useToast();
 
@@ -178,30 +181,33 @@ export function AtBatForm({
 
   // AC046B: Calculate default baserunner advancement based on batting result
   const calculateDefaultAdvancement = useCallback(
-    (result: BattingResult, runners: Baserunners): BaserunnerAdvancement => {
+    (
+      result: PresentationBattingResult,
+      runners: Baserunners
+    ): BaserunnerAdvancement => {
       const defaults: BaserunnerAdvancement = {};
 
-      switch (result.value) {
-        case '1B': // Single - runners advance 1 base
+      switch (result) {
+        case PresentationBattingResult.SINGLE: // Single - runners advance 1 base
           if (runners.first) defaults.first = 'second';
           if (runners.second) defaults.second = 'home';
           if (runners.third) defaults.third = 'home';
           break;
 
-        case '2B': // Double - runners advance 2 bases
+        case PresentationBattingResult.DOUBLE: // Double - runners advance 2 bases
           if (runners.first) defaults.first = 'third';
           if (runners.second) defaults.second = 'home';
           if (runners.third) defaults.third = 'home';
           break;
 
-        case '3B': // Triple - all runners score
+        case PresentationBattingResult.TRIPLE: // Triple - all runners score
           if (runners.first) defaults.first = 'home';
           if (runners.second) defaults.second = 'home';
           if (runners.third) defaults.third = 'home';
           break;
 
-        case 'BB': // Walk - only forced runners advance
-        case 'IBB': {
+        case PresentationBattingResult.WALK: // Walk - only forced runners advance
+        case PresentationBattingResult.INTENTIONAL_WALK: {
           // Intentional walk - only forced runners advance
           // Force advancement logic for walks
 
@@ -232,21 +238,21 @@ export function AtBatForm({
           break;
         }
 
-        case 'E': // Error - depends on error type, default to conservative advancement
+        case PresentationBattingResult.ERROR: // Error - depends on error type, default to conservative advancement
           // Conservative defaults for errors - typically batter reaches first, others advance 1 base
           if (runners.first) defaults.first = 'second';
           if (runners.second) defaults.second = 'third';
           if (runners.third) defaults.third = 'home';
           break;
 
-        case 'FC': // Fielders Choice - typically batter reaches first, lead runner forced out
+        case PresentationBattingResult.FIELDERS_CHOICE: // Fielders Choice - typically batter reaches first, lead runner forced out
           // Default: batter safe at first, lead runner typically out
           if (runners.first) defaults.first = 'out'; // Most common FC scenario
           if (runners.second) defaults.second = 'stay'; // Not forced unless bases loaded
           if (runners.third) defaults.third = 'stay'; // Not forced unless bases loaded
           break;
 
-        case 'SF': // Sacrifice Fly - batter out, runners may advance (especially from third)
+        case PresentationBattingResult.SACRIFICE_FLY: // Sacrifice Fly - batter out, runners may advance (especially from third)
           // Default: runner on third scores, others may advance one base
           if (runners.first) defaults.first = 'second'; // Tag up and advance
           if (runners.second) defaults.second = 'third'; // Tag up and advance
@@ -278,7 +284,7 @@ export function AtBatForm({
   const isValidCount = count.balls < 4 && count.strikes < 3;
 
   const handleAtBatComplete = useCallback(
-    (result: BattingResult, finalCount?: Count) => {
+    (result: PresentationBattingResult, finalCount?: Count) => {
       if (!currentBatter) {
         return;
       }
@@ -305,7 +311,7 @@ export function AtBatForm({
       };
 
       // AC046C: Home runs never require advancement modal - let domain logic handle automatically
-      if (result.value === 'HR') {
+      if (result === PresentationBattingResult.HOME_RUN) {
         try {
           // Home runs use standard domain logic - no manual advancement needed
           onAtBatComplete(atBatResult);
@@ -332,14 +338,14 @@ export function AtBatForm({
         (runner) => runner !== null
       );
       const requiresAdvancement = [
-        '1B',
-        '2B',
-        '3B',
-        'BB',
-        'E',
-        'FC',
-        'SF',
-      ].includes(result.value);
+        PresentationBattingResult.SINGLE,
+        PresentationBattingResult.DOUBLE,
+        PresentationBattingResult.TRIPLE,
+        PresentationBattingResult.WALK,
+        PresentationBattingResult.ERROR,
+        PresentationBattingResult.FIELDERS_CHOICE,
+        PresentationBattingResult.SACRIFICE_FLY,
+      ].includes(result);
       if (showBaserunnerOptions && hasRunners && requiresAdvancement) {
         setPendingResult(result);
         onOpen();
@@ -405,9 +411,9 @@ export function AtBatForm({
 
       // Auto-complete at-bat on walk or strikeout
       if (newCount.balls === 4) {
-        handleAtBatComplete(BattingResult.walk(), newCount);
+        handleAtBatComplete(PresentationBattingResult.WALK, newCount);
       } else if (newCount.strikes === 3) {
-        handleAtBatComplete(BattingResult.strikeout(), newCount);
+        handleAtBatComplete(PresentationBattingResult.STRIKEOUT, newCount);
       }
     },
     [count, enablePitchTypes, selectedPitchType, handleAtBatComplete]
@@ -540,7 +546,7 @@ export function AtBatForm({
     };
 
     // Add batter if they reach base (for hits)
-    if (pendingResult?.reachesBase()) {
+    if (pendingResult && PresentationBattingHelper.reachesBase(pendingResult)) {
       finalPositions.first.push('Batter');
     }
 
@@ -966,7 +972,9 @@ export function AtBatForm({
                 data-testid="single-button"
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.single())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.SINGLE)
+                }
                 isDisabled={disabled}
               >
                 Single
@@ -975,7 +983,9 @@ export function AtBatForm({
                 data-testid="double-button"
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.double())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.DOUBLE)
+                }
                 isDisabled={disabled}
               >
                 Double
@@ -984,7 +994,9 @@ export function AtBatForm({
                 data-testid="triple-button"
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.triple())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.TRIPLE)
+                }
                 isDisabled={disabled}
               >
                 Triple
@@ -993,7 +1005,9 @@ export function AtBatForm({
                 data-testid="home-run-button"
                 colorScheme="green"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.homeRun())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.HOME_RUN)
+                }
                 isDisabled={disabled}
               >
                 Home Run
@@ -1005,7 +1019,9 @@ export function AtBatForm({
                 colorScheme="blue"
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.walk())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.WALK)
+                }
                 isDisabled={disabled}
               >
                 Walk
@@ -1016,7 +1032,9 @@ export function AtBatForm({
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() =>
-                  handleAtBatComplete(BattingResult.intentionalWalk())
+                  handleAtBatComplete(
+                    PresentationBattingResult.INTENTIONAL_WALK
+                  )
                 }
                 isDisabled={disabled}
               >
@@ -1028,7 +1046,7 @@ export function AtBatForm({
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() =>
-                  handleAtBatComplete(BattingResult.sacrificeFly())
+                  handleAtBatComplete(PresentationBattingResult.SACRIFICE_FLY)
                 }
                 isDisabled={disabled || !getButtonState('sf').enabled}
                 title={getButtonState('sf').tooltip || undefined}
@@ -1040,7 +1058,9 @@ export function AtBatForm({
                 colorScheme="yellow"
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.error())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.ERROR)
+                }
                 isDisabled={disabled}
               >
                 Error
@@ -1053,7 +1073,7 @@ export function AtBatForm({
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
                 onClick={() =>
-                  handleAtBatComplete(BattingResult.fieldersChoice())
+                  handleAtBatComplete(PresentationBattingResult.FIELDERS_CHOICE)
                 }
                 isDisabled={disabled || !getButtonState('fc').enabled}
                 title={getButtonState('fc').tooltip || undefined}
@@ -1065,7 +1085,9 @@ export function AtBatForm({
                 colorScheme="red"
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.strikeout())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.STRIKEOUT)
+                }
                 isDisabled={disabled}
               >
                 Strikeout
@@ -1075,7 +1097,9 @@ export function AtBatForm({
                 colorScheme="red"
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.groundOut())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.GROUND_OUT)
+                }
                 isDisabled={disabled}
               >
                 Ground Out
@@ -1085,7 +1109,9 @@ export function AtBatForm({
                 colorScheme="red"
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.airOut())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.AIR_OUT)
+                }
                 isDisabled={disabled}
               >
                 Air Out
@@ -1095,7 +1121,9 @@ export function AtBatForm({
                 colorScheme="red"
                 variant="outline"
                 size={isMobile ? 'sm' : 'md'}
-                onClick={() => handleAtBatComplete(BattingResult.doublePlay())}
+                onClick={() =>
+                  handleAtBatComplete(PresentationBattingResult.DOUBLE_PLAY)
+                }
                 isDisabled={disabled || !getButtonState('dp').enabled}
                 title={getButtonState('dp').tooltip || undefined}
               >

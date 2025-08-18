@@ -500,7 +500,7 @@ describe('AtBatForm AC Coverage Tests - Phase 2', () => {
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           batterId: 'player1',
-          result: BattingResult.double(),
+          result: '2B',
           finalCount: { balls: 1, strikes: 1 },
           baserunnerAdvancement: {
             first: 'home',
