@@ -64,11 +64,31 @@ export interface TeamWithPlayersDTO {
 }
 
 /**
+ * Game score interface for presentation layer
+ */
+export interface GameScoreDTO {
+  homeScore: number;
+  awayScore: number;
+  inningScores: InningScoreDTO[];
+}
+
+/**
+ * Inning score interface for presentation layer
+ */
+export interface InningScoreDTO {
+  inning: number;
+  homeRuns: number;
+  awayRuns: number;
+}
+
+/**
  * Game DTO for presentation layer
  */
 export interface GameDTO {
   id: string;
   name: string;
+  opponent: string;
+  date: Date;
   seasonId: string;
   homeTeamId: string;
   awayTeamId: string;
@@ -82,8 +102,12 @@ export interface GameDTO {
   currentBatterId?: string;
   currentBaserunners: PresentationBaserunnerState;
   totalInnings: number;
+  finalScore?: GameScoreDTO;
   createdAt: Date;
   updatedAt: Date;
+
+  // Helper properties for game logic
+  isAwayGame: boolean;
 }
 
 /**
