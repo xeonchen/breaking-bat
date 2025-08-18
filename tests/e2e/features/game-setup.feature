@@ -5,11 +5,13 @@ Feature: Game Setup and Lineup Management
     Given I am on the application home page
     And I have at least one team with 10 or more active players
 
+  @AC001
   Scenario: Display game creation interface
     Given I navigate to the Games page
     Then I should see a "Create Game" button
     And I should see any existing games listed
 
+  @AC001 @AC002 @AC003
   Scenario: Create a new game successfully
     Given I am on the Games page
     When I click the "Create Game" button
@@ -23,12 +25,14 @@ Feature: Game Setup and Lineup Management
     And the game status should be "setup"
     And I should see a "Setup Lineup" button for the game
 
+  @AC012 @AC015
   Scenario: Start Game button is disabled without lineup
     Given I have created a game "Test Game"
     And I am on the Games page
     Then I should see the "Start Game" button is disabled
     And I should see a "Setup Lineup" button for the game
 
+  @AC007 @AC008 @AC009
   Scenario: Open lineup setup modal
     Given I have created a game "Test Game"
     And I am on the Games page
@@ -39,6 +43,7 @@ Feature: Game Setup and Lineup Management
     And I should see batting order positions 1-15 available
     And I should see defensive position options available
 
+  @AC010 @AC011 @AC015
   Scenario: Create complete starting lineup
     Given I have created a game "Test Game"
     And I have opened the lineup setup modal

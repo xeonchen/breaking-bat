@@ -215,6 +215,56 @@ acceptance_criteria:
     workflow: at_bat_recording
     test_coverage: [component, e2e]
 
+  # Detailed Baserunner Management
+  - id: AC017
+    description: 'Single advances runners one base automatically with modal confirmation options'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC018
+    description: 'Double advances runners two bases automatically with modal confirmation options'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC019
+    description: 'Triple advances runners three bases automatically with modal confirmation options'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC020
+    description: 'Home run scores all runners including batter automatically'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC021
+    description: 'Walk advances only forced runners when batter takes first base'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC022
+    description: 'Strikeout does not advance runners automatically'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC023
+    description: 'Baserunner advancement modal appears for applicable batting results with runners on base'
+    workflow: baserunner_advancement
+    test_coverage: [component, e2e]
+  - id: AC024
+    description: 'Baserunner advancement modal allows confirmation or modification of default advancement'
+    workflow: baserunner_advancement
+    test_coverage: [component, e2e]
+  - id: AC025
+    description: 'Runner advancement confirmation updates positions and scoring immediately'
+    workflow: baserunner_advancement
+    test_coverage: [integration, e2e]
+  - id: AC026
+    description: 'Scoring runner increments team score and tracks RBIs for batter'
+    workflow: baserunner_advancement
+    test_coverage: [unit, integration, e2e]
+  - id: AC027
+    description: 'Multiple at-bats maintain accurate runner positions throughout inning'
+    workflow: game_flow
+    test_coverage: [integration, e2e]
+  - id: AC028
+    description: 'Side retirement (3 outs) clears all runners and progresses inning'
+    workflow: inning_management
+    test_coverage: [integration, e2e]
+
 validation_rules:
   - batting results must be valid softball outcomes
   - RBI count cannot exceed runners on base + batter
@@ -458,6 +508,18 @@ traceability:
       'AC014',
       'AC015',
       'AC016',
+      'AC017',
+      'AC018',
+      'AC019',
+      'AC020',
+      'AC021',
+      'AC022',
+      'AC023',
+      'AC024',
+      'AC025',
+      'AC026',
+      'AC027',
+      'AC028',
       'AC029',
       'AC030',
       'AC031',

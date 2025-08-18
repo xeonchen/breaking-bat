@@ -213,7 +213,7 @@ ui_schema:
           conditionalDisplay: 'isMyTeamBatting'
 
 traceability:
-  source_story_id: 'live-scoring'
+  source_story_id: 'innings-management'
   acceptance_criteria_covered:
     ['AC029', 'AC030', 'AC031', 'AC032', 'AC033', 'AC034']
   test_files:

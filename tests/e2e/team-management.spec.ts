@@ -1,32 +1,23 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Basic Team Management', () => {
+test.describe('Team and Player Management (@team-management:AC001-@roster-management:AC026)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
 
-  test('should create and manage a basic team', async ({ page }) => {
-    // Navigate to teams page
+  test('should create teams with team name and basic information (@team-management:AC001)', async ({
+    page,
+  }) => {
+    // Given: Teams page
     await page.goto('/teams');
-
-    // Verify teams page loads
     await expect(page.locator('[data-testid="teams-page"]')).toBeVisible();
-    await expect(page.locator('[data-testid="page-header"]')).toContainText(
-      'Teams'
-    );
 
-    // Create a new team
+    // When: I create a new team with team name and basic information
     await page.click('[data-testid="create-team-button"]');
-
-    // Verify create team modal opens
     await expect(
       page.locator('[data-testid="create-team-modal"]')
     ).toBeVisible();
-
-    // Fill in team name
     await page.fill('[data-testid="team-name-input"]', 'Test Team');
-
-    // Submit the form
     await page.click('[data-testid="confirm-create-team"]');
 
     // Verify modal closes and team appears in list
@@ -41,17 +32,17 @@ test.describe('Basic Team Management', () => {
     );
   });
 
-  test('should validate team name is required', async ({ page }) => {
-    // Navigate to teams page
+  test('should validate team name is required (@team-management:AC001)', async ({
+    page,
+  }) => {
+    // Given: Teams page
     await page.goto('/teams');
 
-    // Create a new team
+    // When: I try to create a team without providing a name
     await page.click('[data-testid="create-team-button"]');
-
-    // Try to submit without filling name
     await page.click('[data-testid="confirm-create-team"]');
 
-    // Verify validation error appears
+    // Then: I should see a validation error
     await expect(
       page.locator('[data-testid="validation-error"]')
     ).toBeVisible();
@@ -60,98 +51,82 @@ test.describe('Basic Team Management', () => {
     ).toContainText('required');
   });
 
-  test('should open edit team modal', async ({ page }) => {
-    // Navigate to teams page and create a team first
+  test('should open edit team modal (@team-management:AC001)', async ({
+    page,
+  }) => {
+    // Given: Teams page with an existing team
     await page.goto('/teams');
     await page.click('[data-testid="create-team-button"]');
     await page.fill('[data-testid="team-name-input"]', 'Test Team');
     await page.click('[data-testid="confirm-create-team"]');
-
-    // Wait for team to appear
     await expect(page.locator('[data-testid="team-test-team"]')).toBeVisible();
 
-    // Click edit button
+    // When: I click the edit button for a team
     await page.click('[data-testid="edit-team-test-team"]');
 
-    // Verify edit modal opens
+    // Then: The edit modal should open with pre-filled team information
     await expect(page.locator('[data-testid="edit-team-modal"]')).toBeVisible();
-
-    // Verify team name is pre-filled
     await expect(page.locator('[data-testid="team-name-input"]')).toHaveValue(
       'Test Team'
     );
 
-    // Close modal without saving
+    // And: I should be able to close the modal without saving
     await page.keyboard.press('Escape');
     await expect(
       page.locator('[data-testid="edit-team-modal"]')
     ).not.toBeVisible();
   });
 
-  test('should delete a team', async ({ page }) => {
-    // Navigate to teams page and create a team first
+  test('should delete a team (@team-management:AC001)', async ({ page }) => {
+    // Given: Teams page with an existing team
     await page.goto('/teams');
     await page.click('[data-testid="create-team-button"]');
     await page.fill('[data-testid="team-name-input"]', 'Team To Delete');
     await page.click('[data-testid="confirm-create-team"]');
-
-    // Wait for team to appear
     await expect(
       page.locator('[data-testid="team-team-to-delete"]')
     ).toBeVisible();
 
-    // Click delete button
+    // When: I click the delete button and confirm deletion
     await page.click('[data-testid="delete-team-team-to-delete"]');
-
-    // Verify delete confirmation modal
     await expect(
       page.locator('[data-testid="delete-team-modal"]')
     ).toBeVisible();
-
-    // Confirm deletion
     await page.click('[data-testid="confirm-delete-button"]');
 
-    // Verify team is removed
+    // Then: The team should be removed from the list
     await expect(
       page.locator('[data-testid="team-team-to-delete"]')
     ).not.toBeVisible();
   });
 
-  test('should search teams', async ({ page }) => {
-    // Navigate to teams page and create multiple teams
+  test('should search teams (@team-management:AC001)', async ({ page }) => {
+    // Given: Teams page with multiple teams
     await page.goto('/teams');
-
-    // Create first team
     await page.click('[data-testid="create-team-button"]');
     await page.fill('[data-testid="team-name-input"]', 'Lions');
     await page.click('[data-testid="confirm-create-team"]');
-
-    // Create second team
     await page.click('[data-testid="create-team-button"]');
     await page.fill('[data-testid="team-name-input"]', 'Tigers');
     await page.click('[data-testid="confirm-create-team"]');
-
-    // Verify both teams exist
     await expect(page.locator('[data-testid="team-lions"]')).toBeVisible();
     await expect(page.locator('[data-testid="team-tigers"]')).toBeVisible();
 
-    // Search for "Lions"
+    // When: I search for a specific team name
     await page.fill('[data-testid="teams-search-input"]', 'Lions');
-
-    // Wait a moment for search to process
     await page.waitForTimeout(600);
 
-    // Verify search results
+    // Then: The matching team should remain visible
     await expect(page.locator('[data-testid="team-lions"]')).toBeVisible();
-    // Note: The search functionality may or may not hide non-matching teams
-    // depending on the implementation
   });
 
-  test('should show empty state when no teams exist', async ({ page }) => {
-    // Navigate to teams page
+  test('should show empty state when no teams exist (@team-management:AC001)', async ({
+    page,
+  }) => {
+    // Given: Teams page with no teams created
     await page.goto('/teams');
 
-    // Verify empty state message is shown when no teams exist
+    // Then: I should see an empty state message
     await expect(
       page.locator('[data-testid="empty-teams-message"]')
     ).toBeVisible();

@@ -5,12 +5,14 @@ Feature: Team and Player Management
     Given I am on the application home page
     And the local database is available
 
+  @team-management:AC001
   Scenario: Display teams management interface
     Given I navigate to the Teams page
     Then I should see a "Create Team" button
     And I should see any existing teams listed
     And I should see team management options
 
+  @team-management:AC001
   Scenario: Create a new team successfully
     Given I am on the Teams page
     When I click the "Create Team" button
@@ -21,6 +23,7 @@ Feature: Team and Player Management
     And the team should be saved to local storage
     And I should see team management options for "Hawks Baseball"
 
+  @roster-management:AC001 @roster-management:AC006
   Scenario: Add players to team roster
     Given I have created a team "Eagles Softball"
     And I am viewing the team details page
@@ -33,6 +36,7 @@ Feature: Team and Player Management
     And the player should be saved to local storage
     And the player should have primary position "First Base"
 
+  @roster-management:AC001 @roster-management:AC006
   Scenario: Manage multiple players on roster
     Given I have created a team "Thunder"
     And I am viewing the team roster
@@ -42,6 +46,7 @@ Feature: Team and Player Management
     And each player should have assigned positions
     And the full roster should be saved to local storage
 
+  @roster-management:AC002 @roster-management:AC008
   Scenario: Edit existing player information
     Given I have a team "Lions" with player "Mike Johnson (#8)"
     And I am viewing the team roster
@@ -53,6 +58,7 @@ Feature: Team and Player Management
     And the player should have "Catcher" as an additional position
     And the changes should be persisted to local storage
 
+  @roster-management:AC003
   Scenario: Remove player from roster
     Given I have a team "Wolves" with players on the roster
     And I am viewing the team roster
@@ -62,6 +68,7 @@ Feature: Team and Player Management
     And the player should be removed from local storage
     And the remaining players should still be displayed
 
+  @AC002
   Scenario: Create seasons for organizing games
     Given I am on the Seasons page
     When I click the "Create Season" button
@@ -73,6 +80,7 @@ Feature: Team and Player Management
     And the season should span from "2025-03-01" to "2025-06-30"
     And the season should be saved to local storage
 
+  @AC002
   Scenario: Associate teams with seasons
     Given I have created season "Fall 2024"
     And I have created team "Cardinals"
@@ -83,6 +91,7 @@ Feature: Team and Player Management
     Then "Cardinals" should appear in the season's team list
     And the association should be saved to local storage
 
+  @AC003
   Scenario: Create different game types
     Given I am on the Game Types page
     When I click the "Create Game Type" button
@@ -93,6 +102,7 @@ Feature: Team and Player Management
     And the game type should be available for game creation
     And the game type should be saved to local storage
 
+  @AC003
   Scenario: Manage game types for different contexts
     Given I am managing game types
     When I create game type "Playoffs" with description "Postseason elimination games"
@@ -102,6 +112,7 @@ Feature: Team and Player Management
     And each should be available when creating new games
     And all game types should persist in local storage
 
+  @AC007
   Scenario: Set player positions and specializations
     Given I have team "Raptors" with player "Sarah Davis"
     When I edit "Sarah Davis" player details
@@ -112,6 +123,7 @@ Feature: Team and Player Management
     And she should have "First Base" and "Outfield" as secondary positions
     And the position data should be saved to local storage
 
+  @AC006
   Scenario: Validate jersey number uniqueness within team
     Given I have team "Vipers" with player wearing jersey "#7"
     When I try to add a new player with jersey "#7"
@@ -119,6 +131,7 @@ Feature: Team and Player Management
     And the new player should not be added
     And I should be prompted to choose a different number
 
+  @AC004
   Scenario: Handle team data persistence across sessions
     Given I have created team "Sharks" with 10 players
     And I have created season "Summer League 2025"
@@ -128,6 +141,7 @@ Feature: Team and Player Management
     And "Sharks" should still have all 10 players
     And "Summer League 2025" should still exist in seasons
 
+  @AC004
   Scenario: Export team and player data
     Given I have team "Panthers" with complete roster
     And I am viewing team management options
@@ -137,6 +151,7 @@ Feature: Team and Player Management
     And the file should contain all team information
     And the file should include all player details and positions
 
+  @AC004
   Scenario: Import team data from backup
     Given I have a valid team data JSON export file
     And I am on the Teams page
@@ -147,6 +162,7 @@ Feature: Team and Player Management
     And all player positions and details should be preserved
     And the imported data should be saved to local storage
 
+  @AC004
   Scenario: Manage team in offline mode
     Given the application is running offline
     And I am on the Teams page

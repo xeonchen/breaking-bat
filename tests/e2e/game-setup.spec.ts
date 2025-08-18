@@ -7,7 +7,7 @@ import { test, expect, Page } from '@playwright/test';
  * starting lineup setup, defensive position assignments, and substitute management.
  */
 
-test.describe('Game Setup and Lineup Management', () => {
+test.describe('Game Setup and Lineup Management (@game-creation:AC001-@lineup-configuration:AC046)', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
     await page.goto('/');
@@ -16,15 +16,15 @@ test.describe('Game Setup and Lineup Management', () => {
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should complete full game creation workflow', async ({ page }) => {
-    // First create prerequisite data (team and season)
+  test('should complete full game creation workflow (@game-creation:AC001, @game-creation:AC002, @game-creation:AC003)', async ({
+    page,
+  }) => {
+    // Given: Basic prerequisites exist (team, season, game type)
     await createBasicPrerequisites(page);
 
-    // Navigate to games page
+    // When: I navigate to games page and create a new game
     await page.goto('/games');
     await page.waitForTimeout(1000);
-
-    // Verify games page loads
     await expect(page.locator('h1')).toContainText('Games');
 
     // Create a new game
@@ -62,15 +62,15 @@ test.describe('Game Setup and Lineup Management', () => {
     await page.locator('[data-testid="confirm-create-game"]').click();
     await page.waitForTimeout(1000);
 
-    // Verify we're back on the games page (game creation completed)
+    // Then: Game should be created and listed (AC002, AC003)
     await expect(page.locator('h1')).toContainText('Games');
   });
 
-  test('should handle lineup configuration interface', async ({ page }) => {
-    // Create prerequisites and a game
+  test('should handle lineup configuration interface (@lineup-configuration:AC001, @lineup-configuration:AC002, @lineup-configuration:AC003, @lineup-configuration:AC009, @lineup-configuration:AC010)', async ({
+    page,
+  }) => {
+    // Given: A game exists with prerequisites
     await createGameWithPrerequisites(page);
-
-    // Navigate to games page
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
@@ -117,11 +117,11 @@ test.describe('Game Setup and Lineup Management', () => {
     }
   });
 
-  test('should handle defensive position assignments', async ({ page }) => {
-    // Create prerequisites and navigate to game setup
+  test('should handle defensive position assignments (@lineup-configuration:AC021, @lineup-configuration:AC037)', async ({
+    page,
+  }) => {
+    // Given: Game setup with prerequisites
     await createGameWithPrerequisites(page);
-
-    // Navigate to games page
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
@@ -165,11 +165,11 @@ test.describe('Game Setup and Lineup Management', () => {
     await expect(page.locator('h1')).toContainText('Games');
   });
 
-  test('should support starting lineup batting order', async ({ page }) => {
-    // Create prerequisites and game setup
+  test('should support starting lineup batting order (@lineup-configuration:AC009)', async ({
+    page,
+  }) => {
+    // Given: Game setup with prerequisites
     await createGameWithPrerequisites(page);
-
-    // Navigate to games page
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
@@ -217,11 +217,11 @@ test.describe('Game Setup and Lineup Management', () => {
     await expect(page.locator('h1')).toContainText('Games');
   });
 
-  test('should handle substitute player management', async ({ page }) => {
-    // Create prerequisites and setup
+  test('should handle substitute player management (@lineup-configuration:AC005)', async ({
+    page,
+  }) => {
+    // Given: Game setup with prerequisites
     await createGameWithPrerequisites(page);
-
-    // Navigate to games page
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
@@ -271,15 +271,15 @@ test.describe('Game Setup and Lineup Management', () => {
     await expect(page.locator('h1')).toContainText('Games');
   });
 
-  test('should validate lineup completeness', async ({ page }) => {
-    // Create prerequisites and game
+  test('should validate lineup completeness (@lineup-configuration:AC036, @lineup-configuration:AC037, @lineup-configuration:AC038)', async ({
+    page,
+  }) => {
+    // Given: Game exists without complete lineup
     await createGameWithPrerequisites(page);
-
-    // Navigate to games page
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
-    // Try to start a game without complete lineup
+    // When: I try to start a game without complete lineup
     const startGameButton = page
       .locator('[data-testid="start-game-button"]')
       .first();
@@ -312,11 +312,11 @@ test.describe('Game Setup and Lineup Management', () => {
     }
   });
 
-  test('should handle game setup on mobile devices', async ({ page }) => {
-    // Set mobile viewport
+  test('should handle game setup on mobile devices (@game-creation:AC001-@game-creation:AC003)', async ({
+    page,
+  }) => {
+    // Given: Mobile viewport and prerequisites
     await page.setViewportSize({ width: 375, height: 667 });
-
-    // Create prerequisites
     await createBasicPrerequisites(page);
 
     // Navigate to games page on mobile
@@ -356,11 +356,13 @@ test.describe('Game Setup and Lineup Management', () => {
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should support game setup workflow end-to-end', async ({ page }) => {
-    // Complete workflow test
+  test('should support game setup workflow end-to-end (@game-creation:AC017, @game-creation:AC022, @game-creation:AC023)', async ({
+    page,
+  }) => {
+    // Given: Complete workflow prerequisites
     await createBasicPrerequisites(page);
 
-    // Navigate through complete game setup
+    // When: I navigate through complete game setup workflow
     await page.goto('/games');
     await page.waitForTimeout(1000);
 

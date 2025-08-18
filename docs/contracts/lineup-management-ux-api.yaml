@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+  title: Lineup Management UX API
+  description: API contract for enhanced lineup management interface
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /lineups/{lineupId}/auto-fill:
+    post:
+      summary: Auto-fill lineup positions
+      description: Automatically fills positions with available players
+      operationId: autoFillLineup
+      parameters:
+        - name: lineupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lineup auto-filled successfully
+
+  /lineups/{lineupId}/validate:
+    post:
+      summary: Validate lineup completeness
+      description: Real-time validation of lineup configuration
+      operationId: validateLineup
+      parameters:
+        - name: lineupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lineup validation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isValid:
+                    type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []

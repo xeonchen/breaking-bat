@@ -3,7 +3,7 @@ import {
   createTestPrerequisites,
   createTestGame,
   setupTestLineup,
-} from './helpers/test-data-setup';
+} from '../helpers/test-data-setup';
 
 /**
  * Game State Transitions E2E Tests

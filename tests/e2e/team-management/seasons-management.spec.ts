@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { NavigationHelpers } from './helpers/navigation';
+import { NavigationHelpers } from '../helpers/navigation';
 
 /**
  * Seasons Management E2E Tests

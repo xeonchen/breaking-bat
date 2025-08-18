@@ -1,0 +1,131 @@
+openapi: 3.0.3
+info:
+  title: Comprehensive Rule Matrix API
+  description: API contract for rule validation and scoring guidance system
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /rules/available-hit-types:
+    post:
+      summary: Get available hit types
+      description: Returns valid hit types for current base situation
+      operationId: getAvailableHitTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                baserunnerState:
+                  type: object
+                  properties:
+                    first:
+                      type: string
+                      nullable: true
+                    second:
+                      type: string
+                      nullable: true
+                    third:
+                      type: string
+                      nullable: true
+                inningState:
+                  type: object
+                  properties:
+                    number:
+                      type: integer
+                    outs:
+                      type: integer
+      responses:
+        '200':
+          description: Available hit types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum: [1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP]
+
+  /rules/validate-outcome:
+    post:
+      summary: Validate scoring outcome
+      description: Validates if proposed outcome follows softball rules
+      operationId: validateOutcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                beforeState:
+                  type: object
+                afterState:
+                  type: object
+                hitType:
+                  type: string
+                rbis:
+                  type: integer
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isValid:
+                    type: boolean
+                  violations:
+                    type: array
+                    items:
+                      type: string
+
+  /rules/calculate-rbis:
+    post:
+      summary: Calculate RBI count
+      description: Calculates correct RBI count for scoring scenario
+      operationId: calculateRBIs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                baserunnerState:
+                  type: object
+                hitType:
+                  type: string
+                runnersScored:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: RBI calculation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rbis:
+                    type: integer
+                  eligible_runners:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []

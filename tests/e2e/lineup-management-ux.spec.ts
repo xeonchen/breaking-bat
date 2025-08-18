@@ -11,25 +11,25 @@ import { test, expect, Page } from '@playwright/test';
  * - Identifying UI gaps in the lineup setup process
  */
 
-test.describe('Lineup Setup Management', () => {
+test.describe('Lineup Setup Management (@lineup-configuration:AC001-@lineup-configuration:AC046)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should identify lineup setup entry points', async ({ page }) => {
-    // Create prerequisites and game
+  test('should identify lineup setup entry points (@lineup-configuration:AC001)', async ({
+    page,
+  }) => {
+    // Given: Game exists with prerequisites
     await createBasicSetup(page);
-
     await page.goto('/games');
     await page.waitForTimeout(1000);
 
-    // Find our test game
+    // When: I look for lineup setup entry points on game card
     const gameCard = page
       .locator('[data-testid*="game-"]')
       .filter({ hasText: 'Lineup Test Game' })
       .first();
-
     await expect(gameCard).toBeVisible();
 
     console.log('=== LINEUP SETUP ENTRY POINTS ===');

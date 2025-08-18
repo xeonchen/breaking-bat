@@ -1,310 +1,281 @@
-# Comprehensive Rule Matrix Specification
+id: comprehensive-rule-matrix
+title: Comprehensive Rule Matrix System
+actor: Softball Scoring Application System
+goal: Provide comprehensive rule validation system that understands all possible game scenarios and can provide guidance for valid scoring options while preventing invalid game states
+outcome: accurate and consistent scoring by automatically validating all batting results, base advancement scenarios, and RBI calculations according to official softball rules
 
-version: '1.0'
-name: 'Comprehensive Rule Matrix Engine'
-description: 'Hard-coded rule validation system for slow-pitch softball scenarios'
+inputs:
+  - name: baserunner_state
+    type: object
+    required: true
+    validation: valid-baserunner-positions
+    component_hint: 'BaserunnerState(first=playerId|null, second=playerId|null, third=playerId|null)'
+  - name: hit_type
+    type: select
+    required: true
+    options: [1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP]
+    component_hint: 'HitTypeSelector(options=filteredHitTypes, validation=ruleMatrix)'
+  - name: inning_state
+    type: object
+    required: true
+    validation: valid-inning-state
+    component_hint: 'InningState(number=integer, half=topBottom, outs=0-2)'
+  - name: advancement_scenario
+    type: object
+    required: false
+    validation: valid-advancement-rules
+    component_hint: 'AdvancementMatrix(scenarios=validOutcomes)'
 
-## Domain Model Extensions
+actions:
+  - type: validate_hit_availability
+    label: Validate Hit Type Availability
+    component_hint: 'RuleEngine.getAvailableHitTypes(baseState, inningState)'
+  - type: calculate_valid_outcomes
+    label: Calculate Valid Outcomes
+    component_hint: 'RuleEngine.getValidOutcomes(baseState, hitType)'
+  - type: validate_transition
+    label: Validate State Transition
+    component_hint: 'RuleEngine.validateTransition(before, after, hitType, rbis, outs)'
+  - type: calculate_rbis
+    label: Calculate RBI Count
+    component_hint: 'RuleEngine.calculateRBIs(baseState, hitType, advancement)'
+  - type: prevent_invalid_states
+    label: Prevent Invalid Game States
+    component_hint: 'RuleEngine.blockInvalidTransitions(proposedState)'
 
-entities:
-  RuleMatrix:
-    description: 'Central rule validation and outcome prediction service'
-    methods:
-      getValidOutcomes:
-        input:
-          baseState: BaserunnerState
-          hitType: HitType
-        output: ValidOutcome[]
-        description: 'Returns all possible valid outcomes for a base situation and hit type'
+acceptance_criteria:
+  - id: AC001
+    description: Empty bases should allow all 13 standard hit types (1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP)
+    workflow: hit_type_availability_validation
+  - id: AC002
+    description: Hit type availability filtered based on base situation (e.g., SF disabled without runners in scoring position)
+    workflow: hit_type_availability_validation
+  - id: AC003
+    description: Double play options only available when runners can be forced out
+    workflow: hit_type_availability_validation
+  - id: AC004
+    description: System automatically calculates correct RBI counts for any scoring scenario
+    workflow: rbi_calculation_validation
+  - id: AC005
+    description: Single (1B) with runners provides multiple valid advancement options based on actual gameplay
+    workflow: base_advancement_validation
+  - id: AC006
+    description: Double (2B) advancement scenarios account for defensive positioning and runner speed
+    workflow: base_advancement_validation
+  - id: AC007
+    description: Triple (3B) scoring ensures all existing runners score according to standard rules
+    workflow: base_advancement_validation
+  - id: AC008
+    description: Home run (HR) automatically scores all runners including batter with proper RBI calculation
+    workflow: base_advancement_validation
+  - id: AC009
+    description: Walk (BB) forces only required runners to advance with validation
+    workflow: base_advancement_validation
+  - id: AC010
+    description: Intentional walk (IBB) follows same forced advancement rules as regular walk
+    workflow: base_advancement_validation
+  - id: AC011
+    description: Sacrifice fly (SF) requires runner in scoring position and automatically scores runner
+    workflow: hit_type_availability_validation
+  - id: AC012
+    description: Error (E) allows flexible advancement based on specific error scenario
+    workflow: base_advancement_validation
+  - id: AC013
+    description: Fielder's choice (FC) forces out prevention validates runner advancement logic
+    workflow: base_advancement_validation
+  - id: AC014
+    description: Strikeout (SO) prevents all runner advancement unless manual override
+    workflow: base_advancement_validation
+  - id: AC015
+    description: Ground out (GO) validates force out scenarios and optional runner advancement
+    workflow: base_advancement_validation
+  - id: AC016
+    description: Air out (AO) validates no advancement unless tagging up scenarios
+    workflow: base_advancement_validation
+  - id: AC017
+    description: Double play (DP) validates multiple force out scenarios and base clearing
+    workflow: base_advancement_validation
+  - id: AC018
+    description: RBI calculation validates batter RBI award for runners scoring due to hit
+    workflow: rbi_calculation_validation
+  - id: AC019
+    description: RBI calculation excludes runs scored on errors from batter RBI count
+    workflow: rbi_calculation_validation
+  - id: AC020
+    description: RBI calculation handles sacrifice scenarios where batter earns RBI without hit
+    workflow: rbi_calculation_validation
+  - id: AC021
+    description: System prevents impossible baserunner configurations
+    workflow: invalid_state_prevention
+  - id: AC022
+    description: System prevents RBI counts exceeding maximum possible for base situation
+    workflow: invalid_state_prevention
+  - id: AC023
+    description: System validates any proposed scoring combination against official softball rules
+    workflow: comprehensive_rule_validation
+  - id: AC024
+    description: Invalid combinations display clear error messages explaining rule violations
+    workflow: comprehensive_rule_validation
+  - id: AC025
+    description: Edge cases (interference, weather delays) handled with special rule scenarios
+    workflow: comprehensive_rule_validation
+  - id: AC026
+    description: Rule violations prevent saving invalid game states and require correction
+    workflow: invalid_state_prevention
 
-      validateTransition:
-        input:
-          before: BaserunnerState
-          after: BaserunnerState
-          hitType: HitType
-          rbis: number
-          outs: number
-        output: ValidationResult
-        description: 'Validates if a transition follows softball rules'
+error_states:
+  - name: InvalidHitType
+    http_status: 400
+    response_body:
+      error_code: 'RULE_001'
+      message: 'Hit type not available for current base situation'
+  - name: InvalidAdvancement
+    http_status: 400
+    response_body:
+      error_code: 'RULE_002'
+      message: 'Proposed runner advancement violates softball rules'
+  - name: InvalidRBICount
+    http_status: 400
+    response_body:
+      error_code: 'RULE_003'
+      message: 'RBI count exceeds maximum possible for this scenario'
+  - name: ImpossibleBaseState
+    http_status: 400
+    response_body:
+      error_code: 'RULE_004'
+      message: 'Baserunner configuration violates game physics'
+  - name: RuleViolation
+    http_status: 422
+    response_body:
+      error_code: 'RULE_005'
+      message: 'Proposed game state violates official softball rules'
 
-      getAvailableHitTypes:
-        input:
-          baseState: BaserunnerState
-          inningState: InningState
-        output: HitType[]
-        description: 'Returns hit types available for current game situation'
+defensive_actions:
+  retry_policy: 'none (validation-based)'
+  circuit_breaker: 'not-applicable'
+  input_validation: 'comprehensive-rule-checking'
+  error_logging: 'structured-json'
+  state_validation: 'continuous-rule-enforcement'
 
-  ValidOutcome:
-    description: 'Represents a possible outcome scenario'
-    properties:
-      afterState: BaserunnerState
-      rbis: number
-      outs: number
-      runsScored: string[]
-      description: string
-      likelihood: OutcomeLikelihood # "standard" | "aggressive" | "error"
+business_rules:
+  hit_availability_rule: 'Hit types filtered based on base situation and game context'
+  advancement_validation_rule: 'All runner advancement must follow official softball rules'
+  rbi_calculation_rule: 'RBIs calculated according to official scoring guidelines'
+  state_consistency_rule: 'Game states must be physically and logically possible'
+  error_prevention_rule: 'Invalid states blocked before persistence'
 
-  ValidationResult:
-    properties:
-      isValid: boolean
-      violations: RuleViolation[]
-      suggestedCorrections: ValidOutcome[]
+workflows:
+  hit_type_availability_validation:
+    steps:
+      - validate_base_situation
+      - check_inning_context
+      - filter_available_hit_types
+      - validate_special_cases
+      - return_available_options
 
-value_objects:
-  HitType:
-    description: 'Extended hit type enumeration'
-    values:
-      - '1B' # Single
-      - '2B' # Double
-      - '3B' # Triple
-      - 'HR' # Home Run
-      - 'BB' # Walk
-      - 'IBB' # Intentional Walk
-      - 'SF' # Sacrifice Fly
-      - 'E' # Error
-      - 'FC' # Fielder's Choice
-      - 'SO' # Strikeout
-      - 'GO' # Ground Out
-      - 'AO' # Air Out
-      - 'DP' # Double Play
+  base_advancement_validation:
+    steps:
+      - analyze_current_base_state
+      - determine_hit_type_effects
+      - calculate_standard_advancement
+      - validate_alternative_scenarios
+      - check_rule_compliance
+      - return_valid_outcomes
 
-  BaserunnerConfiguration:
-    description: 'All possible baserunner states (8 total)'
-    configurations:
-      - key: 'empty'
-        state: '(null, null, null)'
-        description: 'No runners on base'
+  rbi_calculation_validation:
+    steps:
+      - identify_scoring_runners
+      - determine_rbi_eligibility
+      - calculate_total_rbis
+      - validate_against_maximum
+      - handle_special_scenarios
+      - return_validated_count
 
-      - key: 'first_only'
-        state: '(runner, null, null)'
-        description: 'Runner on first base only'
+  invalid_state_prevention:
+    steps:
+      - validate_proposed_state
+      - check_rule_violations
+      - identify_specific_violations
+      - block_invalid_transitions
+      - provide_correction_guidance
+      - enforce_valid_states_only
 
-      - key: 'second_only'
-        state: '(null, runner, null)'
-        description: 'Runner on second base only'
+  comprehensive_rule_validation:
+    steps:
+      - load_complete_rule_matrix
+      - validate_against_all_rules
+      - check_edge_case_handling
+      - provide_detailed_feedback
+      - ensure_official_compliance
+      - document_validation_results
 
-      - key: 'third_only'
-        state: '(null, null, runner)'
-        description: 'Runner on third base only'
+ui_schema:
+  components:
+    - field: available_hit_types
+      component: HitTypeGrid
+      props:
+        layout: 'grid'
+        disabled_hits: 'calculated'
+        tooltips: 'rule_explanations'
+    - field: advancement_matrix
+      component: AdvancementMatrix
+      props:
+        scenarios: 'calculated_outcomes'
+        interactive: true
+        validation: 'real_time'
+    - field: rbi_calculator
+      component: RBIDisplay
+      props:
+        automatic: true
+        breakdown: 'detailed'
+        validation: 'rule_based'
 
-      - key: 'first_second'
-        state: '(runner1, runner2, null)'
-        description: 'Runners on first and second'
+traceability:
+  source_story_id: 'comprehensive-rule-matrix'
+  acceptance_criteria_covered:
+    [
+      'AC001',
+      'AC002',
+      'AC003',
+      'AC004',
+      'AC005',
+      'AC006',
+      'AC007',
+      'AC008',
+      'AC009',
+      'AC010',
+      'AC011',
+      'AC012',
+      'AC013',
+      'AC014',
+      'AC015',
+      'AC016',
+      'AC017',
+      'AC018',
+      'AC019',
+      'AC020',
+      'AC021',
+      'AC022',
+      'AC023',
+      'AC024',
+      'AC025',
+      'AC026',
+    ]
+  test_files:
+    - 'test_comprehensive_rule_matrix.py'
+    - 'comprehensive_rule_matrix.feature'
+    - 'rule_validation.integration.spec'
+    - 'hit_type_availability.spec'
 
-      - key: 'first_third'
-        state: '(runner1, null, runner3)'
-        description: 'Runners on first and third'
-
-      - key: 'second_third'
-        state: '(null, runner2, runner3)'
-        description: 'Runners on second and third'
-
-      - key: 'loaded'
-        state: '(runner1, runner2, runner3)'
-        description: 'Bases loaded'
-
-## Rule Matrix Structure
-
-rule_matrix:
-  description: 'Hard-coded lookup table for all valid scenarios'
-  structure: 'Map<BaseConfigKey, Map<HitType, ValidOutcome[]>>'
-
-  implementation_notes:
-    - 'Matrix contains 8 base configurations × 13 hit types = 104 scenario groups'
-    - 'Each scenario can have multiple valid outcomes (standard, aggressive, error)'
-    - 'Lookup time must be O(1) for real-time performance'
-    - 'Matrix is immutable and loaded at application startup'
-
-## Basic Rule Definitions
-
-base_advancement_rules:
-  single_1B:
-    batter_advancement: 1 # to first base
-    forced_runner_advancement: 1 # minimum advancement
-    optional_advancement: true # runners may advance beyond minimum
-
-  double_2B:
-    batter_advancement: 2 # to second base
-    forced_runner_advancement: 2 # all runners advance at least 2
-    optional_advancement: false # all runners must advance at least 2
-
-  triple_3B:
-    batter_advancement: 3 # to third base
-    forced_runner_advancement: 'home' # all runners score
-    optional_advancement: false
-
-  home_run_HR:
-    batter_advancement: 'home'
-    forced_runner_advancement: 'home'
-    all_runners_score: true
-
-  walk_BB:
-    batter_advancement: 1
-    forced_runner_advancement: 1 # only if forced
-    forced_only: true
-
-  strikeout_SO:
-    batter_result: 'out'
-    runner_advancement: 0 # no advancement
-
-  ground_out_GO:
-    batter_result: 'out'
-    possible_force_plays: true
-    runner_advancement: 0 # unless forced out
-
-  air_out_AO:
-    batter_result: 'out'
-    runner_advancement: 0
-    tagging_up_allowed: true # future implementation
-
-  sacrifice_fly_SF:
-    batter_result: 'out'
-    runner_on_third_scores: true # if present
-    other_runner_advancement: 0
-
-  fielders_choice_FC:
-    batter_advancement: 1 # reaches safely
-    force_out_lead_runner: true
-    net_runners: 0 # same number of runners as before
-
-  double_play_DP:
-    outs_recorded: 2
-    typical_scenario: 'ground ball with runner on first'
-
-  error_E:
-    base_hit_equivalent: 'varies' # depends on error type
-    additional_advancement: 'possible'
-    implementation: 'future_phase'
-
-## Example Matrix Entries
-
-example_scenarios:
-  empty_bases_single:
-    before: '(null, null, null)'
-    hit_type: '1B'
-    outcomes:
-      - after: '(batter, null, null)'
-        rbis: 0
-        outs: 0
-        runsScored: []
-        description: 'Standard single'
-
-  first_only_double:
-    before: '(runner1, null, null)'
-    hit_type: '2B'
-    outcomes:
-      - after: '(null, batter, null)'
-        rbis: 1
-        outs: 0
-        runsScored: ['runner1']
-        description: 'Runner scores from first on double'
-
-  loaded_bases_triple:
-    before: '(runner1, runner2, runner3)'
-    hit_type: '3B'
-    outcomes:
-      - after: '(null, null, null)'
-        rbis: 4 # all three runners + batter scores
-        outs: 0
-        runsScored: ['runner1', 'runner2', 'runner3', 'batter']
-        description: 'Grand slam triple - all runners score'
-
-## API Contracts
-
-interfaces:
-  IRuleMatrixService:
-    methods:
-      getValidOutcomes:
-        description: 'Get all valid outcomes for scenario'
-        signature: '(BaserunnerState, HitType) => ValidOutcome[]'
-        performance: '< 50ms'
-
-      validateAtBatScenario:
-        description: 'Validate proposed at-bat result'
-        signature: '(AtBatScenario) => ValidationResult'
-
-      getAvailableHitTypes:
-        description: 'Get hit types available for current state'
-        signature: '(BaserunnerState, InningState) => HitType[]'
-
-      scanTestsForViolations:
-        description: 'Validate existing test scenarios'
-        signature: '(TestCase[]) => RuleViolation[]'
-
-## Future Extensions
-
-advanced_scenarios:
-  aggressive_advancement:
-    description: 'Runners attempt extra bases and may be out'
-    implementation_phase: 'Phase 2'
-    examples:
-      - 'Runner on 1st attempts home on double, thrown out at plate'
-      - 'Batter attempts stretch double, out at second'
-
-  fielding_errors:
-    description: 'Errors allow additional advancement beyond normal'
-    implementation_phase: 'Phase 2'
-    examples:
-      - 'Single + throwing error = runner reaches second'
-      - 'Double + dropped ball = extra base for all runners'
-
-  complex_double_plays:
-    description: 'Partial double plays with baserunner advancement'
-    implementation_phase: 'Phase 3'
-    examples:
-      - 'DP attempt, batter out but runner advances'
-      - 'Line drive DP catches runner off base'
-
-## Performance Requirements
-
-performance_targets:
-  rule_lookup: '< 50ms'
-  matrix_size: '< 5MB memory'
-  concurrent_validations: '100+ per second'
-  test_scanning: '< 2 seconds for full test suite'
-
-## Testing Strategy
-
-test_categories:
-  unit_tests:
-    - 'Each hit type scenario validation'
-    - 'Edge case boundary conditions'
-    - 'Performance benchmarks'
-
-  integration_tests:
-    - 'Domain entity integration'
-    - 'Use case workflow validation'
-    - 'UI component integration'
-
-  validation_tests:
-    - 'Expert rule verification'
-    - 'Real-world scenario accuracy'
-    - 'Existing test suite compliance'
-
-## Implementation Phases
-
-phase_1_mvp:
-  scope: 'Basic rule matrix with standard scenarios'
-  hit_types: ['1B', '2B', '3B', 'HR', 'BB', 'SO', 'GO', 'AO']
-  scenarios: 'Standard advancement only'
-  deliverables:
-    - 'Core rule matrix service'
-    - 'Basic outcome validation'
-    - 'Test violation scanning tool'
-
-phase_2_advanced:
-  scope: 'Aggressive advancement and error scenarios'
-  hit_types: ['SF', 'FC', 'DP', 'E', 'IBB']
-  scenarios: 'Advanced outcomes with outs and errors'
-  deliverables:
-    - 'Advanced outcome tracking'
-    - 'Error scenario handling'
-    - 'Complex UI workflows'
-
-phase_3_expert:
-  scope: 'Expert-level rule validation and edge cases'
-  scenarios: 'All possible softball situations'
-  deliverables:
-    - 'Complete rule coverage'
-    - 'Configurable rule sets'
-    - 'Expert validation tools'
+meta:
+  status: ready-for-dev
+  version: 1.0.0
+  owner: backend-team@example.com
+  design_spec_url: 'https://www.figma.com/file/rule_matrix'
+  created_date: '2025-08-13'
+  last_updated: '2025-08-13'
+  dependencies:
+    - live-scoring
+    - data-persistence
+  priority: medium
+  complexity: high

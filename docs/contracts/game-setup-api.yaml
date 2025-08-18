@@ -1,0 +1,465 @@
+openapi: 3.0.3
+info:
+  title: Game Setup API
+  description: API contract for game creation and lineup management
+  version: 1.0.0
+  contact:
+    name: Breaking-Bat Team
+    email: backend-team@example.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.breaking-bat.com/v1
+    description: Production server
+
+paths:
+  /games:
+    post:
+      summary: Create new game
+      description: Creates a new game with specified configuration
+      operationId: createGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGameRequest'
+      responses:
+        '201':
+          description: Game created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    get:
+      summary: List games
+      description: Returns list of games with optional filtering
+      operationId: listGames
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [setup, in_progress, completed, suspended]
+        - name: teamId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+
+  /games/{gameId}:
+    get:
+      summary: Get game details
+      description: Returns detailed game information
+      operationId: getGame
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Game details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update game
+      description: Updates game configuration or status
+      operationId: updateGame
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGameRequest'
+      responses:
+        '200':
+          description: Game updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+
+  /games/{gameId}/start:
+    post:
+      summary: Start game
+      description: Transitions game from setup to in_progress status
+      operationId: startGame
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lineupId
+              properties:
+                lineupId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Game started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+
+  /lineups:
+    post:
+      summary: Create lineup
+      description: Creates a new lineup for a team
+      operationId: createLineup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLineupRequest'
+      responses:
+        '201':
+          description: Lineup created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lineup'
+
+  /lineups/{lineupId}:
+    get:
+      summary: Get lineup
+      description: Returns lineup with player assignments
+      operationId: getLineup
+      parameters:
+        - name: lineupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lineup details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lineup'
+
+    patch:
+      summary: Update lineup
+      description: Updates player positions in lineup
+      operationId: updateLineup
+      parameters:
+        - name: lineupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLineupRequest'
+      responses:
+        '200':
+          description: Lineup updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lineup'
+
+components:
+  schemas:
+    CreateGameRequest:
+      type: object
+      required:
+        - name
+        - teamId
+        - opponent
+        - homeAway
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        teamId:
+          type: string
+          format: uuid
+        opponent:
+          type: string
+          minLength: 1
+          maxLength: 100
+        homeAway:
+          type: string
+          enum: [home, away]
+        seasonId:
+          type: string
+          format: uuid
+          nullable: true
+        gameTypeId:
+          type: string
+          format: uuid
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        location:
+          type: string
+          maxLength: 200
+        startingPositionCount:
+          type: integer
+          minimum: 9
+          maximum: 12
+          default: 10
+
+    UpdateGameRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        opponent:
+          type: string
+          minLength: 1
+          maxLength: 100
+        date:
+          type: string
+          format: date-time
+        location:
+          type: string
+          maxLength: 200
+        status:
+          type: string
+          enum: [setup, in_progress, completed, suspended]
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        teamId:
+          type: string
+          format: uuid
+        opponent:
+          type: string
+        homeAway:
+          type: string
+          enum: [home, away]
+        seasonId:
+          type: string
+          format: uuid
+          nullable: true
+        gameTypeId:
+          type: string
+          format: uuid
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        location:
+          type: string
+          nullable: true
+        startingPositionCount:
+          type: integer
+        status:
+          type: string
+          enum: [setup, in_progress, completed, suspended]
+        lineupId:
+          type: string
+          format: uuid
+          nullable: true
+        finalScore:
+          $ref: '#/components/schemas/FinalScore'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateLineupRequest:
+      type: object
+      required:
+        - name
+        - teamId
+        - gameId
+        - startingPositionCount
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        teamId:
+          type: string
+          format: uuid
+        gameId:
+          type: string
+          format: uuid
+        startingPositionCount:
+          type: integer
+          minimum: 9
+          maximum: 12
+
+    UpdateLineupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        playerAssignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerAssignment'
+
+    Lineup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        teamId:
+          type: string
+          format: uuid
+        gameId:
+          type: string
+          format: uuid
+        startingPositionCount:
+          type: integer
+        playerAssignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerAssignment'
+        isValid:
+          type: boolean
+        validationErrors:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PlayerAssignment:
+      type: object
+      properties:
+        battingPosition:
+          type: integer
+          minimum: 1
+          maximum: 12
+        playerId:
+          type: string
+          format: uuid
+          nullable: true
+        fieldingPosition:
+          type: string
+          enum: [P, C, '1B', '2B', '3B', SS, LF, CF, RF, EH, BENCH]
+          nullable: true
+
+    FinalScore:
+      type: object
+      properties:
+        homeScore:
+          type: integer
+          minimum: 0
+        awayScore:
+          type: integer
+          minimum: 0
+        inningScores:
+          type: array
+          items:
+            type: object
+            properties:
+              inning:
+                type: integer
+              homeRuns:
+                type: integer
+              awayRuns:
+                type: integer
+
+    Error:
+      type: object
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

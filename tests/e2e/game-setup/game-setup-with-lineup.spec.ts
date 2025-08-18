@@ -5,7 +5,7 @@ import {
   setupTestLineup,
   TestTeamData,
   TestGameData,
-} from './helpers/test-data-setup';
+} from '../helpers/test-data-setup';
 
 /**
  * E2E Tests for Game Setup with Lineup Management

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  * export/import functionality, session recovery, and offline operation.
  */
 
-test.describe('Data Persistence Features', () => {
+test.describe('Data Persistence Features (@app-framework:AC010-@app-framework:AC023)', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
     await page.goto('/');
@@ -16,12 +16,14 @@ test.describe('Data Persistence Features', () => {
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should auto-save team creation immediately', async ({ page }) => {
-    // Navigate to teams page
+  test('should auto-save team creation immediately (@app-framework:AC010, @app-framework:AC012)', async ({
+    page,
+  }) => {
+    // Given: Teams page is loaded
     await page.goto('/teams');
     await page.waitForTimeout(1000);
 
-    // Create a team
+    // When: I create a team
     await page.locator('[data-testid="create-team-button"]').click();
     await page
       .locator('[data-testid="team-name-input"]')

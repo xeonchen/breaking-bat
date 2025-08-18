@@ -22,7 +22,7 @@ import {
  * and backward compatibility with existing data.
  */
 
-test.describe('UI Simplification and Enhanced User Experience', () => {
+test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', () => {
   // Use mobile viewport for all tests
   test.use({
     viewport: { width: 375, height: 667 }, // iPhone SE size
