@@ -81,7 +81,7 @@ jobs:
 
           # Only commit if there are changes
           if ! git diff --staged --quiet; then
-            git commit -m "Update coverage badge [skip ci]"
+            git commit -m "chore: update coverage badge [skip ci]"
             git push origin main
           else
             echo "No changes to coverage badge"
