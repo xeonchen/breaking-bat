@@ -396,19 +396,89 @@ export async function setupTestLineup(
 
     console.log('✅ Players available for lineup setup');
 
-    // Complete lineup setup for all 9 positions
-    for (let i = 1; i <= 9; i++) {
-      const playerSelect = page.getByTestId(`batting-position-${i}-player`);
-      const positionSelect = page.getByTestId(
-        `batting-position-${i}-defensive-position`
-      );
+    // The component auto-fills ALL players by default (AC001-AC004 from lineup-management-ux.md)
+    // With default startingPositionCount=10, we need to ensure the auto-filled lineup is valid
+    // Check if auto-fill button is available and use it, or verify lineup is already complete
 
-      await playerSelect.selectOption({ index: i });
-      await positionSelect.selectOption({ index: i });
+    const autoFillButton = page.locator(
+      '[data-testid="auto-fill-positions-button"]'
+    );
+    if (await autoFillButton.isVisible({ timeout: 2000 })) {
+      console.log('🔧 Using auto-fill to complete default positions');
+      await autoFillButton.click();
+      await page.waitForTimeout(1000); // Wait for auto-fill to complete
+    }
+
+    // Verify that we have enough filled positions for a valid lineup
+    const progressIndicator = page.locator(
+      '[data-testid="lineup-progress-indicator"]'
+    );
+    const progressText = await progressIndicator.textContent();
+    console.log(`Lineup progress: ${progressText}`);
+
+    // Check if lineup is marked as complete
+    const completeIndicator = page.locator(
+      '[data-testid="lineup-complete-success"]'
+    );
+    const isComplete = await completeIndicator.isVisible({ timeout: 2000 });
+
+    if (!isComplete) {
+      console.log(
+        '⚠️ Lineup not automatically complete, manually completing...'
+      );
+      // Manually complete the lineup by ensuring 10 positions are filled
+      // (startingPositionCount=10 is the default according to AC005)
+      for (let i = 1; i <= 10; i++) {
+        const playerSelect = page.getByTestId(`batting-position-${i}-player`);
+        const positionSelect = page.getByTestId(
+          `batting-position-${i}-defensive-position`
+        );
+
+        // Check if player is already selected
+        const currentPlayerValue = await playerSelect.inputValue();
+        if (!currentPlayerValue) {
+          await playerSelect.selectOption({ index: i });
+          await page.waitForTimeout(100);
+        }
+
+        // Check if position is already selected
+        const currentPositionValue = await positionSelect.inputValue();
+        if (!currentPositionValue) {
+          await positionSelect.selectOption({ index: i });
+          await page.waitForTimeout(100);
+        }
+      }
+
+      // Wait for validation to complete
+      await page.waitForTimeout(500);
+    } else {
+      console.log('✅ Lineup already complete via auto-fill');
+    }
+
+    // Verify save button is enabled before attempting to save
+    const saveButton = page.getByTestId('save-lineup-button');
+    const isEnabled = await saveButton.isEnabled();
+    console.log(`Save lineup button enabled: ${isEnabled}`);
+
+    if (!isEnabled) {
+      console.log(
+        '❌ Save lineup button is disabled - lineup validation failed'
+      );
+      // Log current lineup state for debugging
+      const finalProgressText = await progressIndicator.textContent();
+      console.log(`Final lineup progress: ${finalProgressText}`);
+
+      const incompleteIndicator = page.locator(
+        '[data-testid="lineup-incomplete"]'
+      );
+      const isIncomplete = await incompleteIndicator.isVisible();
+      console.log(`Lineup marked incomplete: ${isIncomplete}`);
+
+      throw new Error('Cannot save lineup - validation failed');
     }
 
     // Save the lineup
-    await page.getByTestId('save-lineup-button').click();
+    await saveButton.click();
 
     // Wait for success feedback (toast or modal close)
     try {

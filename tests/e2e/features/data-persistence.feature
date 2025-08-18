@@ -6,6 +6,7 @@ Feature: Data Storage and Management
     And the local database is available and functioning
     And I have created some test data including teams and games
 
+  @AC001
   Scenario: Auto-save functionality during normal operations
     Given I am creating a new team "Storm Warriors"
     When I fill in the team details and submit
@@ -14,6 +15,7 @@ Feature: Data Storage and Management
     And the data should persist if I refresh the browser
     And no data should be lost during the operation
 
+  @AC002
   Scenario: Session recovery after unexpected closure
     Given I am in the middle of scoring a game "Panthers vs Lions"
     And I have recorded 3 innings of play
@@ -27,6 +29,7 @@ Feature: Data Storage and Management
     And all recorded plays should be preserved
     And I should be able to continue scoring from where I left off
 
+  @AC002-resume
   Scenario: Resume last unfinished game on startup
     Given I was scoring game "Eagles vs Hawks" yesterday
     And I closed the application before completing the game
@@ -38,6 +41,7 @@ Feature: Data Storage and Management
     Then I should be taken directly to the live scoring interface
     And the game state should be exactly as I left it
 
+  @AC003-json
   Scenario: Export individual game data in JSON format
     Given I have a completed game "Titans vs Vikings" with full statistics
     And I am viewing the game details page
@@ -49,6 +53,7 @@ Feature: Data Storage and Management
     And the file should include team rosters, lineup, and play-by-play data
     And the file should include comprehensive statistics
 
+  @AC003-csv
   Scenario: Export individual game data in CSV format
     Given I have a completed game "Rangers vs Knights" with batting statistics
     And I am viewing the game details page
@@ -59,6 +64,7 @@ Feature: Data Storage and Management
     And the file should include player names, at-bats, hits, and RBIs
     And the file should be suitable for analysis in Excel or similar tools
 
+  @AC007
   Scenario: Export entire season data
     Given I have completed season "Summer League 2025"
     And the season contains 12 completed games
@@ -70,6 +76,7 @@ Feature: Data Storage and Management
     And the file should include season-level statistics
     And the file should include team standings and player season stats
 
+  @AC004
   Scenario: Import previously exported game data
     Given I have a valid game export file "hawks-vs-eagles-backup.json"
     And I am on the Games management page
@@ -82,6 +89,7 @@ Feature: Data Storage and Management
     And the game should appear in my games list
     And all data should be saved to local storage
 
+  @AC008
   Scenario: Validate imported data integrity
     Given I have a game export file with corrupted data
     When I attempt to import the file
@@ -91,6 +99,7 @@ Feature: Data Storage and Management
     And no partial data should be imported
     And my existing data should remain unchanged
 
+  @AC004-duplicates
   Scenario: Handle duplicate data during import
     Given I already have game "Wolves vs Bears" in my database
     And I have an export file containing the same game
@@ -101,6 +110,7 @@ Feature: Data Storage and Management
     Then the existing game should be overwritten with imported data
     And I should see confirmation of the replacement
 
+  @AC004-merge
   Scenario: Merge imported data with existing records
     Given I have partial data for team "Thunder Bolts"
     And I have an import file with additional players for "Thunder Bolts"
@@ -110,6 +120,7 @@ Feature: Data Storage and Management
     And no duplicate players should be created
     And the merged data should be validated for consistency
 
+  @AC006
   Scenario: Complete offline operation without network
     Given I am using the application without internet connection
     And I can see the offline indicator in the interface
@@ -122,6 +133,7 @@ Feature: Data Storage and Management
     And I should see no network-related errors
     And the data should be available when I go back online
 
+  @AC005-quota
   Scenario: Handle storage quota limits gracefully
     Given I have been using the application extensively
     And my local storage is approaching browser limits
@@ -132,6 +144,7 @@ Feature: Data Storage and Management
     And I should be able to export and delete old data
     And critical game data should be prioritized for retention
 
+  @AC005-compression
   Scenario: Data compression for large datasets
     Given I have accumulated 2 years of game data
     And the total data size is becoming large
@@ -141,6 +154,7 @@ Feature: Data Storage and Management
     And the compression should be transparent to user operations
     And data retrieval performance should remain acceptable
 
+  @AC003-backup
   Scenario: Backup entire application database
     Given I have multiple teams, seasons, and completed games
     And I want to create a complete backup
@@ -151,6 +165,7 @@ Feature: Data Storage and Management
     And the file should include application settings and preferences
     And the backup should be restorable on any device
 
+  @AC004-restore
   Scenario: Restore complete database from backup
     Given I have a complete database backup file
     And I am setting up the application on a new device
@@ -162,6 +177,7 @@ Feature: Data Storage and Management
     And all player statistics should be preserved
     And the application should be ready to use immediately
 
+  @AC001-auto-backup
   Scenario: Schedule automatic local backups
     Given I am in the application Settings page
     When I enable "Automatic Local Backups"
@@ -172,6 +188,7 @@ Feature: Data Storage and Management
     And old backups should be rotated to save space
     And I should be able to restore from any saved backup
 
+  @AC003-sync
   Scenario: Sync data across multiple devices
     Given I am using the application on my tablet
     And I have scored several games with detailed statistics
@@ -181,6 +198,7 @@ Feature: Data Storage and Management
     And I should be able to continue using the application seamlessly
     And both devices should have identical data after sync
 
+  @AC008-recovery
   Scenario: Handle corrupted local storage recovery
     Given my local IndexedDB has become corrupted
     And I have recent backup files available
@@ -192,6 +210,7 @@ Feature: Data Storage and Management
     And the application should rebuild a clean database
     And I should be able to continue normal operations
 
+  @AC005-monitoring
   Scenario: Monitor storage usage and provide insights
     Given I have been using the application for several months
     When I go to Settings and click "Storage Information"
@@ -200,6 +219,7 @@ Feature: Data Storage and Management
     And I should see recommendations for optimization
     And I should be able to identify which data uses most space
 
+  @AC005-updates
   Scenario: Preserve data during application updates
     Given I have extensive game data in the current version
     When the application is updated to a newer version
@@ -208,6 +228,7 @@ Feature: Data Storage and Management
     And I should be notified if any migration occurs
     And I should have a backup option before migration
 
+  @AC008-emergency
   Scenario: Emergency data recovery procedures
     Given I have lost my primary data due to device failure
     And I have various backup files from different dates

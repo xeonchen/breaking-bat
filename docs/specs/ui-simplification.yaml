@@ -1,0 +1,248 @@
+id: ui-simplification
+title: UI Simplification and Enhanced User Experience
+actor: Breaking-Bat User
+goal: Simplified and intuitive interface that reduces friction in primary workflows
+outcome: Efficient game scoring without unnecessary navigation complexity
+
+inputs:
+  - name: navigation_menu
+    type: component
+    required: true
+    component_hint: "NavigationMenu(sections=['Games', 'Teams', 'Statistics', 'Settings'])"
+  - name: settings_tabs
+    type: component
+    required: true
+    component_hint: "TabPanel(tabs=[{id:'general', label:'General'}, {id:'game-config', label:'Game Configuration'}])"
+  - name: game_creation_form
+    type: component
+    required: true
+    component_hint: 'GameForm(quickMode=true, seasonField={required: false}, gameTypeField={required: false})'
+
+actions:
+  - type: navigate
+    label: Streamlined Navigation
+    target: primary_sections
+  - type: consolidate
+    label: Settings Consolidation
+    target: configuration_options
+  - type: simplify
+    label: Game Creation Simplification
+    target: form_fields
+  - type: optimize
+    label: Mobile Experience Enhancement
+    target: touch_interfaces
+
+entities:
+  navigation_config:
+    properties:
+      - main_sections: array
+      - touch_target_size: number
+      - mobile_optimized: boolean
+  settings_structure:
+    properties:
+      - tab_layout: object
+      - general_options: array
+      - game_config_options: array
+  game_form_config:
+    properties:
+      - quick_mode_enabled: boolean
+      - optional_fields: array
+      - validation_rules: object
+
+acceptance_criteria:
+  - id: AC001
+    description: Navigation reduced from 7 to 4 main sections
+    workflow: navigation_streamlining
+  - id: AC002
+    description: Games page serves as the default landing page
+    workflow: default_routing
+  - id: AC003
+    description: Mobile navigation provides larger touch targets with 4 items instead of 5
+    workflow: mobile_optimization
+  - id: AC004
+    description: All existing functionality remains accessible
+    workflow: functionality_preservation
+  - id: AC005
+    description: Navigation is consistent across desktop and mobile
+    workflow: responsive_design
+  - id: AC006
+    description: Settings page features tabbed interface with General and Game Configuration sections
+    workflow: settings_consolidation
+  - id: AC007
+    description: Seasons management moved from separate page to Settings → Game Configuration
+    workflow: settings_consolidation
+  - id: AC008
+    description: Game Types management moved from separate page to Settings → Game Configuration
+    workflow: settings_consolidation
+  - id: AC009
+    description: General tab includes theme settings, data management, and app information
+    workflow: settings_organization
+  - id: AC010
+    description: All existing seasons and game types functionality preserved
+    workflow: functionality_preservation
+  - id: AC011
+    description: Mobile-responsive tab interface
+    workflow: mobile_optimization
+  - id: AC012
+    description: Season and Game Type fields are optional in game creation
+    workflow: form_simplification
+  - id: AC013
+    description: Quick Create mode shows only essential fields by default
+    workflow: form_simplification
+  - id: AC014
+    description: Detailed Setup mode provides all options for advanced users
+    workflow: progressive_enhancement
+  - id: AC015
+    description: Games without seasons/game types display appropriately
+    workflow: data_handling
+  - id: AC016
+    description: Form validation updated to not require optional fields
+    workflow: validation_updates
+  - id: AC017
+    description: Progressive enhancement allows adding season/type later
+    workflow: progressive_enhancement
+  - id: AC018
+    description: Bottom navigation provides 25% larger touch targets (4 items vs 5)
+    workflow: mobile_optimization
+  - id: AC019
+    description: Games page optimized as mobile landing page
+    workflow: mobile_optimization
+  - id: AC020
+    description: Settings tabs work smoothly on mobile devices
+    workflow: mobile_optimization
+  - id: AC021
+    description: Game creation modal adapts well to mobile screens
+    workflow: mobile_optimization
+  - id: AC022
+    description: All interactions optimized for thumb navigation
+    workflow: mobile_optimization
+  - id: AC023
+    description: Consistent experience across mobile and tablet sizes
+    workflow: responsive_design
+  - id: AC024
+    description: All existing games, seasons, and game types remain functional
+    workflow: backward_compatibility
+  - id: AC025
+    description: Games with assigned seasons/game types display correctly
+    workflow: data_preservation
+  - id: AC026
+    description: Existing bookmarks and URLs redirect appropriately
+    workflow: url_migration
+  - id: AC027
+    description: All current functionality accessible in new interface
+    workflow: functionality_preservation
+  - id: AC028
+    description: Data migration is seamless and automatic
+    workflow: data_migration
+  - id: AC029
+    description: No loss of historical data or statistics
+    workflow: data_preservation
+
+error_states:
+  - name: NavigationFailure
+    http_status: 500
+    response_body:
+      error_code: 'NAV_ERROR'
+      message: 'Navigation configuration error'
+  - name: RedirectFailure
+    http_status: 404
+    response_body:
+      error_code: 'REDIRECT_ERROR'
+      message: 'URL redirect failed'
+  - name: DataMigrationError
+    http_status: 500
+    response_body:
+      error_code: 'MIGRATION_ERROR'
+      message: 'Data migration failed'
+
+defensive_actions:
+  retry_policy: 'none (UI interactions)'
+  circuit_breaker: 'none'
+  input_validation: 'form field validation'
+  error_logging: 'structured-json'
+
+validation_rules:
+  - navigation sections must be exactly 4
+  - mobile touch targets must meet accessibility standards
+  - all existing data must remain accessible
+  - form validation must handle optional fields
+  - URL redirects must work correctly
+
+business_rules:
+  - primary workflow reduction: 20% fewer steps
+  - mobile touch targets: 25% larger
+  - time to first game: reduce by 50%+ for new users
+  - feature discoverability: maintain or improve
+  - user satisfaction: maintain or improve
+
+workflows:
+  navigation_streamlining:
+    steps:
+      - reduce_main_sections_to_4
+      - set_games_as_default
+      - optimize_mobile_navigation
+      - preserve_all_functionality
+  settings_consolidation:
+    steps:
+      - create_tabbed_interface
+      - move_seasons_to_settings
+      - move_game_types_to_settings
+      - organize_general_settings
+  form_simplification:
+    steps:
+      - make_season_optional
+      - make_game_type_optional
+      - create_quick_mode
+      - maintain_detailed_mode
+  mobile_optimization:
+    steps:
+      - increase_touch_targets
+      - optimize_for_thumb_navigation
+      - ensure_responsive_design
+      - test_across_devices
+
+traceability:
+  source_story_id: 'ui-simplification'
+  acceptance_criteria_covered:
+    [
+      'AC001',
+      'AC002',
+      'AC003',
+      'AC004',
+      'AC005',
+      'AC006',
+      'AC007',
+      'AC008',
+      'AC009',
+      'AC010',
+      'AC011',
+      'AC012',
+      'AC013',
+      'AC014',
+      'AC015',
+      'AC016',
+      'AC017',
+      'AC018',
+      'AC019',
+      'AC020',
+      'AC021',
+      'AC022',
+      'AC023',
+      'AC024',
+      'AC025',
+      'AC026',
+      'AC027',
+      'AC028',
+      'AC029',
+    ]
+  test_files: ['ui-simplification.feature', 'mobile-complete-workflow.spec.ts']
+
+meta:
+  status: implemented
+  version: 1.0.0
+  priority: high
+  dependencies: [navigation-system, settings-management, game-creation]
+  owner: ui-team@breaking-bat.com
+  design_spec_url: 'navigation-redesign.md, settings-page-design.md'
+  created_date: '2025-08-12'
+  last_updated: '2025-08-12'

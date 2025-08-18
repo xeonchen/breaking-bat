@@ -91,7 +91,7 @@ export class LineupValidator {
   }
 
   /**
-   * Check if defensive positions are unique (except for outfield positions)
+   * Check if defensive positions are unique (EP can have duplicates)
    */
   private hasUniqueDefensivePositions(lineup: Lineup): boolean {
     const positionCounts = new Map<string, number>();
@@ -101,7 +101,7 @@ export class LineupValidator {
       positionCounts.set(pos, (positionCounts.get(pos) || 0) + 1);
     });
 
-    // Critical infield positions must be unique
+    // All positions except Extra Player must be unique
     const uniquePositions = [
       'Pitcher',
       'Catcher',
@@ -109,6 +109,10 @@ export class LineupValidator {
       'Second Base',
       'Third Base',
       'Shortstop',
+      'Left Field',
+      'Center Field',
+      'Right Field',
+      'Short Fielder',
     ];
 
     for (const position of uniquePositions) {
@@ -118,16 +122,7 @@ export class LineupValidator {
       }
     }
 
-    // Outfield positions can have multiples, but check for reasonable limits
-    const outfieldPositions = ['Left Field', 'Center Field', 'Right Field'];
-    for (const position of outfieldPositions) {
-      const count = positionCounts.get(position) || 0;
-      if (count > 3) {
-        // Reasonable limit for outfield positions
-        return false;
-      }
-    }
-
+    // Extra Player (EP) is allowed to have duplicates
     return true;
   }
 
@@ -208,6 +203,7 @@ export class LineupValidator {
       }
     });
 
+    // Only check for duplicates in unique positions (EP can have duplicates)
     const uniquePositions = [
       'Pitcher',
       'Catcher',
@@ -215,6 +211,10 @@ export class LineupValidator {
       'Second Base',
       'Third Base',
       'Shortstop',
+      'Left Field',
+      'Center Field',
+      'Right Field',
+      'Short Fielder',
     ];
     for (const position of uniquePositions) {
       if ((positionCounts.get(position) || 0) > 1) {
@@ -222,6 +222,7 @@ export class LineupValidator {
         break;
       }
     }
+    // Extra Player (EP) is allowed to have duplicates, so it's not included above
 
     // Check player team membership
     const availablePlayerIds = new Set(

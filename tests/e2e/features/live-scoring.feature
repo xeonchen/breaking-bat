@@ -215,3 +215,98 @@ Feature: Live Game Scoring and Statistics
     And I should see an offline mode indicator
     And no data should be lost during offline operation
     And the interface should remain fully functional
+
+  # Innings Management for Home/Away Teams
+  @AC029 @AC031
+  Scenario: Away team records only top half innings
+    Given my team "Red Sox" is playing away against "Yankees"
+    And we are in the top of the 1st inning
+    When the scoring interface loads
+    Then I should see "Top of 1st" displayed prominently
+    And the at-bat recording interface should be enabled for my team
+    And I should be able to record batting results for Red Sox players
+
+  @AC030 @AC032
+  Scenario: Home team records only bottom half innings
+    Given my team "Blue Jays" is playing at home against "Tigers"
+    And we are in the bottom of the 2nd inning
+    When the scoring interface loads
+    Then I should see "Bottom of 2nd" displayed prominently
+    And the at-bat recording interface should be enabled for my team
+    And I should be able to record batting results for Blue Jays players
+
+  @AC033 @AC034
+  Scenario: Interface disabled during opponent's batting turn (away team)
+    Given my team "Red Sox" is playing away
+    And we are in the bottom of the 3rd inning (Yankees batting)
+    When I view the scoring interface
+    Then I should see "Bottom of 3rd - Yankees Batting" displayed
+    And the at-bat recording interface should be disabled
+    And I should see a message "Opponent's turn to bat - interface disabled"
+    And all batting input controls should be inactive
+
+  @AC033 @AC034
+  Scenario: Interface disabled during opponent's batting turn (home team)
+    Given my team "Blue Jays" is playing at home
+    And we are in the top of the 4th inning (Tigers batting)
+    When I view the scoring interface
+    Then I should see "Top of 4th - Tigers Batting" displayed
+    And the at-bat recording interface should be disabled
+    And I should see a message "Opponent's turn to bat - interface disabled"
+    And all batting input controls should be inactive
+
+  @AC031 @AC032
+  Scenario: Clear inning indicator throughout the game (away team)
+    Given my team "Cardinals" is playing away
+    When I am in different innings
+    Then I should see the correct inning indicators:
+      | Inning | My Team's Turn | Display Text | Interface State |
+      | 1 | Top | Top of 1st | Enabled |
+      | 1 | Bottom | Bottom of 1st - Opponent | Disabled |
+      | 2 | Top | Top of 2nd | Enabled |
+      | 2 | Bottom | Bottom of 2nd - Opponent | Disabled |
+      | 3 | Top | Top of 3rd | Enabled |
+
+  @AC031 @AC032
+  Scenario: Clear inning indicator throughout the game (home team)
+    Given my team "Giants" is playing at home
+    When I am in different innings
+    Then I should see the correct inning indicators:
+      | Inning | My Team's Turn | Display Text | Interface State |
+      | 1 | Top | Top of 1st - Opponent | Disabled |
+      | 1 | Bottom | Bottom of 1st | Enabled |
+      | 2 | Top | Top of 2nd - Opponent | Disabled |
+      | 2 | Bottom | Bottom of 2nd | Enabled |
+      | 3 | Top | Top of 3rd - Opponent | Disabled |
+
+  @AC034
+  Scenario: Automatic interface state changes when inning switches (away)
+    Given my team "Dodgers" is playing away
+    And I am recording the top of the 5th inning (our turn)
+    And the interface is enabled
+    When the inning switches to bottom of the 5th
+    Then the interface should automatically disable
+    And I should see "Bottom of 5th - Opponent Batting"
+    And all at-bat controls should become inactive
+    And the current batter should be cleared/hidden
+
+  @AC034
+  Scenario: Automatic interface state changes when inning switches (home)
+    Given my team "Padres" is playing at home
+    And we are in the top of the 6th inning (opponent's turn)
+    And the interface is disabled
+    When the inning switches to bottom of the 6th
+    Then the interface should automatically enable
+    And I should see "Bottom of 6th"
+    And all at-bat controls should become active
+    And the current batter should be displayed
+
+  @AC029 @AC030
+  Scenario: Scoreboard shows correct team batting context
+    Given my team "Mariners" is playing away
+    When I view the scoreboard during different innings
+    Then it should clearly indicate which team is batting:
+      | Inning State | Scoreboard Display |
+      | Top of 1st | Mariners Batting (Away) |
+      | Bottom of 1st | Opponent Batting (Mariners Away) |
+      | Top of 2nd | Mariners Batting (Away) |

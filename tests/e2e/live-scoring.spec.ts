@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  * These tests focus on verifying the UI components exist and function properly.
  */
 
-test.describe('Live Scoring Page Components', () => {
+test.describe('Live Scoring Page Components (@live-game-scoring:AC001-@live-game-scoring:AC042)', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
     await page.goto('/');
@@ -16,17 +16,15 @@ test.describe('Live Scoring Page Components', () => {
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should navigate to scoring route and handle non-existent game', async ({
+  test('should navigate to scoring route and handle non-existent game (@live-game-scoring:AC001)', async ({
     page,
   }) => {
-    // Navigate to a scoring route
+    // Given: App is loaded
+    // When: I navigate to a scoring route with non-existent game
     await page.goto('/scoring/non-existent-game');
-
-    // Wait for page to process
     await page.waitForTimeout(2000);
 
-    // The page should handle this gracefully - it might redirect, show error, or show loading
-    // Let's verify the page structure remains intact
+    // Then: Page should handle this gracefully without crashing
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
 
     // Page should not crash - verify we have some content
@@ -34,14 +32,15 @@ test.describe('Live Scoring Page Components', () => {
     expect(hasContent).toBeTruthy();
   });
 
-  test('should verify games page navigation works', async ({ page }) => {
-    // Navigate to games page which should exist
+  test('should verify games page navigation works (@live-game-scoring:AC001)', async ({
+    page,
+  }) => {
+    // Given: App is loaded
+    // When: I navigate to games page
     await page.goto('/games');
-
-    // Wait for page to load
     await page.waitForTimeout(1000);
 
-    // Verify we can navigate around the app
+    // Then: Navigation should work and app should remain stable
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
 
     // Try to navigate to other pages to ensure app routing works

@@ -1,0 +1,52 @@
+openapi: 3.0.3
+info:
+  title: Sample Data Loading API
+  description: API contract for loading sample data for testing and demos
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /sample-data/load:
+    post:
+      summary: Load sample data
+      description: Loads predefined sample data into the system
+      operationId: loadSampleData
+      responses:
+        '200':
+          description: Sample data loaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  teamsCreated:
+                    type: integer
+                  playersCreated:
+                    type: integer
+                  seasonsCreated:
+                    type: integer
+                  gameTypesCreated:
+                    type: integer
+                  message:
+                    type: string
+
+  /sample-data/clear:
+    delete:
+      summary: Clear sample data
+      description: Removes all sample data from the system
+      operationId: clearSampleData
+      responses:
+        '200':
+          description: Sample data cleared successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []

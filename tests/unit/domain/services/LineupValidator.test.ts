@@ -166,7 +166,7 @@ describe('LineupValidator - TDD Tests', () => {
       expect(result.errors).not.toContain('POSITION_DUPLICATE');
     });
 
-    test('should allow multiple players in outfield positions', () => {
+    test('should allow multiple Extra Player positions but not other duplicates', () => {
       const lineupPositions = [
         new LineupPosition(1, 'player-1', 'Pitcher', true),
         new LineupPosition(2, 'player-2', 'Catcher', true),
@@ -177,7 +177,8 @@ describe('LineupValidator - TDD Tests', () => {
         new LineupPosition(7, 'player-7', 'Left Field', true),
         new LineupPosition(8, 'player-8', 'Center Field', true),
         new LineupPosition(9, 'player-9', 'Right Field', true),
-        new LineupPosition(10, 'player-10', 'Left Field', true), // Additional left field
+        new LineupPosition(10, 'player-10', 'Extra Player', true), // EP is allowed
+        new LineupPosition(11, 'player-1', 'Extra Player', true), // Multiple EP allowed
       ];
 
       const lineup = new Lineup('lineup-1', 'game-1', lineupPositions, []);
@@ -380,16 +381,14 @@ describe('LineupValidator - TDD Tests', () => {
       'Left Field',
       'Center Field',
       'Right Field',
+      'Short Fielder', // Position 10
+      'Extra Player', // Position 11+
     ];
-    const additionalPositions = ['Left Field', 'Right Field', 'Center Field']; // For positions beyond 9
 
     const lineupPositions: LineupPosition[] = [];
 
     for (let i = 1; i <= count; i++) {
-      const position =
-        i <= 9
-          ? positions[i - 1]
-          : additionalPositions[(i - 10) % additionalPositions.length];
+      const position = i <= 10 ? positions[i - 1] : 'Extra Player'; // EP can be duplicated
       const playerId =
         i <= mockPlayers.length
           ? `player-${i}`

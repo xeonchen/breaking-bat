@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: UI Simplification API
+  description: API contract for simplified navigation and settings management
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /settings:
+    get:
+      summary: Get user settings
+      description: Returns current user interface settings
+      operationId: getSettings
+      responses:
+        '200':
+          description: User settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  theme:
+                    type: string
+                  navigation_collapsed:
+                    type: boolean
+                  quick_create_enabled:
+                    type: boolean
+
+    patch:
+      summary: Update settings
+      description: Updates user interface settings
+      operationId: updateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                theme:
+                  type: string
+                navigation_collapsed:
+                  type: boolean
+                quick_create_enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Settings updated
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []

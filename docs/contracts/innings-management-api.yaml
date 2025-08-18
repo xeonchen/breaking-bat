@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Innings Management API
+  description: API contract for home/away innings management and interface control
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /games/{gameId}/inning-state:
+    get:
+      summary: Get current inning state
+      description: Returns current inning and batting team information
+      operationId: getInningState
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current inning state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentInning:
+                    type: integer
+                  isTopInning:
+                    type: boolean
+                  battingTeam:
+                    type: string
+                    enum: [home, away]
+                  isMyTeamBatting:
+                    type: boolean
+                  currentOuts:
+                    type: integer
+
+  /games/{gameId}/advance-inning-half:
+    post:
+      summary: Advance inning half
+      description: Switches from top to bottom or advances to next inning
+      operationId: advanceInningHalf
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inning half advanced
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []

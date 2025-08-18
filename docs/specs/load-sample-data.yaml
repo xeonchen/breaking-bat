@@ -12,19 +12,26 @@ actions:
     label: Load Sample Data
     component_hint: 'Button(onClick=handleLoadSampleData, isLoading=loading)'
 acceptance_criteria:
-  - description: Settings page shows Load Sample Data button with clear description
+  - id: AC001
+    description: Given I am on the Settings page General tab, I should see a "Load Sample Data" button with a clear description
     workflow: ui_display
-  - description: Successfully creates 3 teams, multiple MLB players, 3 seasons, and 5 game types
+  - id: AC002
+    description: Given I click the "Load Sample Data" button, the system should create 3 teams with MLB fantasy players, 3 seasons, and 5 game types
     workflow: success_path
-  - description: Shows success notification with creation details
+  - id: AC003
+    description: Given the sample data loading is successful, I should see a success toast notification with details of what was created
     workflow: success_feedback
-  - description: Shows error notification on failure
+  - id: AC004
+    description: Given the sample data loading encounters an error, I should see an error toast notification with a helpful error message
     workflow: error_path
-  - description: Handles existing data gracefully without duplicates
+  - id: AC005
+    description: Given sample data already exists, the system should not create duplicates and should handle existing data gracefully
     workflow: duplicate_handling
-  - description: Button shows loading state during processing
+  - id: AC006
+    description: Given the loading process is in progress, the button should show a loading state and be disabled
     workflow: loading_state
-  - description: Created data is visible in respective pages
+  - id: AC007
+    description: Given the sample data is loaded, I should be able to navigate to Teams, Games, and Seasons pages and see the created data
     workflow: data_verification
 error_states:
   - name: LoadDefaultDataUseCaseNotInitialized
@@ -46,11 +53,19 @@ defensive_actions:
   retry_policy: 'none (manual user action)'
   circuit_breaker: 'none'
   validation: 'check all dependencies before execution'
+traceability:
+  source_story_id: 'load-sample-data'
+  acceptance_criteria_covered:
+    ['AC001', 'AC002', 'AC003', 'AC004', 'AC005', 'AC006', 'AC007']
+  test_files: ['load-sample-data.feature', 'load-sample-data.spec.ts']
+
 meta:
   status: implemented
   version: 1.0.0
   owner: development-team@breaking-bat.com
   design_spec_url: 'settings-page-design.md'
+  created_date: '2025-08-12'
+  last_updated: '2025-08-12'
 expected_sample_data:
   teams:
     - name: 'Dodgers All-Stars'

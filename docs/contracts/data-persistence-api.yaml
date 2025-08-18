@@ -1,0 +1,82 @@
+openapi: 3.0.3
+info:
+  title: Data Persistence API
+  description: API contract for data export/import and backup operations
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /data/export:
+    post:
+      summary: Export data
+      description: Exports game data in specified format
+      operationId: exportData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [JSON, CSV]
+                scope:
+                  type: string
+                  enum: [single_game, team_season, all_data]
+                gameId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Export completed
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /data/import:
+    post:
+      summary: Import data
+      description: Imports previously exported data
+      operationId: importData
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                strategy:
+                  type: string
+                  enum: [merge, replace, skip_duplicates]
+      responses:
+        '200':
+          description: Import completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported_count:
+                    type: integer
+                  validation_results:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - BearerAuth: []

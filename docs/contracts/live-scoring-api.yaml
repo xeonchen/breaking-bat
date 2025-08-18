@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: Live Scoring API
+  description: API contract for real-time game scoring and statistics
+  version: 1.0.0
+  contact:
+    name: Breaking-Bat Team
+    email: backend-team@example.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.breaking-bat.com/v1
+    description: Production server
+
+paths:
+  /games/{gameId}/at-bats:
+    post:
+      summary: Record at-bat result
+      description: Records batting result with automatic baserunner advancement and RBI calculation
+      operationId: recordAtBat
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtBatRequest'
+      responses:
+        '200':
+          description: At-bat recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AtBatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /games/{gameId}/current-batter:
+    get:
+      summary: Get current batter
+      description: Returns the current batter based on lineup order
+      operationId: getCurrentBatter
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current batter information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentBatter'
+
+  /games/{gameId}/baserunners:
+    get:
+      summary: Get baserunner state
+      description: Returns current baserunner positions
+      operationId: getBaserunners
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current baserunner state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaserunnerState'
+
+  /games/{gameId}/scoreboard:
+    get:
+      summary: Get live scoreboard
+      description: Returns current game score and inning information
+      operationId: getScoreboard
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Live scoreboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scoreboard'
+
+  /games/{gameId}/inning:
+    post:
+      summary: Advance inning
+      description: Advances to next inning or switches sides
+      operationId: advanceInning
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inning advanced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InningState'
+
+components:
+  schemas:
+    AtBatRequest:
+      type: object
+      required:
+        - batterId
+        - result
+        - finalCount
+      properties:
+        batterId:
+          type: string
+          format: uuid
+          description: ID of the batter
+        result:
+          $ref: '#/components/schemas/BattingResult'
+        finalCount:
+          $ref: '#/components/schemas/Count'
+        pitchSequence:
+          type: array
+          items:
+            type: string
+          description: Sequence of pitches (optional)
+        baserunnerAdvancement:
+          $ref: '#/components/schemas/BaserunnerAdvancement'
+
+    AtBatResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        runsScored:
+          type: integer
+          minimum: 0
+        rbis:
+          type: integer
+          minimum: 0
+        advanceInning:
+          type: boolean
+        nextBatter:
+          $ref: '#/components/schemas/CurrentBatter'
+        updatedBaserunners:
+          $ref: '#/components/schemas/BaserunnerState'
+
+    BattingResult:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          type: string
+          enum: [hit, walk, out, error]
+        value:
+          type: string
+          enum: [1B, 2B, 3B, HR, BB, IBB, SF, E, FC, SO, GO, AO, DP]
+        description:
+          type: string
+
+    CurrentBatter:
+      type: object
+      properties:
+        playerId:
+          type: string
+          format: uuid
+        playerName:
+          type: string
+        jerseyNumber:
+          type: string
+        position:
+          type: string
+        battingOrder:
+          type: integer
+          minimum: 1
+
+    BaserunnerState:
+      type: object
+      properties:
+        first:
+          $ref: '#/components/schemas/Baserunner'
+        second:
+          $ref: '#/components/schemas/Baserunner'
+        third:
+          $ref: '#/components/schemas/Baserunner'
+
+    Baserunner:
+      type: object
+      nullable: true
+      properties:
+        playerId:
+          type: string
+          format: uuid
+        playerName:
+          type: string
+
+    BaserunnerAdvancement:
+      type: object
+      properties:
+        first:
+          type: string
+          enum: [second, third, home, out, stay]
+        second:
+          type: string
+          enum: [third, home, out, stay]
+        third:
+          type: string
+          enum: [home, out, stay]
+
+    Count:
+      type: object
+      properties:
+        balls:
+          type: integer
+          minimum: 0
+          maximum: 3
+        strikes:
+          type: integer
+          minimum: 0
+          maximum: 2
+
+    Scoreboard:
+      type: object
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        currentInning:
+          type: integer
+          minimum: 1
+        isTopInning:
+          type: boolean
+        homeScore:
+          type: integer
+          minimum: 0
+        awayScore:
+          type: integer
+          minimum: 0
+        inningScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/InningScore'
+        currentOuts:
+          type: integer
+          minimum: 0
+          maximum: 3
+
+    InningScore:
+      type: object
+      properties:
+        inning:
+          type: integer
+        homeRuns:
+          type: integer
+        awayRuns:
+          type: integer
+
+    InningState:
+      type: object
+      properties:
+        currentInning:
+          type: integer
+          minimum: 1
+        isTopInning:
+          type: boolean
+        currentOuts:
+          type: integer
+          minimum: 0
+          maximum: 3
+        battingTeam:
+          type: string
+          enum: [home, away]
+
+    Error:
+      type: object
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

@@ -8,6 +8,7 @@ Feature: Comprehensive Rule Matrix System
     And I have created a game with complete lineup setup
     And the game is in progress with various baserunner scenarios
 
+  @AC001
   Scenario: Basic hit type validation for empty bases
     Given the bases are empty
     And "John Smith" is the current batter
@@ -17,6 +18,7 @@ Feature: Comprehensive Rule Matrix System
     And each hit type should show appropriate base advancement options
     And RBI calculations should be automatically provided for each outcome
 
+  @AC002
   Scenario: Hit type filtering based on base situation
     Given there is a runner on first base only
     And "Mike Johnson" is the current batter
@@ -26,6 +28,7 @@ Feature: Comprehensive Rule Matrix System
     And all other standard hit types should be available
     And base advancement options should reflect the current runner situation
 
+  @AC004
   Scenario: Double outcome selection with RBI calculation
     Given there is a runner on first base
     And "Sarah Davis" is the current batter
@@ -36,6 +39,7 @@ Feature: Comprehensive Rule Matrix System
     And I should be able to select the outcome that matches what actually happened
     And the system should validate the selected combination is possible
 
+  @AC008
   Scenario: Home run with bases loaded RBI calculation
     Given there are runners on first, second, and third base
     And "David Lee" is the current batter
@@ -46,6 +50,7 @@ Feature: Comprehensive Rule Matrix System
     And the total runs scored should be 4
     And the RBI count should be confirmed as 4
 
+  @AC010
   Scenario: Sacrifice fly validation with runner in scoring position
     Given there is a runner on third base only
     And "Lisa Brown" is the current batter
@@ -56,6 +61,7 @@ Feature: Comprehensive Rule Matrix System
     And the out count should increase by 1
     And the system should validate this is a legal sacrifice fly scenario
 
+  @AC017
   Scenario: Rule lookup performance validation
     Given the game is in an active scoring state
     When I change the base situation multiple times rapidly
@@ -64,6 +70,7 @@ Feature: Comprehensive Rule Matrix System
     And the system should handle concurrent rule validations efficiently
     And memory usage should remain reasonable throughout the process
 
+  @AC013
   Scenario: Fielder's choice with multiple outcome options
     Given there are runners on first and second base
     And "Chris Martin" is the current batter
@@ -75,6 +82,7 @@ Feature: Comprehensive Rule Matrix System
     And each option should show the resulting base configuration
     And I should be able to select the actual game outcome
 
+  @AC003
   Scenario: Double play validation with insufficient runners
     Given there is only a runner on third base
     And "Kevin White" is the current batter
@@ -84,6 +92,7 @@ Feature: Comprehensive Rule Matrix System
     And all other applicable hit types should remain available
     And the system should prevent impossible double play scenarios
 
+  @AC012
   Scenario: Error advancement with baserunner options
     Given there is a runner on second base
     And "Alex Green" is the current batter
@@ -95,6 +104,7 @@ Feature: Comprehensive Rule Matrix System
     And each option should indicate if runs are earned or unearned
     And the system should track error statistics separately
 
+  @AC015-walk
   Scenario: Intentional walk with bases loaded scenario
     Given there are runners on first, second, and third base
     And "Ryan Blue" is the current batter
@@ -106,6 +116,7 @@ Feature: Comprehensive Rule Matrix System
     And the RBI count should be 0 (no RBI on walk)
     And the system should handle the forced run scenario correctly
 
+  @AC018
   Scenario: Test data validation for existing scenarios
     Given I am running the test validation tool
     When I scan all existing test files for rule violations
@@ -114,6 +125,7 @@ Feature: Comprehensive Rule Matrix System
     And all standard test scenarios should follow real softball rules
     And any violations should be clearly documented with explanations
 
+  @AC015
   Scenario: Complex baserunner state validation
     Given there are runners on first and third base
     And "Steve Red" is the current batter
@@ -125,6 +137,7 @@ Feature: Comprehensive Rule Matrix System
     And each scenario should show accurate RBI calculations
     And no invalid base states should be offered (like two runners on same base)
 
+  @AC003-groundout
   Scenario: Ground out double play with runners
     Given there are runners on first and second base
     And there are 0 outs in the inning
@@ -136,6 +149,7 @@ Feature: Comprehensive Rule Matrix System
     And each option should show the final out count (2 outs)
     And the system should validate realistic double play scenarios
 
+  @AC015-forced
   Scenario: Walk with bases loaded forced run
     Given there are runners on first, second, and third base
     And "Paul Gray" is the current batter
@@ -147,6 +161,7 @@ Feature: Comprehensive Rule Matrix System
     And no RBI should be credited (walk scenario)
     And the system should handle forced advancement correctly
 
+  @AC019
   Scenario: Rule matrix integration with live scoring
     Given I am in the live scoring interface
     And the current base situation changes during the game
@@ -156,6 +171,7 @@ Feature: Comprehensive Rule Matrix System
     And the system should prevent any impossible game state transitions
     And all rule lookups should maintain sub-50ms performance
 
+  @AC016
   Scenario: Advanced scenario handling preparation
     Given the rule matrix supports basic scenarios
     When I prepare for future advanced scenario implementation
@@ -164,6 +180,7 @@ Feature: Comprehensive Rule Matrix System
     And the system should support fielding error combinations
     And there should be clear documentation of rule interpretations
 
+  @AC020
   Scenario: Expert rule validation verification
     Given I am validating the rule matrix against official slow-pitch softball rules
     When I test all standard game scenarios
@@ -172,6 +189,7 @@ Feature: Comprehensive Rule Matrix System
     And the rule matrix should be updatable if rules change
     And documentation should clearly explain all rule interpretations
 
+  @AC021
   Scenario: Memory efficiency during extended games
     Given I am scoring a long extra-inning game
     And I have performed hundreds of rule lookups
@@ -181,6 +199,7 @@ Feature: Comprehensive Rule Matrix System
     And the system should handle concurrent validations efficiently
     And there should be no memory leaks in rule processing
 
+  @AC022
   Scenario: Rule violation prevention in UI
     Given I am using the live scoring interface
     When I attempt to create an invalid game state
@@ -189,6 +208,7 @@ Feature: Comprehensive Rule Matrix System
     And alternative valid actions should be suggested
     And the game state should remain consistent and valid
 
+  @AC023
   Scenario: Comprehensive rule coverage validation
     Given the rule matrix covers all 8 possible baserunner configurations
     And all 13 standard hit types are implemented
