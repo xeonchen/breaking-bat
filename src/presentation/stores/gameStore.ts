@@ -142,9 +142,16 @@ function rehydrateGameDTO(gameData: Record<string, unknown>): GameDTO | null {
   // Restore GameDTO from serialized data
   // This ensures dates are properly restored as Date objects
   return {
-    ...gameData,
-    createdAt: gameData.createdAt ? new Date(gameData.createdAt) : new Date(),
-    updatedAt: gameData.updatedAt ? new Date(gameData.updatedAt) : new Date(),
+    ...(gameData as unknown as GameDTO),
+    createdAt: gameData.createdAt
+      ? new Date(gameData.createdAt as string | number | Date)
+      : new Date(),
+    updatedAt: gameData.updatedAt
+      ? new Date(gameData.updatedAt as string | number | Date)
+      : new Date(),
+    date: gameData.date
+      ? new Date(gameData.date as string | number | Date)
+      : new Date(),
   };
 }
 
@@ -760,7 +767,9 @@ export const useGameStore = create<GameState>()(
           if (state?.currentGame) {
             // Restore GameDTO after persistence rehydration
             // This ensures proper Date object restoration
-            state.currentGame = rehydrateGameDTO(state.currentGame);
+            state.currentGame = rehydrateGameDTO(
+              state.currentGame as unknown as Record<string, unknown>
+            );
           }
         },
       }

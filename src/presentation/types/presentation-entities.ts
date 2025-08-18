@@ -92,6 +92,7 @@ export interface GameDTO {
   seasonId: string;
   homeTeamId: string;
   awayTeamId: string;
+  teamId: string; // Current team ID for compatibility
   gameTypeId: string;
   status: PresentationGameStatus;
   currentInning: number;
@@ -108,6 +109,10 @@ export interface GameDTO {
 
   // Helper properties for game logic
   isAwayGame: boolean;
+
+  // Helper methods for backward compatibility
+  isHomeGame(): boolean;
+  getVenueText(): string;
 }
 
 /**

@@ -49,6 +49,7 @@ export class GameAdapter {
       seasonId: game.seasonId || '',
       homeTeamId: game.teamId, // Assuming this is the team ID
       awayTeamId: game.opponent, // This might need adjustment based on actual domain model
+      teamId: game.teamId, // For backward compatibility
       gameTypeId: game.gameTypeId || '',
       status: PresentationValueConverter.toPresentationGameStatus(game.status),
       currentInning: 1, // This would come from game state
@@ -69,6 +70,10 @@ export class GameAdapter {
 
       // Helper property implementation
       isAwayGame: game.homeAway === 'away',
+
+      // Helper methods implementation
+      isHomeGame: () => game.homeAway === 'home',
+      getVenueText: () => (game.homeAway === 'home' ? 'vs' : '@'),
     };
   }
 
@@ -215,7 +220,8 @@ export class GameAdapter {
       case PresentationBattingResult.DOUBLE_PLAY:
         return BattingResult.doublePlay();
       case PresentationBattingResult.TRIPLE_PLAY:
-        return BattingResult.triplePlay();
+        // Note: Triple play not implemented in domain, treating as double play
+        return BattingResult.doublePlay();
       default:
         throw new Error(`Unsupported batting result: ${result}`);
     }
