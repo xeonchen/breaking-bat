@@ -2,7 +2,12 @@ import { BaserunnerState } from '../values/BaserunnerState';
 import { BattingResult } from '../values/BattingResult';
 import { ValidOutcome } from '../values/ValidOutcome';
 import { ValidationRule } from '../values/ValidationRule';
-import { ValidationResult, RuleViolation } from '../values/RuleViolation';
+import {
+  ValidationResult,
+  RuleViolation,
+  ViolationType,
+} from '../values/RuleViolation';
+import { HitType } from '../values/HitType';
 
 export interface GameRuleConfig {
   enableValidation: boolean;
@@ -55,7 +60,7 @@ export class GameRuleEngine {
    */
   public validateAtBat(data: AtBatValidationData): ValidationResult {
     if (!this.config.enableValidation) {
-      return { isValid: true, violations: [] };
+      return ValidationResult.valid();
     }
 
     const violations: RuleViolation[] = [];
@@ -81,20 +86,26 @@ export class GameRuleEngine {
         }
       } catch (error) {
         if (this.config.strictValidation) {
-          violations.push({
-            type: 'error',
-            message: `Rule validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            field: 'rule_engine',
-            severity: 'high',
-          });
+          violations.push(
+            new RuleViolation(
+              ViolationType.INVALID_BASE_ADVANCEMENT,
+              `Rule validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              {
+                before: data.beforeState,
+                after: data.afterState,
+                hitType: data.battingResult.value as HitType,
+                rbis: data.rbis,
+                outs: data.outs,
+              }
+            )
+          );
         }
       }
     }
 
-    return {
-      isValid: violations.length === 0,
-      violations,
-    };
+    return violations.length === 0
+      ? ValidationResult.valid()
+      : ValidationResult.invalid(violations);
   }
 
   /**
@@ -182,7 +193,6 @@ export class GameRuleEngine {
       batterId
     );
     const rbis = this.calculateRBIs(battingResult, runsScored);
-    const outs = this.calculateOuts(battingResult);
 
     return ValidOutcome.standard(
       afterState,
@@ -256,6 +266,7 @@ export class GameRuleEngine {
       id: 'no-runner-passing',
       name: 'No Runner Passing Rule',
       description: 'Runners cannot pass each other',
+      category: 'critical',
       enabled: true,
       validate: (data) => this.validateNoRunnerPassing(data),
     });
@@ -264,6 +275,7 @@ export class GameRuleEngine {
       id: 'rbi-validation',
       name: 'RBI Validation Rule',
       description: 'RBIs must not exceed runs scored',
+      category: 'critical',
       enabled: true,
       validate: (data) => this.validateRBIs(data),
     });
@@ -272,6 +284,7 @@ export class GameRuleEngine {
       id: 'max-outs',
       name: 'Maximum Outs Rule',
       description: 'Cannot exceed 3 outs per at-bat',
+      category: 'critical',
       enabled: true,
       validate: (data) => this.validateMaxOuts(data),
     });
@@ -280,6 +293,7 @@ export class GameRuleEngine {
       id: 'base-occupancy',
       name: 'Base Occupancy Rule',
       description: 'Only one runner per base',
+      category: 'critical',
       enabled: true,
       validate: (data) => this.validateBaseOccupancy(data),
     });
@@ -338,7 +352,7 @@ export class GameRuleEngine {
     beforeState: BaserunnerState,
     afterState: BaserunnerState,
     battingResult: BattingResult,
-    batterId: string
+    _batterId: string
   ): string[] {
     const runsScored: string[] = [];
 
@@ -399,62 +413,48 @@ export class GameRuleEngine {
     return runsScored.length;
   }
 
-  /**
-   * Calculate outs produced by batting result
-   */
-  private calculateOuts(battingResult: BattingResult): number {
-    switch (battingResult.value) {
-      case 'DP':
-        return 2; // Double play
-      case 'SO':
-      case 'GO':
-      case 'AO':
-      case 'SF':
-        return 1; // Single outs
-      default:
-        return 0;
-    }
-  }
-
   // ========== Validation Helper Methods ==========
 
-  private validateNoRunnerPassing(data: any): ValidationResult {
+  private validateNoRunnerPassing(_data: any): ValidationResult {
     // Implementation for runner passing validation
-    return { isValid: true, violations: [] };
+    return ValidationResult.valid();
   }
 
   private validateRBIs(data: any): ValidationResult {
     if (data.rbis > data.runsScored.length) {
-      return {
-        isValid: false,
-        violations: [
+      return ValidationResult.invalid(
+        new RuleViolation(
+          ViolationType.INCORRECT_RBI_COUNT,
+          'RBIs cannot exceed runs scored',
           {
-            type: 'business_rule',
-            message: 'RBIs cannot exceed runs scored',
-            field: 'rbis',
-            severity: 'high',
-          },
-        ],
-      };
+            before: data.beforeState,
+            after: data.afterState,
+            hitType: data.battingResult.value as any,
+            rbis: data.rbis,
+          }
+        )
+      );
     }
-    return { isValid: true, violations: [] };
+    return ValidationResult.valid();
   }
 
   private validateMaxOuts(data: any): ValidationResult {
     if (data.outs > 3) {
-      return {
-        isValid: false,
-        violations: [
+      return ValidationResult.invalid(
+        new RuleViolation(
+          ViolationType.EXCESSIVE_OUTS,
+          'Cannot exceed 3 outs per at-bat',
           {
-            type: 'business_rule',
-            message: 'Cannot exceed 3 outs per at-bat',
-            field: 'outs',
-            severity: 'high',
-          },
-        ],
-      };
+            before: data.beforeState,
+            after: data.afterState,
+            hitType: data.battingResult.value as any,
+            rbis: data.rbis,
+            outs: data.outs,
+          }
+        )
+      );
     }
-    return { isValid: true, violations: [] };
+    return ValidationResult.valid();
   }
 
   private validateBaseOccupancy(data: any): ValidationResult {
@@ -467,19 +467,20 @@ export class GameRuleEngine {
 
     const uniqueRunners = new Set(runners);
     if (runners.length !== uniqueRunners.size) {
-      return {
-        isValid: false,
-        violations: [
+      return ValidationResult.invalid(
+        new RuleViolation(
+          ViolationType.IMPOSSIBLE_BASERUNNER_STATE,
+          'Multiple runners cannot occupy the same base',
           {
-            type: 'business_rule',
-            message: 'Multiple runners cannot occupy the same base',
-            field: 'baserunners',
-            severity: 'high',
-          },
-        ],
-      };
+            before: data.beforeState,
+            after: data.afterState,
+            hitType: data.battingResult.value as any,
+            rbis: data.rbis,
+          }
+        )
+      );
     }
-    return { isValid: true, violations: [] };
+    return ValidationResult.valid();
   }
 
   // ========== Outcome Generation Helper Methods ==========
@@ -493,27 +494,27 @@ export class GameRuleEngine {
   }
 
   private generateAggressiveOutcome(
-    beforeState: BaserunnerState,
-    battingResult: BattingResult,
-    batterId: string
+    _beforeState: BaserunnerState,
+    _battingResult: BattingResult,
+    _batterId: string
   ): ValidOutcome | null {
     // Implementation for aggressive running scenarios
     return null; // Simplified - would implement actual logic
   }
 
   private generateErrorOutcome(
-    beforeState: BaserunnerState,
-    battingResult: BattingResult,
-    batterId: string
+    _beforeState: BaserunnerState,
+    _battingResult: BattingResult,
+    _batterId: string
   ): ValidOutcome | null {
     // Implementation for fielding error scenarios
     return null; // Simplified - would implement actual logic
   }
 
   private generateUnconventionalOutcome(
-    beforeState: BaserunnerState,
-    battingResult: BattingResult,
-    batterId: string
+    _beforeState: BaserunnerState,
+    _battingResult: BattingResult,
+    _batterId: string
   ): ValidOutcome | null {
     // Implementation for unconventional advancement scenarios
     return null; // Simplified - would implement actual logic

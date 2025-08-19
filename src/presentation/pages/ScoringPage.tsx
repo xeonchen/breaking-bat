@@ -28,7 +28,6 @@ import { Scoreboard } from '@/presentation/components/Scoreboard';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
 import { useGameStore } from '@/presentation/stores/gameStore';
 import { PresentationBattingResult } from '@/presentation/types/presentation-values';
-import { GameAdapter } from '@/presentation/adapters/gameAdapter';
 
 export default function ScoringPage() {
   // Get gameId from URL params and location state
@@ -184,7 +183,7 @@ export default function ScoringPage() {
 
         toast({
           title: 'At-bat recorded',
-          description: `${atBatResult.result.value} recorded for ${currentBatter?.playerName}`,
+          description: `${atBatResult.result} recorded for ${currentBatter?.playerName}`,
           status: 'success',
           duration: 2000,
           isClosable: true,

@@ -151,6 +151,7 @@ describe('GameRuleEngine', () => {
         id: 'custom-test-rule',
         name: 'Custom Test Rule',
         description: 'A test rule',
+        category: 'optional' as const,
         enabled: true,
         validate: jest.fn().mockReturnValue({ isValid: true, violations: [] }),
       };

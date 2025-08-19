@@ -2,6 +2,7 @@ import {
   Team as DomainTeam,
   Player as DomainPlayer,
   PlayerRepository,
+  Position,
 } from '@/domain';
 import { PresentationValueConverter } from '../types/presentation-values';
 import { PresentationTeam, PresentationPlayer } from '../types/TeamWithPlayers';
@@ -70,14 +71,14 @@ export class TeamHydrationService {
   ): {
     name: string;
     jerseyNumber: number;
-    positions: string[];
+    positions: Position[];
     isActive: boolean;
   } {
     return {
       name: presentationPlayer.name,
       jerseyNumber: parseInt(presentationPlayer.jerseyNumber, 10),
       positions: presentationPlayer.positions.map((pos) =>
-        PresentationValueConverter.toDomainPosition(pos)
+        Position.fromValue(PresentationValueConverter.toDomainPosition(pos))
       ),
       isActive: presentationPlayer.isActive,
     };

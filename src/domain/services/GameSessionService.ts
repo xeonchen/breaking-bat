@@ -5,7 +5,6 @@ import {
 } from '@/domain';
 import { BaserunnerState } from '@/domain/types/BaserunnerState';
 import {
-  IGameSessionService,
   GameSessionState,
   InningAdvancementResult,
 } from '../interfaces/IGameSessionService';
@@ -198,8 +197,8 @@ export class GameSessionService {
   private shouldCompleteGameRegulation(
     currentInning: number,
     currentIsTop: boolean,
-    newInning: number,
-    newIsTop: boolean,
+    _newInning: number,
+    _newIsTop: boolean,
     game: Game
   ): boolean {
     // Game completes when advancing FROM bottom of 7th inning if home team leads
@@ -267,7 +266,7 @@ export class GameSessionService {
     currentState: GameSessionState,
     batterId: string,
     result: BattingResult,
-    lineupId: string
+    _lineupId: string
   ): AtBatSessionResult {
     let runsScored = 0;
     let newBaserunners = { ...currentState.baserunners };
@@ -418,9 +417,6 @@ export class GameSessionService {
   ): AdvanceInningResult {
     // Call the parent interface method
     const baseResult = this.advanceInningInternal(currentState, currentGame);
-
-    // For tests that expect homeScore/awayScore in state
-    const testState = currentState as any;
 
     // Check for game completion
     let gameCompleted = false;

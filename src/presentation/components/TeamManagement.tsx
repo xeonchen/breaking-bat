@@ -36,13 +36,13 @@ import {
   CloseIcon,
 } from '@chakra-ui/icons';
 import { useState, useMemo, useCallback } from 'react';
-import { Position } from '@/domain';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
 
 interface Player {
   id: string;
   name: string;
   jerseyNumber: string;
-  positions: Position[];
+  positions: PresentationPosition[];
   isActive: boolean;
 }
 
@@ -171,7 +171,7 @@ export function TeamManagement({
         player.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesPosition =
         positionFilter === 'all' ||
-        player.positions.some((p) => p.value === positionFilter);
+        player.positions.some((p) => p === positionFilter);
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'active' && player.isActive) ||
@@ -255,8 +255,8 @@ export function TeamManagement({
         name: playerForm.name,
         jerseyNumber: playerForm.jerseyNumber,
         positions: playerForm.position
-          ? [Position.fromValue(playerForm.position)]
-          : [Position.extraPlayer()],
+          ? [playerForm.position as PresentationPosition]
+          : [PresentationPosition.EXTRA_PLAYER],
         isActive: playerForm.isActive,
       };
 
@@ -282,8 +282,8 @@ export function TeamManagement({
         name: playerForm.name,
         jerseyNumber: playerForm.jerseyNumber,
         positions: playerForm.position
-          ? [Position.fromValue(playerForm.position)]
-          : [Position.extraPlayer()],
+          ? [playerForm.position as PresentationPosition]
+          : [PresentationPosition.EXTRA_PLAYER],
         isActive: playerForm.isActive,
       };
 
@@ -342,7 +342,7 @@ export function TeamManagement({
       setPlayerForm({
         name: player.name,
         jerseyNumber: player.jerseyNumber,
-        position: player.positions[0]?.value || 'extra-player', // Use first position for form
+        position: player.positions[0] || 'extra-player', // Use first position for form
         isActive: player.isActive,
       });
       onPlayerEditOpen();
@@ -868,8 +868,8 @@ function PlayerCard({
               <Text fontWeight="bold">{player.name}</Text>
               <Text color="gray.500">#{player.jerseyNumber}</Text>
               {player.positions.map((pos) => (
-                <Badge key={pos.value} mr={1}>
-                  {POSITION_ABBREVIATIONS[pos.value]}
+                <Badge key={pos} mr={1}>
+                  {POSITION_ABBREVIATIONS[pos]}
                 </Badge>
               ))}
               {!player.isActive && (

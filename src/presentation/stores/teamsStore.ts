@@ -12,12 +12,16 @@ import {
   PresentationTeam,
   PresentationPlayer,
 } from '@/presentation/types/TeamWithPlayers';
+import {
+  PresentationPosition,
+  PresentationValueConverter,
+} from '@/presentation/types/presentation-values';
 import { TeamHydrationService } from '@/presentation/services/TeamHydrationService';
 
 interface PlayerData {
   name: string;
   jerseyNumber: string;
-  positions: Position[];
+  positions: PresentationPosition[];
   isActive: boolean;
 }
 
@@ -250,7 +254,11 @@ export const useTeamsStore = create<TeamsState>()(
               teamId,
               name: playerData.name,
               jerseyNumber: parseInt(playerData.jerseyNumber, 10),
-              positions: playerData.positions,
+              positions: playerData.positions.map((pos) =>
+                Position.fromValue(
+                  PresentationValueConverter.toDomainPosition(pos)
+                )
+              ),
               isActive: playerData.isActive,
             });
 
