@@ -380,7 +380,7 @@ describe('TeamsStore', () => {
         id: 'player-1',
         name: 'John Smith',
         jerseyNumber: '12',
-        positions: [Position.pitcher()],
+        positions: ['pitcher'], // This is presentation layer input (strings)
         isActive: true,
       };
 
@@ -402,7 +402,7 @@ describe('TeamsStore', () => {
         await result.current.addPlayer('team-1', {
           name: 'John Smith',
           jerseyNumber: '12',
-          positions: [Position.pitcher()],
+          positions: ['pitcher'], // This is presentation layer input (strings)
           isActive: true,
         });
       });
@@ -411,7 +411,7 @@ describe('TeamsStore', () => {
         teamId: 'team-1',
         name: 'John Smith',
         jerseyNumber: 12,
-        positions: [Position.pitcher()],
+        positions: [Position.fromValue('pitcher')], // The implementation converts to domain objects
         isActive: true,
       });
       expect(result.current.teams).toHaveLength(1);
@@ -424,7 +424,7 @@ describe('TeamsStore', () => {
         id: 'player-1',
         name: 'John Smith',
         jerseyNumber: '12',
-        positions: [Position.pitcher()],
+        positions: ['pitcher'], // This is presentation layer input (strings)
         isActive: true,
       };
       const updatedPlayer = { ...player, name: 'Johnny Smith' };
@@ -438,7 +438,7 @@ describe('TeamsStore', () => {
         {
           name: 'Johnny Smith',
           jerseyNumber: 12,
-          positions: [Position.pitcher()],
+          positions: ['pitcher'], // This is presentation layer input (strings)
           isActive: true,
         }
       );
@@ -453,7 +453,7 @@ describe('TeamsStore', () => {
         playerId: 'player-1',
         name: 'Johnny Smith',
         jerseyNumber: 12,
-        positions: [Position.pitcher()],
+        positions: [Position.fromValue('pitcher')], // The implementation converts to domain objects
         isActive: true,
       });
       expect(result.current.error).toBeNull();
@@ -683,7 +683,7 @@ describe('TeamsStore', () => {
       id,
       name,
       jerseyNumber,
-      position: Position.pitcher(),
+      position: Position.fromValue('pitcher'), // Domain objects in hydrated team
       isActive: true,
     });
 
@@ -720,7 +720,7 @@ describe('TeamsStore', () => {
           await result.current.addPlayer('team-1', {
             name: 'Jane Smith',
             jerseyNumber: '12',
-            position: Position.pitcher(),
+            positions: ['pitcher'], // This is presentation layer input (strings)
             isActive: true,
           });
         });
@@ -758,7 +758,7 @@ describe('TeamsStore', () => {
           await result.current.addPlayer('team-2', {
             name: 'John Doe',
             jerseyNumber: '10',
-            position: Position.pitcher(),
+            position: Position.fromValue('pitcher'), // Domain objects in hydrated team
             isActive: true,
           });
         });
@@ -820,7 +820,7 @@ describe('TeamsStore', () => {
           {
             name: 'Johnny Doe',
             jerseyNumber: 10,
-            position: Position.pitcher(),
+            position: Position.fromValue('pitcher'), // Domain objects in hydrated team
             isActive: true,
           }
         );

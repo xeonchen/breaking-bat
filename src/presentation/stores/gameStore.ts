@@ -183,7 +183,7 @@ export const useGameStore = create<GameState>()(
             const game = await gameRepository?.findCurrent();
             const gameDTO = game ? GameAdapter.toGameDTO(game) : null;
             set({ currentGame: gameDTO, loading: false });
-          } catch {
+          } catch (error) {
             set({
               loading: false,
               error: 'Failed to load current game',

@@ -26,7 +26,7 @@ const mockGameStoreState = {
     opponent: 'Test Opponent',
     teamId: 'team-1',
     isHomeGame: () => true,
-    isAwayGame: () => false,
+    isAwayGame: false, // Property, not method (DTO structure)
     getVenueText: () => 'vs',
     getSummary: () => 'Test Game vs Test Opponent',
     status: 'in_progress',
@@ -153,7 +153,9 @@ describe('Opponent Half-Inning Management Controls', () => {
 
       // ASSERT: Button should be disabled
       expect(recordButton).toBeDisabled();
-      expect(recordButton).toHaveTextContent('Coming Soon');
+      expect(recordButton).toHaveTextContent(
+        'Record Opponent Score (Coming Soon)'
+      );
     });
   });
 

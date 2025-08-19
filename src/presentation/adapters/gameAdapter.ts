@@ -33,7 +33,7 @@ export class GameAdapter {
       ? {
           homeScore: game.finalScore.homeScore,
           awayScore: game.finalScore.awayScore,
-          inningScores: game.finalScore.inningScores.map((inning) => ({
+          inningScores: (game.finalScore.inningScores || []).map((inning) => ({
             inning: inning.inning,
             homeRuns: inning.homeRuns,
             awayRuns: inning.awayRuns,
@@ -89,11 +89,13 @@ export class GameAdapter {
       ? {
           homeScore: gameDTO.finalScore.homeScore,
           awayScore: gameDTO.finalScore.awayScore,
-          inningScores: gameDTO.finalScore.inningScores.map((inning) => ({
-            inning: inning.inning,
-            homeRuns: inning.homeRuns,
-            awayRuns: inning.awayRuns,
-          })),
+          inningScores: (gameDTO.finalScore.inningScores || []).map(
+            (inning) => ({
+              inning: inning.inning,
+              homeRuns: inning.homeRuns,
+              awayRuns: inning.awayRuns,
+            })
+          ),
         }
       : null;
 
@@ -189,37 +191,39 @@ export class GameAdapter {
    * Convert presentation batting result to domain BattingResult
    */
   public static fromPresentationBattingResult(
-    result: PresentationBattingResult
+    result: PresentationBattingResult | string
   ): BattingResult {
-    // Use the BattingResult static factory methods based on result type
-    switch (result) {
-      case PresentationBattingResult.SINGLE:
+    // Handle both enum values and string values for backward compatibility
+    const resultValue = typeof result === 'string' ? result : result;
+
+    switch (resultValue) {
+      case '1B':
         return BattingResult.single();
-      case PresentationBattingResult.DOUBLE:
+      case '2B':
         return BattingResult.double();
-      case PresentationBattingResult.TRIPLE:
+      case '3B':
         return BattingResult.triple();
-      case PresentationBattingResult.HOME_RUN:
+      case 'HR':
         return BattingResult.homeRun();
-      case PresentationBattingResult.WALK:
+      case 'BB':
         return BattingResult.walk();
-      case PresentationBattingResult.INTENTIONAL_WALK:
+      case 'IBB':
         return BattingResult.intentionalWalk();
-      case PresentationBattingResult.STRIKEOUT:
+      case 'SO':
         return BattingResult.strikeout();
-      case PresentationBattingResult.GROUND_OUT:
+      case 'GO':
         return BattingResult.groundOut();
-      case PresentationBattingResult.AIR_OUT:
+      case 'AO':
         return BattingResult.airOut();
-      case PresentationBattingResult.SACRIFICE_FLY:
+      case 'SF':
         return BattingResult.sacrificeFly();
-      case PresentationBattingResult.FIELDERS_CHOICE:
+      case 'FC':
         return BattingResult.fieldersChoice();
-      case PresentationBattingResult.ERROR:
+      case 'E':
         return BattingResult.error();
-      case PresentationBattingResult.DOUBLE_PLAY:
+      case 'DP':
         return BattingResult.doublePlay();
-      case PresentationBattingResult.TRIPLE_PLAY:
+      case 'TP':
         // Note: Triple play not implemented in domain, treating as double play
         return BattingResult.doublePlay();
       default:

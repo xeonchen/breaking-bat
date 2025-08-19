@@ -2,10 +2,10 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { TeamManagement } from '@/presentation/components/TeamManagement';
-import { Position } from '@/domain';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
-// Mock team data
+// Mock team data - using kebab-case position strings to match component expectations
 const mockTeam = {
   id: 'team-1',
   name: 'Yankees',
@@ -14,21 +14,21 @@ const mockTeam = {
       id: 'player-1',
       name: 'John Smith',
       jerseyNumber: '12',
-      positions: [Position.pitcher()],
+      positions: ['pitcher'], // Match the select option values
       isActive: true,
     },
     {
       id: 'player-2',
       name: 'Mike Johnson',
       jerseyNumber: '23',
-      positions: [Position.catcher()],
+      positions: ['catcher'],
       isActive: true,
     },
     {
       id: 'player-3',
       name: 'Sarah Wilson',
       jerseyNumber: '34',
-      positions: [Position.firstBase()],
+      positions: ['first-base'],
       isActive: false, // Injured/inactive
     },
   ],
@@ -320,7 +320,7 @@ describe('TeamManagement Component', () => {
       expect(onPlayerAdd).toHaveBeenCalledWith({
         name: 'David Brown',
         jerseyNumber: '45',
-        positions: [expect.objectContaining({ value: 'second-base' })],
+        positions: ['second-base'], // Positions are now strings in presentation layer
         isActive: true,
       });
     });
@@ -399,9 +399,7 @@ describe('TeamManagement Component', () => {
         id: 'player-1',
         name: 'Johnny Smith',
         jerseyNumber: '12',
-        positions: expect.arrayContaining([
-          expect.objectContaining({ value: 'pitcher' }),
-        ]),
+        positions: ['pitcher'], // Position strings in presentation layer
         isActive: true,
       });
     });
@@ -507,7 +505,7 @@ describe('TeamManagement Component', () => {
       );
 
       const positionFilter = screen.getByTestId('position-filter-select');
-      await user.selectOptions(positionFilter, 'pitcher');
+      await user.selectOptions(positionFilter, 'pitcher'); // Use the select option value, not enum
 
       // Only pitcher should be visible
       expect(screen.getByTestId('player-player-1')).toBeInTheDocument();
@@ -938,7 +936,7 @@ describe('TeamManagement Component', () => {
         id: 'player-4',
         name: 'David Ortiz',
         jerseyNumber: '34',
-        positions: [Position.firstBase()],
+        positions: ['first-base'],
         isActive: true,
       };
       const updatedTeam = {
@@ -1074,7 +1072,7 @@ describe('TeamManagement Component', () => {
         id: 'player-4',
         name: 'Jane Smith',
         jerseyNumber: '44',
-        positions: [Position.shortstop()],
+        positions: ['shortstop'],
         isActive: true,
       };
       const updatedTeam = {

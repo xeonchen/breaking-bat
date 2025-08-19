@@ -106,10 +106,64 @@ const mockLineup = [
   },
 ];
 
+// Create DTO versions for mock store state
+const mockGameDTO = {
+  id: 'game-1',
+  name: 'Season Opener',
+  opponent: 'Red Sox',
+  date: new Date('2024-04-15'),
+  seasonId: 'season-1',
+  homeTeamId: 'team-1',
+  awayTeamId: 'Red Sox',
+  teamId: 'team-1',
+  gameTypeId: 'regular',
+  status: 'In Progress',
+  currentInning: 7,
+  isTopInning: false,
+  homeScore: 6,
+  awayScore: 3,
+  lineupId: 'lineup-1',
+  currentBatterId: undefined,
+  currentBaserunners: {
+    first: null,
+    second: null,
+    third: null,
+  },
+  totalInnings: 7,
+  finalScore: {
+    homeScore: 6,
+    awayScore: 3,
+    inningScores: [
+      { inning: 1, homeRuns: 1, awayRuns: 0 },
+      { inning: 2, homeRuns: 0, awayRuns: 2 },
+      { inning: 3, homeRuns: 2, awayRuns: 0 },
+      { inning: 4, homeRuns: 1, awayRuns: 1 },
+      { inning: 5, homeRuns: 0, awayRuns: 0 },
+      { inning: 6, homeRuns: 1, awayRuns: 0 },
+      { inning: 7, homeRuns: 0, awayRuns: 0 },
+    ],
+  },
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  // Helper property implementation
+  isAwayGame: false, // This is a home game (vs Red Sox)
+  // Helper methods implementation
+  isHomeGame: () => true,
+  getVenueText: () => 'vs',
+};
+
+const mockTeamDTO = {
+  id: 'team-1',
+  name: 'Yankees',
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 // Mock store state that can be overridden in tests
 const mockGameStoreState = {
-  currentGame: mockGame,
-  teams: [mockTeam],
+  currentGame: mockGameDTO,
+  teams: [mockTeamDTO],
   lineup: mockLineup,
   currentBatter: mockLineup[0],
   currentInning: 7,
