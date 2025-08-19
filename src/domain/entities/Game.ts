@@ -307,9 +307,10 @@ export class Game extends BaseEntity {
   }
 
   // ========== Live Game State Management Methods (for testing) ==========
-  // These methods are needed for the RecordAtBatUseCase tests to pass
-  // In a real implementation, this game state would be managed by a service
+  // These methods delegate to GameSessionService but preserve existing API for backward compatibility
+  // @deprecated - Use GameSessionService directly for new code
 
+  private _gameSessionService: import('../services/GameSessionService').GameSessionService;
   private _currentInning: number = 1;
   private _currentBatter: {
     playerId: string;
@@ -326,9 +327,15 @@ export class Game extends BaseEntity {
   private _runs: number = 0;
   private _mutableStatus: GameStatus | undefined;
 
-  // Initialize mutable status in constructor
+  // Initialize mutable status and game session service
   private initializeMutableState(): void {
-    this._mutableStatus = (this as any).status;
+    this._mutableStatus = (this as unknown as { status: GameStatus }).status;
+    if (!this._gameSessionService) {
+      // Lazy initialization to avoid circular dependencies
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { GameSessionService } = require('../services/GameSessionService');
+      this._gameSessionService = new GameSessionService();
+    }
   }
 
   /**
@@ -469,16 +476,32 @@ export class Game extends BaseEntity {
 
   /**
    * Advance to the next batter in the lineup
+   * @deprecated - Use GameSessionService.advanceToNextBatter() for new code
    */
   public advanceToNextBatter(): void {
+    if (!this._gameSessionService) {
+      this.initializeMutableState();
+    }
+
     if (this._currentBatter) {
-      const nextOrder = this._currentBatter.battingOrder + 1;
-      const finalOrder = nextOrder > 9 ? 1 : nextOrder; // Cycle back to 1 after 9
-      this._currentBatter = {
-        playerId: `batter-${finalOrder}`,
-        playerName: `Batter ${finalOrder}`,
-        battingOrder: finalOrder,
-      };
+      // Create simple lineup for delegation
+      const mockLineup = Array.from({ length: 9 }, (_, i) => ({
+        playerId: `batter-${i + 1}`,
+      }));
+
+      const nextBatterId = this._gameSessionService.advanceToNextBatter(
+        this._currentBatter.playerId,
+        mockLineup
+      );
+
+      if (nextBatterId) {
+        const battingOrder = parseInt(nextBatterId.split('-')[1]) || 1;
+        this._currentBatter = {
+          playerId: nextBatterId,
+          playerName: `Batter ${battingOrder}`,
+          battingOrder,
+        };
+      }
     }
   }
 }
