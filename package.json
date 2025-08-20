@@ -48,7 +48,7 @@
     "@types/jest": "^30.0.0",
     "@types/uuid": "^10.0.0",
     "date-fns": "^4.1.0",
-    "dexie": "^4.0.11",
+    "dexie": "^4.2.0",
     "framer-motion": "^12.23.12",
     "papaparse": "^5.5.3",
     "react": "^19.1.1",
