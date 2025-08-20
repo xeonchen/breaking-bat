@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  # TIER 1: Fast Feedback (Parallel, ~60 seconds)
+  # TIER 1A: Fast Feedback (Parallel)
   fast-feedback:
     name: 'Fast Feedback'
     runs-on: ubuntu-latest
@@ -24,15 +24,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Parallel fast checks
+      # Fast checks only - no unit tests
       - name: Type checking
         run: npm run type-check
 
       - name: Linting
         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
+  # TIER 1B: PR Validation (Parallel to fast-feedback, PR only)
+  pr-validation:
+    name: 'PR Validation'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Commit message validation
+        run: npx commitlint --from=origin/main --to=HEAD --verbose
 
   # TIER 2A: Build (After fast-feedback)
   build:
@@ -92,15 +112,11 @@ jobs:
       - name: License compliance
         run: npm run licenses:check
 
-  # TIER 3: Comprehensive Tests (After build)
-  comprehensive-tests:
-    name: 'Comprehensive Testing'
+  # TIER 3: Unit Tests (After build)
+  unit-tests:
+    name: 'Unit Tests & Coverage'
     needs: [build]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      matrix:
-        test-type: [coverage, e2e]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -114,60 +130,51 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Coverage tests
-      - name: Test coverage
-        if: matrix.test-type == 'coverage'
+      # Combined unit tests + coverage
+      - name: Run unit tests with coverage
         run: npm run test:coverage
 
-      # E2E tests (using CI-optimized command)
+  # TIER 4: E2E Tests (After unit tests)
+  e2e-tests:
+    name: 'End-to-End Tests'
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Install Playwright browsers
-        if: matrix.test-type == 'e2e'
         run: npx playwright install --with-deps
 
       - name: Build for E2E tests
-        if: matrix.test-type == 'e2e'
         run: npm run build
 
       - name: Run E2E tests
-        if: matrix.test-type == 'e2e'
         run: npm run test:e2e:ci
-        timeout-minutes: 40
+        timeout-minutes: 35
 
       - name: Upload E2E test artifacts
-        if: failure() && matrix.test-type == 'e2e'
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-results
           path: test-results/
 
-  # TIER 4: PR Validation (PR only)
-  pr-validation:
-    name: 'PR Validation'
-    if: github.event_name == 'pull_request'
-    needs: [fast-feedback]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Commit message validation
-        run: npx commitlint --from=origin/main --to=HEAD --verbose
-
   # TIER 5: Quality Gates (Final validation)
   quality-gates:
     name: 'Quality Gates'
-    needs: [fast-feedback, build, security, comprehensive-tests, pr-validation]
+    needs:
+      [fast-feedback, build, security, unit-tests, e2e-tests, pr-validation]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -177,7 +184,7 @@ jobs:
 
           # Check each required job
           if [[ "${{ needs.fast-feedback.result }}" != "success" ]]; then
-            echo "❌ Fast feedback failed - Type checking, linting, or unit tests failed"
+            echo "❌ Fast feedback failed - Type checking or linting failed"
             exit 1
           fi
 
@@ -191,8 +198,13 @@ jobs:
             exit 1
           fi
 
-          if [[ "${{ needs.comprehensive-tests.result }}" != "success" ]]; then
-            echo "❌ Comprehensive tests failed - Coverage or E2E tests failed"
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+            echo "❌ Unit tests failed - Unit tests or coverage failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.e2e-tests.result }}" != "success" ]]; then
+            echo "❌ E2E tests failed - End-to-end testing failed"
             exit 1
           fi
 
@@ -207,5 +219,6 @@ jobs:
           echo "  - Fast Feedback: ${{ needs.fast-feedback.result }}"
           echo "  - Build: ${{ needs.build.result }}"
           echo "  - Security: ${{ needs.security.result }}"
-          echo "  - Comprehensive Tests: ${{ needs.comprehensive-tests.result }}"
+          echo "  - Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "  - E2E Tests: ${{ needs.e2e-tests.result }}"
           echo "  - PR Validation: ${{ needs.pr-validation.result }}"
