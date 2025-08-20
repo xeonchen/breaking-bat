@@ -367,6 +367,7 @@ describe('StatisticsCalculationService', () => {
   describe('validateStatistics', () => {
     it('should validate correct statistics', () => {
       const stats = {
+        games: 10,
         atBats: 50,
         hits: 20,
         battingAverage: 0.4,
@@ -389,6 +390,7 @@ describe('StatisticsCalculationService', () => {
 
     it('should reject hits exceeding at-bats', () => {
       const stats = {
+        games: 10,
         atBats: 50,
         hits: 55, // More hits than at-bats
         battingAverage: 0.4,
@@ -411,6 +413,7 @@ describe('StatisticsCalculationService', () => {
 
     it('should reject impossible batting averages', () => {
       const stats = {
+        games: 10,
         atBats: 50,
         hits: 20,
         battingAverage: 1.5, // Impossible
@@ -433,6 +436,7 @@ describe('StatisticsCalculationService', () => {
 
     it('should reject mismatched hit types', () => {
       const stats = {
+        games: 10,
         atBats: 50,
         hits: 20,
         battingAverage: 0.4,
@@ -455,6 +459,7 @@ describe('StatisticsCalculationService', () => {
 
     it('should reject impossible slugging percentage', () => {
       const stats = {
+        games: 10,
         atBats: 50,
         hits: 20,
         battingAverage: 0.4,

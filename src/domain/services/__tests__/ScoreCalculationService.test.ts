@@ -1,5 +1,5 @@
 import { ScoreCalculationService } from '../ScoreCalculationService';
-import { Game, GameScore, InningScore } from '@/domain';
+import { Game, GameScore } from '@/domain';
 
 describe('ScoreCalculationService', () => {
   let service: ScoreCalculationService;

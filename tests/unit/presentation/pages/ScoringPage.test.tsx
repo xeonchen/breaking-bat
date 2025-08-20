@@ -145,9 +145,8 @@ const mockGameDTO = {
   },
   createdAt: new Date(),
   updatedAt: new Date(),
-  // Helper property implementation
-  isAwayGame: false, // This is a home game (vs Red Sox)
-  // Helper methods implementation
+  // Helper method implementations
+  isAwayGame: () => false, // This is a home game (vs Red Sox)
   isHomeGame: () => true,
   getVenueText: () => 'vs',
 };

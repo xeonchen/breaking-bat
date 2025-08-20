@@ -68,10 +68,8 @@ export class GameAdapter {
       createdAt: game.createdAt || new Date(),
       updatedAt: game.updatedAt || new Date(),
 
-      // Helper property implementation
-      isAwayGame: game.homeAway === 'away',
-
-      // Helper methods implementation
+      // Helper methods implementation (mirroring domain entity API)
+      isAwayGame: () => game.homeAway === 'away',
       isHomeGame: () => game.homeAway === 'home',
       getVenueText: () => (game.homeAway === 'home' ? 'vs' : '@'),
     };
@@ -82,7 +80,7 @@ export class GameAdapter {
    */
   public static fromGameDTO(gameDTO: GameDTO): Game {
     // Determine home/away based on team comparison
-    const homeAway: HomeAway = gameDTO.isAwayGame ? 'away' : 'home';
+    const homeAway: HomeAway = gameDTO.isAwayGame() ? 'away' : 'home';
 
     // Create game score from DTO
     const gameScore: GameScore | null = gameDTO.finalScore

@@ -446,6 +446,7 @@ export default function GamePage() {
           size="sm"
           colorScheme="blue"
           onClick={() => handleGameAction(game)}
+          data-testid="continue-game-button"
         >
           Continue Game
         </Button>
@@ -456,6 +457,7 @@ export default function GamePage() {
           size="sm"
           colorScheme="orange"
           onClick={() => handleGameAction(game)}
+          data-testid="resume-game-button"
         >
           Resume Game
         </Button>

@@ -77,13 +77,19 @@ test.describe('Critical Path: Complete Game Recording Journey', () => {
 
     const resumeButton = gameCard
       .locator(
-        '[data-testid*="resume"], [data-testid*="continue"], [data-testid*="start"]'
+        '[data-testid="resume-game-button"], [data-testid="continue-game-button"], [data-testid="start-game-button"]'
       )
       .first();
     await resumeButton.click();
 
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
     // Validate game state is preserved
-    await expect(page.getByTestId('scoring-page')).toBeVisible();
+    await expect(page.getByTestId('scoring-page')).toBeVisible({
+      timeout: 10000,
+    });
     await expect(page.getByTestId('current-batter')).toContainText(
       '3rd Batter'
     ); // Should be on 3rd batter
@@ -291,8 +297,14 @@ async function validateDataPersistence(page: Page): Promise<void> {
   // Refresh page and ensure data persists (AC036)
   await page.reload();
 
+  // Wait for page to load completely
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(2000);
+
   // Should still be on scoring page with data intact
-  await expect(page.getByTestId('scoring-page')).toBeVisible();
+  await expect(page.getByTestId('scoring-page')).toBeVisible({
+    timeout: 10000,
+  });
   await expect(page.getByTestId('current-batter')).toBeVisible();
 
   // Current batter should not be the first batter anymore

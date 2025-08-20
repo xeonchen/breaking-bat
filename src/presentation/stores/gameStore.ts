@@ -138,9 +138,8 @@ export const initializeGameStore = (deps: {
 function rehydrateGameDTO(gameData: Record<string, unknown>): GameDTO | null {
   if (!gameData) return null;
 
-  // Restore GameDTO from serialized data
-  // This ensures dates are properly restored as Date objects
-  return {
+  // First restore date objects from serialized data
+  const dtoWithDates = {
     ...(gameData as unknown as GameDTO),
     createdAt: gameData.createdAt
       ? new Date(gameData.createdAt as string | number | Date)
@@ -151,6 +150,17 @@ function rehydrateGameDTO(gameData: Record<string, unknown>): GameDTO | null {
     date: gameData.date
       ? new Date(gameData.date as string | number | Date)
       : new Date(),
+  };
+
+  // Determine if this is a home or away game based on team IDs
+  const isAway = dtoWithDates.homeTeamId !== dtoWithDates.teamId;
+
+  // Restore helper methods
+  return {
+    ...dtoWithDates,
+    isAwayGame: () => isAway,
+    isHomeGame: () => !isAway,
+    getVenueText: () => (isAway ? '@' : 'vs'),
   };
 }
 

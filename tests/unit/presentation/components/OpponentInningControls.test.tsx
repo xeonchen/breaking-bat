@@ -26,7 +26,7 @@ const mockGameStoreState = {
     opponent: 'Test Opponent',
     teamId: 'team-1',
     isHomeGame: () => true,
-    isAwayGame: false, // Property, not method (DTO structure)
+    isAwayGame: () => false, // Method (correct DTO structure)
     getVenueText: () => 'vs',
     getSummary: () => 'Test Game vs Test Opponent',
     status: 'in_progress',

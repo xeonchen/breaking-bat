@@ -107,10 +107,8 @@ export interface GameDTO {
   createdAt: Date;
   updatedAt: Date;
 
-  // Helper properties for game logic
-  isAwayGame: boolean;
-
-  // Helper methods for backward compatibility
+  // Helper methods for game logic (mirroring domain entity API)
+  isAwayGame(): boolean;
   isHomeGame(): boolean;
   getVenueText(): string;
 }

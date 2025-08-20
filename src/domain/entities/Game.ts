@@ -310,7 +310,7 @@ export class Game extends BaseEntity {
   // These methods delegate to GameSessionService but preserve existing API for backward compatibility
   // @deprecated - Use GameSessionService directly for new code
 
-  private _gameSessionService: import('../services/GameSessionService').GameSessionService;
+  private _gameSessionService!: import('../services/GameSessionService').GameSessionService;
   private _currentInning: number = 1;
   private _currentBatter: {
     playerId: string;

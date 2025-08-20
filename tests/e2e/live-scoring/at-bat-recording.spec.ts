@@ -71,11 +71,8 @@ test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-
     // When: Recording a double (should place batter on second base)
     await page.getByTestId('double-button').click();
 
-    // Handle baserunner advancement modal (expected for hits like doubles)
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+    // AC016A: Modal should NOT appear when no runners on base
+    // Double should be processed automatically
 
     // Then: At-bat should be recorded and persisted immediately
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
@@ -200,10 +197,9 @@ test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-
 
     // When: Recording a single
     await page.getByTestId('single-button').click();
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+
+    // AC016A: Modal should NOT appear when no runners on base
+    // Single should be processed automatically
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
     await page
       .getByText('At-bat recorded')
@@ -228,10 +224,9 @@ test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-
 
     // When: Recording an at-bat
     await page.getByTestId('single-button').click();
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+
+    // AC016A: Modal should NOT appear when no runners on base
+    // Single should be processed automatically
 
     // Then: Interface should update immediately without refresh
     const updatedBatter = await page
@@ -254,15 +249,8 @@ test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-
     // When: Clicking any scoring button
     await page.getByTestId('double-button').click();
 
-    // Then: Should immediately show modal (visual feedback)
-    await expect(page.getByTestId('baserunner-advancement-modal')).toBeVisible({
-      timeout: 1000,
-    });
-
-    // When: Confirming advancement
-    await page.getByTestId('confirm-advancement').click();
-
-    // Then: Should immediately show success toast (visual feedback)
+    // AC016A: With empty bases, modal should NOT appear
+    // Should immediately show success toast (visual feedback)
     await expect(page.getByText('At-bat recorded').first()).toBeVisible({
       timeout: 1000,
     });

@@ -69,7 +69,7 @@ const mockGameDTO = {
   finalScore: { homeScore: 3, awayScore: 2, inningScores: [] },
   createdAt: new Date('2024-06-15'),
   updatedAt: new Date('2024-06-15'),
-  isAwayGame: false,
+  isAwayGame: () => false,
   isHomeGame: () => true,
   getVenueText: () => 'vs',
 };

@@ -160,10 +160,8 @@ export class PresentationAdapter {
       createdAt: domainGame.createdAt || new Date(),
       updatedAt: domainGame.updatedAt || new Date(),
 
-      // Helper properties
-      isAwayGame: domainGame.homeAway === 'away',
-
-      // Helper methods
+      // Helper methods (mirroring domain entity API)
+      isAwayGame: () => domainGame.homeAway === 'away',
       isHomeGame: () => domainGame.homeAway === 'home',
       getVenueText: () => (domainGame.homeAway === 'home' ? 'vs' : '@'),
     };

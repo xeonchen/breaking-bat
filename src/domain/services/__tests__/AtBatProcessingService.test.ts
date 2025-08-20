@@ -53,8 +53,8 @@ describe('AtBatProcessingService', () => {
 
       const currentBaserunners: BaserunnerState = {
         first: null,
-        second: 'runner-2',
-        third: 'runner-3',
+        second: { playerId: 'runner-2', playerName: 'Runner 2' },
+        third: { playerId: 'runner-3', playerName: 'Runner 3' },
       };
 
       const mockBaserunnerClass = new BaserunnerStateClass(
@@ -68,9 +68,9 @@ describe('AtBatProcessingService', () => {
         'runner-2'
       );
       const mockFinalBaserunners: BaserunnerState = {
-        first: 'batter-1',
+        first: { playerId: 'batter-1', playerName: 'Batter 1' },
         second: null,
-        third: 'runner-2',
+        third: { playerId: 'runner-2', playerName: 'Runner 2' },
       };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
@@ -116,7 +116,7 @@ describe('AtBatProcessingService', () => {
       };
 
       const currentBaserunners: BaserunnerState = {
-        first: 'runner-1',
+        first: { playerId: 'runner-1', playerName: 'Runner 1' },
         second: null,
         third: null,
       };
@@ -127,7 +127,7 @@ describe('AtBatProcessingService', () => {
         null
       );
       const mockFinalBaserunners: BaserunnerState = {
-        first: 'runner-1',
+        first: { playerId: 'runner-1', playerName: 'Runner 1' },
         second: null,
         third: null,
       };
@@ -175,8 +175,8 @@ describe('AtBatProcessingService', () => {
       };
 
       const currentBaserunners: BaserunnerState = {
-        first: 'runner-1',
-        second: 'runner-2',
+        first: { playerId: 'runner-1', playerName: 'Runner 1' },
+        second: { playerId: 'runner-2', playerName: 'Runner 2' },
         third: null,
       };
 
@@ -191,9 +191,9 @@ describe('AtBatProcessingService', () => {
         'runner-1'
       );
       const mockFinalBaserunners: BaserunnerState = {
-        first: 'batter-1',
+        first: { playerId: 'batter-1', playerName: 'Batter 1' },
         second: null,
-        third: 'runner-1',
+        third: { playerId: 'runner-1', playerName: 'Runner 1' },
       };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
@@ -246,7 +246,7 @@ describe('AtBatProcessingService', () => {
       const mockBaserunnerClass = new BaserunnerStateClass(null, null, null);
       const mockNewState = new BaserunnerStateClass('batter-1', null, null);
       const mockFinalBaserunners: BaserunnerState = {
-        first: 'batter-1',
+        first: { playerId: 'batter-1', playerName: 'Batter 1' },
         second: null,
         third: null,
       };

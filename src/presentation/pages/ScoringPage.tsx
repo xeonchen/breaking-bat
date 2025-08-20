@@ -256,7 +256,7 @@ export default function ScoringPage() {
     if (!currentGame) return false;
 
     // Away teams bat in top of inning, home teams bat in bottom
-    const ourTurnTop = currentGame.isAwayGame && isTopInning;
+    const ourTurnTop = currentGame.isAwayGame() && isTopInning;
     const ourTurnBottom = currentGame.isHomeGame() && !isTopInning;
 
     return ourTurnTop || ourTurnBottom;
@@ -341,7 +341,7 @@ export default function ScoringPage() {
   const homeTeam = currentGame.isHomeGame()
     ? teams.find((t) => t.id === currentGame.teamId)?.name || 'Home'
     : currentGame.opponent;
-  const awayTeam = currentGame.isAwayGame
+  const awayTeam = currentGame.isAwayGame()
     ? teams.find((t) => t.id === currentGame.teamId)?.name || 'Away'
     : currentGame.opponent;
 
@@ -455,7 +455,7 @@ export default function ScoringPage() {
                 <Text fontSize="sm" mb={3}>
                   Recording interface is disabled while {currentGame?.opponent}{' '}
                   is batting.
-                  {currentGame?.isAwayGame
+                  {currentGame?.isAwayGame()
                     ? ' Your team will bat in the top of the next inning.'
                     : ' Your team will bat in the bottom of this inning.'}
                 </Text>
