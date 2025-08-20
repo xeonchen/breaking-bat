@@ -18,7 +18,7 @@ Given('sample data has been loaded', async () => {
   }
 });
 
-// @AC001-006 - Game creation workflow
+// @game-creation:AC001-006 - Game creation workflow
 When('I create a new game with name {string}', async (gameName: string) => {
   const createBtn = page.locator('[data-testid="create-game-button"]');
   await expect(createBtn).toBeVisible();
@@ -72,7 +72,7 @@ Then('the game should be created successfully', async () => {
   await expect(page.locator('[data-testid*="game-"]')).toBeVisible();
 });
 
-// @AC007-021 - Lineup setup interface
+// @lineup-configuration:AC007-021 - Lineup setup interface
 When('I set up the lineup for the game', async () => {
   // Find the game card and click setup lineup
   const gameCard = page.locator('[data-testid*="game-"]').first();
@@ -119,7 +119,7 @@ Then('the lineup should be configured properly', async () => {
   }
 });
 
-// @AC022-043 - Complete workflow integration
+// @lineup-configuration:AC022-043 - Complete workflow integration
 When('I start the game', async () => {
   // Find the game card with setup lineup and start it
   const gameCard = page.locator('[data-testid*="game-"]').first();
@@ -156,7 +156,7 @@ Then('the game status should be {string}', async (expectedStatus: string) => {
   }
 });
 
-// @AC012-015 - Lineup validation
+// @lineup-configuration:AC012-015 - Lineup validation
 Given('I have a game without a complete lineup', async () => {
   // Create game but don't complete lineup setup
   await page.goto('/games');

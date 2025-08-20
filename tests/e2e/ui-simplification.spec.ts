@@ -9,20 +9,19 @@ import {
  * UI Simplification and Enhanced User Experience E2E Tests
  *
  * Maps to user story: ui-simplification.md
- * Tests ACs: AC001-AC029 (UI Simplification)
+ * Tests ACs: app-framework:AC001-AC028 (UI Simplification)
  *
  * AC001-AC005: Streamlined Navigation (4 main sections, Games as default)
- * AC006-AC011: Consolidated Settings Management (tabbed interface)
- * AC012-AC017: Simplified Game Creation (optional fields, Quick/Detailed modes)
- * AC018-AC023: Enhanced Mobile Experience (larger touch targets, optimization)
- * AC024-AC029: Backward Compatibility and Data Preservation
+ * AC006-AC009: Enhanced Mobile Experience (larger touch targets, optimization)
+ * AC010-AC019: Data Persistence and Export/Import
+ * AC020-AC028: Session Recovery and Backward Compatibility
  *
  * Tests the complete UI simplification workflow including navigation,
  * settings consolidation, game creation simplification, mobile optimization,
  * and backward compatibility with existing data.
  */
 
-test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', () => {
+test.describe('UI Simplification and Enhanced User Experience (@app-framework:AC001-@app-framework:AC028)', () => {
   // Use mobile viewport for all tests
   test.use({
     viewport: { width: 375, height: 667 }, // iPhone SE size
@@ -33,12 +32,12 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
     await expect(page.locator('text=⚾ Breaking-Bat')).toBeVisible();
   });
 
-  test('should complete full workflow on mobile - iPhone size (@AC018, @AC019, @AC022)', async ({
+  test('should complete full workflow on mobile - iPhone size (@app-framework:AC006, @app-framework:AC007, @app-framework:AC008)', async ({
     page,
   }) => {
     console.log('=== MOBILE WORKFLOW TEST (iPhone SE 375x667) ===');
 
-    // Test complete mobile scoring workflow for AC018, AC019, AC022
+    // Test complete mobile scoring workflow for app-framework:AC006, AC007, AC008
     await testMobileNavigation(page);
 
     if (page.isClosed()) {
@@ -86,7 +85,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
       // Validate mobile scoring interface meets AC requirements
       await expect(page.getByTestId('scoring-page')).toBeVisible();
 
-      // AC003: Touch-friendly buttons test
+      // app-framework:AC006: Touch-friendly buttons test
       const requiredButtons = [
         'single-button',
         'walk-button',
@@ -97,12 +96,12 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
         if (await button.isVisible({ timeout: 1000 })) {
           const boundingBox = await button.boundingBox();
           const height = boundingBox?.height || 0;
-          // AC003 requirement: minimum 44px height per iOS/Android guidelines
+          // app-framework:AC006 requirement: minimum 44px height per iOS/Android guidelines
           expect(height).toBeGreaterThanOrEqual(44);
         }
       }
 
-      // AC014: Interface optimized for quick, accurate input during live gameplay
+      // app-framework:AC008: Interface optimized for quick, accurate input during live gameplay
       // Test rapid input sequence
       await page.getByTestId('single-button').click();
 
@@ -118,7 +117,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
 
       await expect(page.getByText('At-bat recorded').first()).toBeVisible();
 
-      // Test next batter advancement (AC002)
+      // Test next batter advancement (app-framework:AC007)
       await expect(page.getByTestId('current-batter')).toContainText(
         '2nd Batter'
       );
@@ -179,13 +178,15 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
     }
   });
 
-  test('should test tablet-size workflow (@AC023)', async ({ page }) => {
+  test('should test tablet-size workflow (@app-framework:AC009)', async ({
+    page,
+  }) => {
     console.log('=== TESTING TABLET WORKFLOW ===');
 
     // Set tablet viewport (iPad)
     await page.setViewportSize({ width: 768, height: 1024 });
 
-    // Test tablet-specific scoring interface (AC015 - Interface works well with touch input on tablets)
+    // Test tablet-specific scoring interface (app-framework:AC009 - Interface works well with touch input on tablets)
     // Use the same reliable setup as successful mobile scoring test
     const gameName = 'Tablet Scoring Test';
 
@@ -260,7 +261,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
       await expect(page.getByText('At-bat recorded').first()).toBeVisible();
 
       console.log(
-        '✅ Tablet scoring workflow test completed with AC015 validation'
+        '✅ Tablet scoring workflow test completed with app-framework:AC009 validation'
       );
     } catch (error) {
       console.log(`❌ Tablet workflow test failed: ${error.message}`);
@@ -268,7 +269,9 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
     }
   });
 
-  test('should test mobile scoring interface (@AC021)', async ({ page }) => {
+  test('should test mobile scoring interface (@app-framework:AC008)', async ({
+    page,
+  }) => {
     console.log('=== TESTING MOBILE SCORING INTERFACE ===');
 
     // Alternative approach: Use existing live scoring tests setup but in mobile viewport
@@ -303,7 +306,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
       // Now test mobile-specific AC requirements on the live scoring page
       await expect(page.getByTestId('scoring-page')).toBeVisible();
 
-      // AC015 & AC003: Test touch-friendly buttons in mobile viewport
+      // app-framework:AC009 & AC006: Test touch-friendly buttons in mobile viewport
       const criticalButtons = [
         'single-button',
         'walk-button',
@@ -319,7 +322,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
 
           console.log(`Mobile ${buttonId}: ${height}px height`);
 
-          // AC003: minimum 44px height per iOS/Android guidelines
+          // app-framework:AC006: minimum 44px height per iOS/Android guidelines
           if (height >= 44) {
             mobileOptimizedButtons++;
           }
@@ -328,7 +331,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
 
       expect(mobileOptimizedButtons).toBeGreaterThanOrEqual(2); // At least 2 critical buttons touch-friendly
 
-      // AC015: Test actual mobile scoring workflow
+      // app-framework:AC009: Test actual mobile scoring workflow
       await page.getByTestId('single-button').click();
 
       try {
@@ -341,7 +344,7 @@ test.describe('UI Simplification and Enhanced User Experience (@AC001-@AC029)', 
         // Modal may not appear for first at-bat
       }
 
-      // AC014: Verify quick input works on mobile
+      // app-framework:AC008: Verify quick input works on mobile
       await expect(page.getByText('At-bat recorded').first()).toBeVisible();
 
       console.log('✅ Mobile scoring AC validation completed');

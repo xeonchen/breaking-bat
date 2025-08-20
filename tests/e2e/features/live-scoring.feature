@@ -217,7 +217,7 @@ Feature: Live Game Scoring and Statistics
     And the interface should remain fully functional
 
   # Innings Management for Home/Away Teams
-  @AC029 @AC031
+  @live-game-scoring:AC029 @live-game-scoring:AC031
   Scenario: Away team records only top half innings
     Given my team "Red Sox" is playing away against "Yankees"
     And we are in the top of the 1st inning
@@ -226,7 +226,7 @@ Feature: Live Game Scoring and Statistics
     And the at-bat recording interface should be enabled for my team
     And I should be able to record batting results for Red Sox players
 
-  @AC030 @AC032
+  @live-game-scoring:AC030 @live-game-scoring:AC032
   Scenario: Home team records only bottom half innings
     Given my team "Blue Jays" is playing at home against "Tigers"
     And we are in the bottom of the 2nd inning
@@ -235,7 +235,7 @@ Feature: Live Game Scoring and Statistics
     And the at-bat recording interface should be enabled for my team
     And I should be able to record batting results for Blue Jays players
 
-  @AC033 @AC034
+  @live-game-scoring:AC033 @live-game-scoring:AC034
   Scenario: Interface disabled during opponent's batting turn (away team)
     Given my team "Red Sox" is playing away
     And we are in the bottom of the 3rd inning (Yankees batting)
@@ -245,7 +245,7 @@ Feature: Live Game Scoring and Statistics
     And I should see a message "Opponent's turn to bat - interface disabled"
     And all batting input controls should be inactive
 
-  @AC033 @AC034
+  @live-game-scoring:AC033 @live-game-scoring:AC034
   Scenario: Interface disabled during opponent's batting turn (home team)
     Given my team "Blue Jays" is playing at home
     And we are in the top of the 4th inning (Tigers batting)
@@ -255,7 +255,7 @@ Feature: Live Game Scoring and Statistics
     And I should see a message "Opponent's turn to bat - interface disabled"
     And all batting input controls should be inactive
 
-  @AC031 @AC032
+  @live-game-scoring:AC031 @live-game-scoring:AC032
   Scenario: Clear inning indicator throughout the game (away team)
     Given my team "Cardinals" is playing away
     When I am in different innings
@@ -267,7 +267,7 @@ Feature: Live Game Scoring and Statistics
       | 2 | Bottom | Bottom of 2nd - Opponent | Disabled |
       | 3 | Top | Top of 3rd | Enabled |
 
-  @AC031 @AC032
+  @live-game-scoring:AC031 @live-game-scoring:AC032
   Scenario: Clear inning indicator throughout the game (home team)
     Given my team "Giants" is playing at home
     When I am in different innings
@@ -279,7 +279,7 @@ Feature: Live Game Scoring and Statistics
       | 2 | Bottom | Bottom of 2nd | Enabled |
       | 3 | Top | Top of 3rd - Opponent | Disabled |
 
-  @AC034
+  @live-game-scoring:AC034
   Scenario: Automatic interface state changes when inning switches (away)
     Given my team "Dodgers" is playing away
     And I am recording the top of the 5th inning (our turn)
@@ -290,7 +290,7 @@ Feature: Live Game Scoring and Statistics
     And all at-bat controls should become inactive
     And the current batter should be cleared/hidden
 
-  @AC034
+  @live-game-scoring:AC034
   Scenario: Automatic interface state changes when inning switches (home)
     Given my team "Padres" is playing at home
     And we are in the top of the 6th inning (opponent's turn)
@@ -301,7 +301,7 @@ Feature: Live Game Scoring and Statistics
     And all at-bat controls should become active
     And the current batter should be displayed
 
-  @AC029 @AC030
+  @live-game-scoring:AC029 @live-game-scoring:AC030
   Scenario: Scoreboard shows correct team batting context
     Given my team "Mariners" is playing away
     When I view the scoreboard during different innings
@@ -310,3 +310,214 @@ Feature: Live Game Scoring and Statistics
       | Top of 1st | Mariners Batting (Away) |
       | Bottom of 1st | Opponent Batting (Mariners Away) |
       | Top of 2nd | Mariners Batting (Away) |
+
+  # UX Improvements Scenarios - AC003A, AC004A, AC009A, AC016A, AC017A-C, AC045A-D
+
+  @live-game-scoring:AC043 @live-game-scoring:AC044
+  Scenario: Skip opponent turn advances to our team's half-inning
+    Given it is the opponent's turn to bat
+    When I click the "Skip to Our Turn" button
+    Then the system should advance to my team's half-inning
+    And the at-bat recording interface should be enabled
+    And I should see a success message "Inning advanced"
+    And the inning indicator should show it's our turn to bat
+
+  @live-game-scoring:AC045A @live-game-scoring:AC045B @live-game-scoring:AC045C @live-game-scoring:AC045D
+  Scenario: Complete opponent scoring interface workflow
+    Given it is the opponent's turn to bat
+    And the current score is Home: 4, Away: 2
+    And we are in the top of the 5th inning
+    When I click the "Record Opponent Score" button
+    Then I should see the opponent scoring interface
+    And I should see the current inning displayed as "Top of 5th"
+    And I should see the opponent team name clearly indicated
+    When I enter "3" in the opponent runs field
+    And I click the "Record Runs" button
+    Then the scoreboard should immediately update to show Away: 5
+    And the system should advance to our team's half-inning
+    And I should see a success message "Opponent score recorded. Your turn to bat!"
+
+  @live-game-scoring:AC004A
+  Scenario: Collapsible pitch tracking section for better focus
+    Given I am on the at-bat form
+    When I view the pitch tracking section
+    Then I should see a toggle control for collapsing the section
+    When I click the toggle to collapse pitch tracking
+    Then the pitch tracking content should be hidden
+    And the at-bat outcome buttons should remain fully visible
+    When I refresh the page
+    Then the pitch tracking section should remain collapsed
+    And my preference should be preserved
+
+  @live-game-scoring:AC003A
+  Scenario: Contextual fast-action button enablement with runner requirements
+    Given there are no runners on base
+    And the current out count is 0
+    When I view the fast-action buttons
+    Then the "Double Play" button should be disabled
+    And I should see a tooltip indicating "No runners for double play"
+    And the "Sacrifice Fly" button should be disabled
+    And I should see a tooltip indicating "No runner on third base"
+    And the "FC" button should be disabled
+    And I should see a tooltip indicating "No runners on base"
+    When a runner reaches first base
+    Then the "Double Play" button should become enabled
+    And the "FC" button should become enabled
+    When a runner reaches third base
+    Then the "Sacrifice Fly" button should become enabled
+
+  @live-game-scoring:AC003A-out-count
+  Scenario: Contextual button enablement based on out count
+    Given there is a runner on first base
+    And there is a runner on third base
+    And the current out count is 0
+    When I view the fast-action buttons
+    Then the "Double Play" button should be enabled
+    And the "Sacrifice Fly" button should be enabled
+    And the "FC" button should be enabled
+    When the out count becomes 1
+    Then the "Double Play" button should remain enabled
+    And the "Sacrifice Fly" button should remain enabled
+    And the "FC" button should remain enabled
+    When the out count becomes 2
+    Then the "Double Play" button should be disabled
+    And I should see a tooltip indicating "Impossible with 2 outs"
+    And the "Sacrifice Fly" button should be disabled
+    And I should see a tooltip indicating "Impossible with 2 outs"
+    And the "FC" button should be disabled
+    And I should see a tooltip indicating "Impossible with 2 outs"
+
+  @live-game-scoring:AC003A-integration
+  Scenario: Complete contextual enablement with game situation
+    Given there are no runners on base
+    And the current out count is 2
+    When I view the fast-action buttons
+    Then contextual buttons "DP", "SF", "FC" should all be disabled
+    And tooltips should explain both runner and out count requirements
+    When a runner reaches third base
+    Then the "Sacrifice Fly" button should still be disabled due to 2 outs
+    When the inning changes and out count resets to 0
+    Then the "Sacrifice Fly" button should become enabled
+
+  @live-game-scoring:AC009A
+  Scenario: Field-accurate baserunner layout display
+    Given there are runners on all bases
+    When I view the baserunner display
+    Then third base should be positioned on the left
+    And second base should be positioned in the center and elevated
+    And first base should be positioned on the right
+    And the layout should resemble a baseball diamond
+    And the visual styling should clearly distinguish occupied vs empty bases
+
+  @live-game-scoring:AC016A
+  Scenario: Conditional baserunner advancement modal
+    Given there are no runners on base
+    When I click the "Single" button
+    Then the baserunner advancement modal should not appear
+    And the at-bat should be completed automatically
+    When a runner reaches first base
+    And I click the "Single" button
+    Then the baserunner advancement modal should appear
+    And I should see advancement options for the first base runner
+
+  @live-game-scoring:AC017A @live-game-scoring:AC017B @live-game-scoring:AC017C
+  Scenario: Comprehensive baserunner advancement validation
+    Given there are runners on first and third base
+    And the baserunner advancement modal is open
+    When I attempt to confirm without selecting advancement for all runners
+    Then I should see a validation error "Please select advancement for all runners"
+    And the confirmation button should be disabled
+    When I select "Stay at 1st" for the first base runner
+    And I select "Advance to 1st" for the third base runner
+    Then I should see a validation error "Multiple runners cannot occupy the same base"
+    And I should see "First base would have: Runner One, Runner Three"
+    When I select "Advance to 2nd" for the first base runner
+    And I select "Score" for the third base runner
+    Then no validation errors should be shown
+    And the confirmation button should be enabled
+
+  @Integration
+  Scenario: Complete UX improvements integration workflow
+    Given it is the opponent's turn to bat
+    And the pitch tracking section is collapsed from my previous session
+    When I skip the opponent's turn
+    And there are runners on first and third base
+    And I click the "Double" button
+    Then the baserunner advancement modal should appear
+    And I should see the field-accurate baserunner layout
+    And only contextually relevant buttons should be enabled
+    When I select valid advancement for all runners
+    And I confirm the advancement
+    Then the at-bat should be completed successfully
+    And the pitch tracking preference should be preserved
+    And the game should continue normally
+
+  @live-game-scoring:AC046A
+  Scenario: Pitch tracking defaults to collapsed for streamlined experience
+    Given I am starting a new scoring session
+    When I navigate to the live scoring interface
+    Then the pitch tracking section should be collapsed by default
+    And I should see the at-bat outcome buttons prominently
+    When I expand the pitch tracking section
+    And I refresh the page
+    Then the pitch tracking section should remember my preference and remain expanded
+
+  @live-game-scoring:AC046B
+  Scenario: Baserunner advancement modal pre-populates with standard defaults
+    Given there are runners on first and second base
+    When I click the "Double" button
+    Then the baserunner advancement modal should appear
+    And the first base runner should be pre-selected to "Advance to 3rd"
+    And the second base runner should be pre-selected to "Score"
+    When I click "Confirm" without making changes
+    Then the advancement should proceed with the default selections
+    And the first base runner should be moved to third base
+    And the second base runner should score
+
+  @live-game-scoring:AC046B-single
+  Scenario: Single advancement defaults
+    Given there are runners on first, second, and third base
+    When I click the "Single" button
+    Then the baserunner advancement modal should appear
+    And the first base runner should be pre-selected to "Advance to 2nd"
+    And the second base runner should be pre-selected to "Score"
+    And the third base runner should be pre-selected to "Score"
+
+  @live-game-scoring:AC046B-walk
+  Scenario: Walk advancement only affects forced runners by default
+    Given there are runners on first and third base
+    When I click the "Walk" button
+    Then the baserunner advancement modal should appear
+    And the first base runner should be pre-selected to "Advance to 2nd" (forced)
+    And the third base runner should be pre-selected to "Stay at 3rd" (not forced)
+
+  @live-game-scoring:AC046C
+  Scenario: Home run immediately clears all baserunners and scores everyone
+    Given there are runners on first, second, and third base
+    And the current team score is 5 runs
+    When I click the "Home Run" button
+    Then no baserunner advancement modal should appear
+    And all baserunners should be immediately cleared from the bases
+    And the team score should increase by 4 runs (3 runners + batter = 9 total)
+    And the next batter should be displayed
+    And the play should be recorded as "Home Run - 4 RBI"
+
+  @live-game-scoring:AC046C-empty-bases
+  Scenario: Home run with no runners on base
+    Given there are no runners on base
+    And the current team score is 2 runs
+    When I click the "Home Run" button
+    Then no baserunner advancement modal should appear
+    And the team score should increase by 1 run (batter only = 3 total)
+    And the next batter should be displayed
+    And the play should be recorded as "Home Run - 1 RBI"
+
+  @live-game-scoring:AC046C-integration
+  Scenario: Home run vs other hits - different behavior verification
+    Given there are runners on first and third base
+    When I click the "Triple" button
+    Then the baserunner advancement modal should appear for manual confirmation
+    When I cancel and click the "Home Run" button instead
+    Then no modal should appear
+    And all runners should score automatically
+    And bases should be cleared immediately

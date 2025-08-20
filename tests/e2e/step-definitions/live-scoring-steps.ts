@@ -35,7 +35,7 @@ Given('I have a game in progress', async () => {
   await expect(page.getByTestId('scoring-page')).toBeVisible();
 });
 
-// @AC001 - Functional business logic integration
+// @live-game-scoring:AC001 - Functional business logic integration
 When('I record a batting result of {string}', async (result: string) => {
   const buttonMap: Record<string, string> = {
     single: 'single-button',
@@ -76,7 +76,7 @@ Then('the at-bat should be recorded and persisted immediately', async () => {
     .waitFor({ state: 'hidden', timeout: 3000 });
 });
 
-// @AC002 - Auto-advance to next batter
+// @live-game-scoring:AC002 - Auto-advance to next batter
 Then('the system should advance to the next batter', async () => {
   // Verify the batter order has advanced
   const batterDisplay = page.getByTestId('current-batter');
@@ -86,7 +86,7 @@ Then('the system should advance to the next batter', async () => {
   await expect(batterDisplay).toContainText('2nd Batter');
 });
 
-// @AC003 - Touch-friendly buttons
+// @live-game-scoring:AC003 - Touch-friendly buttons
 Then('all batting result buttons should be touch-friendly', async () => {
   const buttonTestIds = [
     'single-button',
@@ -108,7 +108,7 @@ Then('all batting result buttons should be touch-friendly', async () => {
   }
 });
 
-// @AC007 - Visual baserunner representation
+// @live-game-scoring:AC009 - Visual baserunner representation
 Then('I should see the baserunner diagram with current state', async () => {
   await expect(page.getByTestId('baserunner-first')).toBeVisible();
   await expect(page.getByTestId('baserunner-second')).toBeVisible();
@@ -141,7 +141,7 @@ Then('I should see runners displayed on the appropriate bases', async () => {
   await expect(page.getByTestId('baserunner-third')).toContainText('Empty');
 });
 
-// @AC014 - Real-time updates
+// @live-game-scoring:AC004 - Real-time updates
 Then(
   'the interface should update immediately without page refresh',
   async () => {
@@ -152,7 +152,7 @@ Then(
   }
 );
 
-// @AC016 - Visual feedback
+// @live-game-scoring:AC034 - Visual feedback
 Then('I should receive immediate visual feedback', async () => {
   // Visual feedback is the success toast and immediate UI updates
   // This is inherently tested by the other steps that verify immediate responses

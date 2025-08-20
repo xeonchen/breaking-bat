@@ -15,7 +15,7 @@ Given('the system has no existing data', async () => {
   await page.goto('/');
 });
 
-// @AC001 - Load sample data successfully
+// @sample-data-management:AC001 - Load sample data successfully
 When('I click the Load Sample Data button', async () => {
   const loadSampleBtn = page.locator('[data-testid="load-sample-data-btn"]');
   await expect(loadSampleBtn).toBeVisible();
@@ -33,7 +33,7 @@ Then('sample data should be loaded successfully', async () => {
   await expect(successMessage.first()).toBeVisible({ timeout: 10000 });
 });
 
-// @AC002 - MLB player data
+// @sample-data-management:AC002 - MLB player data
 Then(
   'the system should have MLB players with realistic names and positions',
   async () => {
@@ -53,7 +53,7 @@ Then(
   }
 );
 
-// @AC003 - Multiple teams
+// @sample-data-management:AC003 - Multiple teams
 Then('multiple teams should be created with proper rosters', async () => {
   await page.goto('/teams');
 
@@ -72,7 +72,7 @@ Then('multiple teams should be created with proper rosters', async () => {
   }
 });
 
-// @AC004 - Seasons and game types
+// @sample-data-management:AC004 - Seasons and game types
 Then(
   'seasons and game types should be available for game creation',
   async () => {
@@ -108,7 +108,7 @@ Then(
   }
 );
 
-// @AC005 - Idempotent loading
+// @sample-data-management:AC005 - Idempotent loading
 When('I click Load Sample Data multiple times', async () => {
   const loadSampleBtn = page.locator('[data-testid="load-sample-data-btn"]');
 
@@ -135,7 +135,7 @@ Then('duplicate data should not be created', async () => {
   expect(count).toBeLessThan(10);
 });
 
-// @AC006 - Clear existing data
+// @sample-data-management:AC006 - Clear existing data
 Given('sample data has been loaded previously', async () => {
   await page.goto('/');
 
@@ -163,7 +163,7 @@ Then('existing sample data should be replaced cleanly', async () => {
   expect(count).toBeLessThan(10);
 });
 
-// @AC007 - Loading state and feedback
+// @sample-data-management:AC007 - Loading state and feedback
 When('I initiate sample data loading', async () => {
   const loadSampleBtn = page.locator('[data-testid="load-sample-data-btn"]');
   await loadSampleBtn.click();

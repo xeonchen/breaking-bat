@@ -23,7 +23,7 @@ inputs:
   - name: opponent_runs
     type: number
     required: true
-    validation: range-0-15
+    validation: range-0-25
   - name: inning_number
     type: number
     required: true
@@ -32,6 +32,23 @@ inputs:
     type: select
     required: true
     options: [home, away]
+  - name: pitch_tracking_collapsed
+    type: boolean
+    required: false
+    default: true
+    validation: boolean
+    component_hint: "Switch(label='Show Pitch Tracking', isChecked=!collapsed)"
+  - name: fast_action_button_context
+    type: object
+    required: false
+    validation: game-situation-context
+    component_hint: 'contextual enablement based on game state'
+  - name: current_outs
+    type: number
+    required: true
+    validation: range-0-2
+    default: 0
+    component_hint: 'current out count in the inning (0, 1, or 2)'
 
 actions:
   - type: record
@@ -52,6 +69,18 @@ actions:
   - type: undo
     label: Undo Last Action
     target: last_action
+  - type: toggle
+    label: Collapse/Expand Pitch Tracking
+    target: pitch_tracking_section
+    component_hint: "IconButton(icon='ChevronUpIcon|ChevronDownIcon', variant='ghost')"
+  - type: record_opponent_score
+    label: Record Opponent Score
+    target: opponent_runs
+    component_hint: "NumberInput(label='Opponent Runs This Inning', min=0, max=25, size='lg')"
+  - type: conditional_display
+    label: Show Baserunner Modal
+    condition: 'advancement_required === true'
+    target: baserunner_advancement_modal
 
 entities:
   current_game:
@@ -265,6 +294,83 @@ acceptance_criteria:
     workflow: inning_management
     test_coverage: [integration, e2e]
 
+  # UX Improvement ACs - Added for systematic UX issue resolution
+  - id: AC003A
+    description: 'Fast-action buttons enabled/disabled based on game situation context (runners, outs)'
+    details:
+      - 'Double Play button: requires runners on base AND 0-1 outs (impossible with 2 outs)'
+      - 'Sacrifice Fly button: requires runner on third base AND 0-1 outs (impossible with 2 outs)'
+      - 'Fielders Choice button: requires runners on base AND 0-1 outs (impossible with 2 outs)'
+      - 'Other buttons: enabled based on existing baserunner logic'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
+  - id: AC004A
+    description: 'Collapsible pitch tracking section to focus on at-bat results when not needed'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
+  - id: AC009A
+    description: 'Field-accurate baserunner layout (3rd-2nd-1st from left to right, with 2nd elevated)'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
+  - id: AC016A
+    description: 'Baserunner advancement modal shown only when runners are present on bases'
+    workflow: baserunner_advancement
+    test_coverage: [component, e2e]
+  - id: AC017A
+    description: 'All runner advancement selections must be made before confirmation'
+    workflow: baserunner_advancement
+    test_coverage: [component, e2e]
+  - id: AC017B
+    description: 'System validates that no runners disappear without scoring or being out'
+    workflow: baserunner_advancement
+    test_coverage: [unit, component, e2e]
+  - id: AC017C
+    description: 'System prevents multiple runners on the same base'
+    workflow: baserunner_advancement
+    test_coverage: [unit, component, e2e]
+  - id: AC045A
+    description: 'Display current inning and opponent context clearly in opponent scoring interface'
+    workflow: innings_management
+    test_coverage: [component, e2e]
+  - id: AC045B
+    description: 'Accept numeric input for opponent runs (0-25 range) with validation'
+    workflow: innings_management
+    test_coverage: [component, e2e]
+  - id: AC045C
+    description: 'Update scoreboard immediately upon opponent score submission'
+    workflow: innings_management
+    test_coverage: [integration, e2e]
+  - id: AC045D
+    description: 'Advance to our teams turn automatically after recording opponent score'
+    workflow: innings_management
+    test_coverage: [integration, e2e]
+
+  # Enhanced UX and Logic Fixes
+  - id: AC046A
+    description: 'Pitch tracking section defaults to collapsed for streamlined scoring experience'
+    workflow: at_bat_recording
+    test_coverage: [component, e2e]
+  - id: AC046B
+    description: 'Baserunner advancement modal pre-populates with standard advancement defaults for each batting result'
+    details:
+      - 'Double: all runners advance 2 bases by default'
+      - 'Triple: all runners advance 3 bases by default'
+      - 'Single: runners advance 1 base by default'
+      - 'Walk: only forced runners advance by default'
+      - 'Other results: appropriate defaults based on standard rules'
+    workflow: baserunner_advancement
+    test_coverage: [component, integration, e2e]
+  - id: AC046C
+    description: 'Home run immediately clears all baserunners and scores all runners plus batter'
+    details:
+      - 'All existing runners score automatically'
+      - 'Batter scores automatically'
+      - 'All bases are cleared (no runners remain)'
+      - 'Team score incremented by total runners + batter'
+      - 'No baserunner advancement modal should appear'
+    workflow: baserunner_advancement
+    test_coverage: [unit, component, integration, e2e]
+
 validation_rules:
   - batting results must be valid softball outcomes
   - RBI count cannot exceed runners on base + batter
@@ -448,6 +554,49 @@ ui_schema:
               testId: 'ground-out-button',
               colorScheme: 'red',
             }
+          - {
+              label: 'Air Out',
+              value: 'air_out',
+              testId: 'air-out-button',
+              colorScheme: 'red',
+            }
+          - {
+              label: 'IBB',
+              value: 'intentional_walk',
+              testId: 'ibb-button',
+              colorScheme: 'blue',
+            }
+          - {
+              label: 'Error',
+              value: 'error',
+              testId: 'error-button',
+              colorScheme: 'yellow',
+            }
+          # Contextually enabled buttons (AC003A)
+          - {
+              label: 'Sac Fly',
+              value: 'sacrifice_fly',
+              testId: 'sf-button',
+              colorScheme: 'orange',
+              enabledWhen: 'hasThirdBaseRunner && currentOuts <= 1',
+              tooltip: 'No runner on third base | Impossible with 2 outs',
+            }
+          - {
+              label: 'FC',
+              value: 'fielders_choice',
+              testId: 'fc-button',
+              colorScheme: 'purple',
+              enabledWhen: 'hasRunners && currentOuts <= 1',
+              tooltip: 'No runners on base | Impossible with 2 outs',
+            }
+          - {
+              label: 'Double Play',
+              value: 'double_play',
+              testId: 'dp-button',
+              colorScheme: 'red',
+              enabledWhen: 'hasRunners && currentOuts <= 1',
+              tooltip: 'No runners for double play | Impossible with 2 outs',
+            }
     - field: baserunner_state
       component: BaserunnerDiagram
       props:
@@ -473,12 +622,94 @@ ui_schema:
       props:
         testId: 'baserunner-advancement-modal'
         title: 'Baserunner Advancement'
+        conditional: 'show only when hasRunners && resultRequiresAdvancement'
         confirmButton:
           label: 'Confirm'
           testId: 'confirm-advancement'
+          disabled: 'hasValidationErrors'
         cancelButton:
           label: 'Cancel'
           testId: 'cancel-advancement'
+        validation:
+          - 'all runner selections required'
+          - 'no runners can disappear'
+          - 'no base conflicts allowed'
+    - field: pitch_tracking_section
+      component: Collapse
+      props:
+        testId: 'pitch-tracking-section'
+        collapsible: true
+        defaultCollapsed: false
+        persistState: 'localStorage.pitch-tracking-collapsed'
+        header:
+          component: Flex
+          props:
+            justify: 'space-between'
+            children:
+              - component: Text
+                props:
+                  text: 'Pitch Tracking'
+                  fontWeight: 'semibold'
+              - component: IconButton
+                props:
+                  icon: 'ChevronUpIcon|ChevronDownIcon'
+                  size: 'sm'
+                  variant: 'ghost'
+    - field: opponent_scoring_modal
+      component: Modal
+      props:
+        testId: 'opponent-scoring-modal'
+        title: 'Record Opponent Score'
+        size: 'md'
+        body:
+          - component: Alert
+            props:
+              status: 'info'
+              title: 'Recording runs for {opponent_team} in {inning_context}'
+          - component: NumberInput
+            props:
+              testId: 'opponent-runs-input'
+              label: 'Opponent Runs This Inning'
+              min: 0
+              max: 25
+              size: 'lg'
+        confirmButton:
+          label: 'Record Runs'
+          testId: 'record-opponent-runs-button'
+          colorScheme: 'blue'
+        cancelButton:
+          label: 'Cancel'
+          testId: 'cancel-opponent-scoring'
+    - field: baserunner_field_layout
+      component: Box
+      props:
+        testId: 'baserunner-field-layout'
+        position: 'relative'
+        minHeight: '120px'
+        children:
+          - component: BaseDisplay
+            props:
+              base: 'third'
+              position: 'absolute'
+              left: '10%'
+              bottom: '20px'
+              testId: 'baserunner-third'
+          - component: BaseDisplay
+            props:
+              base: 'second'
+              position: 'absolute'
+              left: '50%'
+              top: '10px'
+              transform: 'translateX(-50%)'
+              elevated: true
+              testId: 'baserunner-second'
+          - component: BaseDisplay
+            props:
+              base: 'first'
+              position: 'absolute'
+              right: '10%'
+              bottom: '20px'
+              testId: 'baserunner-first'
 
 ui_requirements:
   - large touch-friendly buttons for batting results (minimum 44px height per iOS/Android guidelines)
@@ -495,12 +726,15 @@ traceability:
       'AC001',
       'AC002',
       'AC003',
+      'AC003A',
       'AC004',
+      'AC004A',
       'AC005',
       'AC006',
       'AC007',
       'AC008',
       'AC009',
+      'AC009A',
       'AC010',
       'AC011',
       'AC012',
@@ -508,7 +742,11 @@ traceability:
       'AC014',
       'AC015',
       'AC016',
+      'AC016A',
       'AC017',
+      'AC017A',
+      'AC017B',
+      'AC017C',
       'AC018',
       'AC019',
       'AC020',
@@ -526,6 +764,13 @@ traceability:
       'AC032',
       'AC033',
       'AC034',
+      'AC045A',
+      'AC045B',
+      'AC045C',
+      'AC045D',
+      'AC046A',
+      'AC046B',
+      'AC046C',
     ]
   test_files:
     - 'tests/unit/application/usecases/RecordAtBatUseCase.test.ts'
