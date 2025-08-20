@@ -32,6 +32,17 @@ jobs:
       - name: Build verification
         run: npm run build
 
+      - name: Verify build artifacts
+        run: |
+          echo "📦 Build Artifacts:"
+          ls -la dist/
+          echo "📄 HTML Entry Point:"
+          head -5 dist/index.html
+          echo "🔧 Service Worker:"
+          ls -la dist/sw.js
+          echo "📋 Web Manifest:"
+          ls -la dist/manifest.webmanifest
+
       - name: ESLint (non-blocking)
         run: npm run lint || echo "⚠️ ESLint warnings found"
         continue-on-error: true

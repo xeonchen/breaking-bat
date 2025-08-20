@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Baseball/Softball Icon for Breaking-Bat App -->
+  <circle cx="16" cy="16" r="15" fill="#4A90E2" stroke="#2E5A87" stroke-width="2"/>
+  
+  <!-- Baseball seams -->
+  <path d="M 8 12 Q 16 8 24 12" stroke="white" stroke-width="2" fill="none"/>
+  <path d="M 8 20 Q 16 24 24 20" stroke="white" stroke-width="2" fill="none"/>
+  
+  <!-- Small dots for stitching -->
+  <circle cx="10" cy="13" r="0.5" fill="white"/>
+  <circle cx="13" cy="11" r="0.5" fill="white"/>
+  <circle cx="16" cy="10" r="0.5" fill="white"/>
+  <circle cx="19" cy="11" r="0.5" fill="white"/>
+  <circle cx="22" cy="13" r="0.5" fill="white"/>
+  
+  <circle cx="10" cy="19" r="0.5" fill="white"/>
+  <circle cx="13" cy="21" r="0.5" fill="white"/>
+  <circle cx="16" cy="22" r="0.5" fill="white"/>
+  <circle cx="19" cy="21" r="0.5" fill="white"/>
+  <circle cx="22" cy="19" r="0.5" fill="white"/>
+</svg>

@@ -1,4 +1,5 @@
-[![Continuous Integration](https://github.com/xeonchen/breaking-bat/actions/workflows/ci.yml/badge.svg)](https://github.com/xeonchen/breaking-bat/actions/workflows/ci.yml)
+[![Continuous Integration](https://github.com/xeonchen/breaking-bat/actions/workflows/pr.yml/badge.svg)](https://github.com/xeonchen/breaking-bat/actions/workflows/pr.yml)
+[![Deploy Status](https://api.netlify.com/api/v1/badges/NETLIFY_SITE_ID/deploy-status.svg)](https://app.netlify.com/sites/NETLIFY_SITE_NAME/deploys)
 
 # Breaking-Bat 🥎
 
@@ -122,6 +123,50 @@ breaking-bat/
 - **🏠 Home** (`/`) - Redirects to `/games`
 - **📅 Seasons** (`/seasons`) - Redirects to `/settings#game-config`
 - **🎯 Game Types** (`/game-types`) - Redirects to `/settings#game-config`
+
+## 🚀 Deployment
+
+This application is automatically deployed using Netlify with continuous deployment from the `main` branch.
+
+### Production Deployment
+
+- **Hosting**: Netlify
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist/`
+- **Node Version**: 20.x LTS
+
+### Deployment Process
+
+1. **PR Validation**: All pull requests are automatically validated with comprehensive quality gates:
+   - TypeScript compilation
+   - Unit tests (1,200+ tests)
+   - ESLint checks
+   - Build verification
+   - Commit message validation
+
+2. **Production Deployment**: Merges to `main` trigger automatic deployment:
+   - Quality gates must pass
+   - Production build is created
+   - PWA assets are optimized
+   - Service worker is registered
+   - Deployment to Netlify
+
+### PWA Features
+
+When deployed, the application provides:
+
+- **Offline Functionality**: Complete offline access with service worker
+- **Installable**: Can be installed as a native app on mobile/desktop
+- **Responsive Design**: Optimized for all device sizes
+- **Fast Loading**: Code splitting and optimized bundles
+- **Secure**: HTTPS-only with security headers
+
+### URLs
+
+After deployment, the application will be available at:
+
+- **Production**: `https://[NETLIFY_SITE_NAME].netlify.app/`
+- **Preview**: Each PR gets its own preview URL
 
 ## 📋 User Stories
 
