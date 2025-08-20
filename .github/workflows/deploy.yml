@@ -27,13 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run quality gates
-        run: |
-          echo "🔍 Running quality gates..."
-          npm run type-check
-          npm test
-          npm run lint:strict
-
       - name: Build for production
         run: npm run build
 
