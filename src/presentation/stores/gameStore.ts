@@ -657,10 +657,14 @@ export const useGameStore = create<GameState>()(
             });
 
             const typedLineup = await Promise.all(playerPromises);
-            set({ lineup: typedLineup });
+            const currentState = get();
 
-            if (typedLineup.length > 0) {
-              set({ currentBatter: typedLineup[0] });
+            // Only set current batter to first player if no current batter exists
+            // This prevents resetting batter progression during lineup reloads
+            if (typedLineup.length > 0 && !currentState.currentBatter) {
+              set({ lineup: typedLineup, currentBatter: typedLineup[0] });
+            } else {
+              set({ lineup: typedLineup });
             }
           } catch (error) {
             const message =
@@ -690,20 +694,56 @@ export const useGameStore = create<GameState>()(
 
         advanceToNextBatter: () => {
           const state = get();
-          if (!state.lineup || state.lineup.length === 0) return;
+          if (!state.lineup || state.lineup.length === 0 || !state.currentGame)
+            return;
 
-          // Find current batter index
-          const currentIndex = state.currentBatter
-            ? state.lineup.findIndex(
-                (batter) => batter.playerId === state.currentBatter?.playerId
-              )
-            : -1;
+          try {
+            // Convert lineup to format expected by Game entity
+            const gameLineup = state.lineup.map((batter) => ({
+              playerId: batter.playerId,
+              playerName: batter.playerName,
+            }));
 
-          // Advance to next batter in lineup (with wrapping)
-          const nextIndex = (currentIndex + 1) % state.lineup.length;
-          const nextBatter = state.lineup[nextIndex];
+            // Use Game entity method to advance batter (maintains proper game state)
+            const gameEntity = GameAdapter.fromGameDTO(state.currentGame);
+            gameEntity.advanceToNextBatter(gameLineup);
 
-          set({ currentBatter: nextBatter });
+            // Get updated current batter from Game entity
+            const currentBatter = gameEntity.getCurrentBatter();
+            if (currentBatter) {
+              // Find corresponding batter in lineup for full presentation data
+              const presentationBatter = state.lineup.find(
+                (b) => b.playerId === currentBatter.playerId
+              );
+              if (presentationBatter) {
+                set({ currentBatter: presentationBatter });
+              } else {
+                // Fallback: create presentation batter from game data
+                set({
+                  currentBatter: {
+                    playerId: currentBatter.playerId,
+                    playerName: currentBatter.playerName,
+                    jerseyNumber: '',
+                    position: PresentationPosition.EXTRA_PLAYER,
+                    battingOrder: currentBatter.battingOrder,
+                  },
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error advancing to next batter:', error);
+            // Fallback to previous simple logic
+            const currentIndex = state.currentBatter
+              ? state.lineup.findIndex(
+                  (batter) => batter.playerId === state.currentBatter?.playerId
+                )
+              : -1;
+
+            const nextIndex = (currentIndex + 1) % state.lineup.length;
+            const nextBatter = state.lineup[nextIndex];
+
+            set({ currentBatter: nextBatter });
+          }
         },
 
         suspendGame: async () => {

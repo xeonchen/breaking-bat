@@ -478,27 +478,38 @@ export class Game extends BaseEntity {
    * Advance to the next batter in the lineup
    * @deprecated - Use GameSessionService.advanceToNextBatter() for new code
    */
-  public advanceToNextBatter(): void {
+  public advanceToNextBatter(
+    lineup?: Array<{ playerId: string; playerName: string }>
+  ): void {
     if (!this._gameSessionService) {
       this.initializeMutableState();
     }
 
     if (this._currentBatter) {
-      // Create simple lineup for delegation
-      const mockLineup = Array.from({ length: 9 }, (_, i) => ({
-        playerId: `batter-${i + 1}`,
-      }));
+      // Use provided lineup or fallback to mock for backward compatibility
+      const actualLineup =
+        lineup ||
+        Array.from({ length: 9 }, (_, i) => ({
+          playerId: `batter-${i + 1}`,
+          playerName: `Batter ${i + 1}`,
+        }));
 
       const nextBatterId = this._gameSessionService.advanceToNextBatter(
         this._currentBatter.playerId,
-        mockLineup
+        actualLineup
       );
 
       if (nextBatterId) {
-        const battingOrder = parseInt(nextBatterId.split('-')[1]) || 1;
+        // Find the next batter info from the lineup
+        const nextBatterInfo = actualLineup.find(
+          (b) => b.playerId === nextBatterId
+        );
+        const battingOrder =
+          actualLineup.findIndex((b) => b.playerId === nextBatterId) + 1;
+
         this._currentBatter = {
           playerId: nextBatterId,
-          playerName: `Batter ${battingOrder}`,
+          playerName: nextBatterInfo?.playerName || `Batter ${battingOrder}`,
           battingOrder,
         };
       }
