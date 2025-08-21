@@ -1,4 +1,4 @@
-import { GameRepository, PlayerRepository, Position } from '@/domain';
+import { IGameRepository, IPlayerRepository, Position } from '@/domain';
 import { Result } from '../common/Result';
 
 export interface LineupPosition {
@@ -15,8 +15,8 @@ export interface SetupLineupCommand {
 
 export class SetupLineupUseCase {
   constructor(
-    private gameRepository: GameRepository,
-    private playerRepository: PlayerRepository
+    private gameRepository: IGameRepository,
+    private playerRepository: IPlayerRepository
   ) {}
 
   public async execute(command: SetupLineupCommand): Promise<Result<void>> {

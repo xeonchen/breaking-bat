@@ -1,9 +1,9 @@
 import { GameType } from '@/domain/entities';
-import { GameTypeRepository } from '@/domain/repositories';
+import { IGameTypeRepository } from '@/domain';
 import { getDatabase } from '../database/connection';
 import { BreakingBatDatabase } from '../database/types';
 
-export class IndexedDBGameTypeRepository implements GameTypeRepository {
+export class IndexedDBGameTypeRepository implements IGameTypeRepository {
   public async save(gameType: GameType): Promise<GameType> {
     const db = getDatabase() as BreakingBatDatabase;
 

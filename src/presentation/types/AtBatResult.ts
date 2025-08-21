@@ -1,4 +1,4 @@
-import { BattingResult } from '../values/BattingResult';
+import { BattingResult } from '../../domain/values/BattingResult';
 
 /**
  * Interface for at-bat result data from UI components

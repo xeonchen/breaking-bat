@@ -1,7 +1,7 @@
-import { Game } from '@/domain/entities/Game';
+import { Game } from '../entities/Game';
 
 /**
- * Application layer repository interface for Game entities
+ * Repository interface for Game entities
  * Defines the contract for game data persistence
  */
 export interface IGameRepository {
@@ -49,4 +49,9 @@ export interface IGameRepository {
    * Get lineup for a game
    */
   getLineup(lineupId: string): Promise<string[]>;
+
+  /**
+   * Save lineup for a game
+   */
+  saveLineup(gameId: string, lineupData: any): Promise<void>;
 }

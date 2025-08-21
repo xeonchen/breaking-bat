@@ -1,7 +1,7 @@
 import {
   RecordAtBatUseCase,
   RecordAtBatRequest,
-} from '@/application/usecases/RecordAtBatUseCase';
+} from '@/application/use-cases/RecordAtBatUseCase';
 
 export interface AtBatRecordingResult {
   success: boolean;

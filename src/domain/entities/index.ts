@@ -10,4 +10,4 @@ export * from './Lineup';
 export * from './LineupPosition';
 
 // Re-export types
-export * from '../types/AtBatResult';
+export * from '../../presentation/types/AtBatResult';

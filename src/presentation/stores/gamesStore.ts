@@ -7,11 +7,11 @@ import {
   Team,
   Player,
   GameStatus,
-  GameRepository,
-  SeasonRepository,
-  GameTypeRepository,
-  TeamRepository,
-  PlayerRepository,
+  IGameRepository,
+  ISeasonRepository,
+  IGameTypeRepository,
+  ITeamRepository,
+  IPlayerRepository,
 } from '@/domain';
 import {
   CreateGameUseCase,
@@ -77,21 +77,21 @@ interface GamesState {
 }
 
 // Repository interfaces - will be injected in production
-let gameRepository: GameRepository;
-let seasonRepository: SeasonRepository;
-let gameTypeRepository: GameTypeRepository;
-let teamRepository: TeamRepository;
-let playerRepository: PlayerRepository;
+let gameRepository: IGameRepository;
+let seasonRepository: ISeasonRepository;
+let gameTypeRepository: IGameTypeRepository;
+let teamRepository: ITeamRepository;
+let playerRepository: IPlayerRepository;
 let createGameUseCase: CreateGameUseCase;
 let loadDefaultDataUseCase: LoadDefaultDataUseCase;
 
 // Initialize function for dependency injection
 export const initializeGamesStore = (deps: {
-  gameRepository: GameRepository;
-  seasonRepository: SeasonRepository;
-  gameTypeRepository: GameTypeRepository;
-  teamRepository: TeamRepository;
-  playerRepository: PlayerRepository;
+  gameRepository: IGameRepository;
+  seasonRepository: ISeasonRepository;
+  gameTypeRepository: IGameTypeRepository;
+  teamRepository: ITeamRepository;
+  playerRepository: IPlayerRepository;
   createGameUseCase: CreateGameUseCase;
   loadDefaultDataUseCase: LoadDefaultDataUseCase;
 }): void => {

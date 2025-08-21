@@ -1,6 +1,6 @@
 import {
-  AtBatRepository,
-  GameRepository,
+  IAtBatRepository,
+  IGameRepository,
   AtBat,
   BattingResult,
   BaserunnerState,
@@ -24,8 +24,8 @@ export interface RecordAtBatCommand {
 
 export class RecordAtBatUseCase {
   constructor(
-    private atBatRepository: AtBatRepository,
-    private gameRepository: GameRepository
+    private atBatRepository: IAtBatRepository,
+    private gameRepository: IGameRepository
   ) {}
 
   public async execute(command: RecordAtBatCommand): Promise<Result<AtBat>> {

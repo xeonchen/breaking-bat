@@ -1,5 +1,6 @@
 import { BaseEntity } from './BaseEntity';
 import { HomeAway } from './Inning';
+import type { BaserunnerState } from '../../presentation/types/BaserunnerState';
 
 export type GameStatus = 'setup' | 'in_progress' | 'completed' | 'suspended';
 
@@ -317,12 +318,11 @@ export class Game extends BaseEntity {
     playerName: string;
     battingOrder: number;
   } | null = null;
-  private _currentBaserunners: import('../types/BaserunnerState').BaserunnerState =
-    {
-      first: null,
-      second: null,
-      third: null,
-    };
+  private _currentBaserunners: BaserunnerState = {
+    first: null,
+    second: null,
+    third: null,
+  };
   private _currentOuts: number = 0;
   private _runs: number = 0;
   private _mutableStatus: GameStatus | undefined;
@@ -406,7 +406,7 @@ export class Game extends BaseEntity {
   /**
    * Get current baserunner state
    */
-  public getCurrentBaserunners(): import('../types/BaserunnerState').BaserunnerState {
+  public getCurrentBaserunners(): BaserunnerState {
     return this._currentBaserunners;
   }
 
@@ -431,9 +431,7 @@ export class Game extends BaseEntity {
   /**
    * Update baserunner positions
    */
-  public updateBaserunners(
-    baserunners: import('../types/BaserunnerState').BaserunnerState
-  ): void {
+  public updateBaserunners(baserunners: BaserunnerState): void {
     this._currentBaserunners = baserunners;
   }
 

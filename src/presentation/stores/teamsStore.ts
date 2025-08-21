@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { Team, Position, TeamRepository, PlayerRepository } from '@/domain';
+import { Team, Position, ITeamRepository, IPlayerRepository } from '@/domain';
 import {
   CreateTeamCommand,
   CreateTeamUseCase,
@@ -65,7 +65,7 @@ interface TeamsState {
 }
 
 // Repository interfaces - will be injected in production
-let teamRepository: TeamRepository;
+let teamRepository: ITeamRepository;
 let teamHydrationService: TeamHydrationService;
 let createTeamUseCase: CreateTeamUseCase;
 let addPlayerUseCase: AddPlayerUseCase;
@@ -74,8 +74,8 @@ let removePlayerUseCase: RemovePlayerUseCase;
 
 // Initialize function for dependency injection
 export const initializeTeamsStore = (deps: {
-  teamRepository: TeamRepository;
-  playerRepository: PlayerRepository;
+  teamRepository: ITeamRepository;
+  playerRepository: IPlayerRepository;
   teamHydrationService: TeamHydrationService;
   createTeamUseCase: CreateTeamUseCase;
   addPlayerUseCase: AddPlayerUseCase;

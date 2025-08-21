@@ -52,10 +52,10 @@ export class ScoringService implements IScoringService {
         battingAdvancement = 3;
         break;
 
-      case '2B': // Double - runners from second and third score, batter to second
+      case '2B': // Double - runners from second and third score, first base runner to third, batter to second
         if (currentState.secondBase) runsScored.push(currentState.secondBase);
         if (currentState.thirdBase) runsScored.push(currentState.thirdBase);
-        newState = new BaserunnerState(currentState.firstBase, batterId, null);
+        newState = new BaserunnerState(null, batterId, currentState.firstBase);
         battingAdvancement = 2;
         break;
 

@@ -3,7 +3,7 @@ import { Season } from '../entities';
 /**
  * Repository interface for Season entity operations
  */
-export interface SeasonRepository {
+export interface ISeasonRepository {
   /**
    * Save (create or update) a season
    */

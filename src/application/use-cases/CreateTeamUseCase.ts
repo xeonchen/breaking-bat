@@ -1,4 +1,4 @@
-import { Team, TeamRepository } from '@/domain';
+import { Team, ITeamRepository } from '@/domain';
 import { Result } from '../common/Result';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,7 +9,7 @@ export interface CreateTeamCommand {
 }
 
 export class CreateTeamUseCase {
-  constructor(private teamRepository: TeamRepository) {}
+  constructor(private teamRepository: ITeamRepository) {}
 
   public async execute(command: CreateTeamCommand): Promise<Result<Team>> {
     try {

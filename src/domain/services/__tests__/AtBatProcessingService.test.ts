@@ -5,7 +5,7 @@ import {
   BattingResult,
   BaserunnerState as BaserunnerStateClass,
 } from '@/domain';
-import { BaserunnerState } from '@/domain/types/BaserunnerState';
+import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
 import { StatisticsCalculationService } from '../StatisticsCalculationService';
 
 describe('AtBatProcessingService', () => {

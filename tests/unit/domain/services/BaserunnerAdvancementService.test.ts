@@ -1,6 +1,6 @@
 import { BaserunnerAdvancementService } from '@/domain/services/BaserunnerAdvancementService';
 import { BattingResult } from '@/domain';
-import { BaserunnerState } from '@/domain/types/BaserunnerState';
+import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
 
 describe('BaserunnerAdvancementService', () => {
   let service: BaserunnerAdvancementService;

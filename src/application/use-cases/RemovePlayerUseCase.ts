@@ -1,4 +1,4 @@
-import { PlayerRepository, TeamRepository } from '@/domain';
+import { IPlayerRepository, ITeamRepository } from '@/domain';
 import { Result } from '../common/Result';
 
 export interface RemovePlayerCommand {
@@ -8,8 +8,8 @@ export interface RemovePlayerCommand {
 
 export class RemovePlayerUseCase {
   constructor(
-    private playerRepository: PlayerRepository,
-    private teamRepository: TeamRepository
+    private playerRepository: IPlayerRepository,
+    private teamRepository: ITeamRepository
   ) {}
 
   public async execute(command: RemovePlayerCommand): Promise<Result<void>> {

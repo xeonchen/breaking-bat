@@ -1,7 +1,7 @@
 import {
   Team as DomainTeam,
   Player as DomainPlayer,
-  PlayerRepository,
+  IPlayerRepository,
   Position,
 } from '@/domain';
 import { PresentationValueConverter } from '../types/presentation-values';
@@ -11,7 +11,7 @@ import { PresentationTeam, PresentationPlayer } from '../types/TeamWithPlayers';
  * Service to convert domain teams to presentation teams with hydrated player data
  */
 export class TeamHydrationService {
-  constructor(private playerRepository: PlayerRepository) {}
+  constructor(private playerRepository: IPlayerRepository) {}
 
   /**
    * Convert domain team to presentation team with embedded players

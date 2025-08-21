@@ -3,7 +3,7 @@ import { GameType } from '../entities';
 /**
  * Repository interface for GameType entity operations
  */
-export interface GameTypeRepository {
+export interface IGameTypeRepository {
   /**
    * Save (create or update) a game type
    */

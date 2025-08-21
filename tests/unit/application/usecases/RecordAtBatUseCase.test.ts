@@ -1,8 +1,7 @@
-import { RecordAtBatUseCase } from '@/application/usecases/RecordAtBatUseCase';
+import { RecordAtBatUseCase } from '@/application/use-cases/RecordAtBatUseCase';
 import { BattingResult, AtBat, Game } from '@/domain';
-import { BaserunnerState } from '@/domain/types/BaserunnerState';
-import { IGameRepository } from '@/domain/repositories/IGameRepository';
-import { IAtBatRepository } from '@/domain/repositories/IAtBatRepository';
+import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
+import { IGameRepository, IAtBatRepository } from '@/domain';
 import { SpecificationRegistry } from '@/specifications';
 
 describe('RecordAtBatUseCase', () => {

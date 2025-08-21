@@ -1,5 +1,5 @@
 import { Game, GameStatus } from '../entities/Game';
-import { BaserunnerState } from '../types/BaserunnerState';
+import type { BaserunnerState } from '../../presentation/types/BaserunnerState';
 
 export interface CurrentBatter {
   playerId: string;

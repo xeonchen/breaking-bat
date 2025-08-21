@@ -1,8 +1,8 @@
-import { Team, TeamRepository } from '@/domain';
+import { Team, ITeamRepository } from '@/domain';
 import { getDatabase } from '../database/connection';
 import Dexie from 'dexie';
 
-export class IndexedDBTeamRepository implements TeamRepository {
+export class IndexedDBTeamRepository implements ITeamRepository {
   private db: Dexie;
 
   constructor(database?: Dexie) {

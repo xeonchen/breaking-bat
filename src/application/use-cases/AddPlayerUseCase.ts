@@ -1,4 +1,4 @@
-import { Player, PlayerRepository, TeamRepository } from '@/domain';
+import { Player, IPlayerRepository, ITeamRepository } from '@/domain';
 import { Position } from '@/domain/values';
 import { Result } from '../common/Result';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,8 +13,8 @@ export interface AddPlayerCommand {
 
 export class AddPlayerUseCase {
   constructor(
-    private playerRepository: PlayerRepository,
-    private teamRepository: TeamRepository
+    private playerRepository: IPlayerRepository,
+    private teamRepository: ITeamRepository
   ) {}
 
   public async execute(command: AddPlayerCommand): Promise<Result<Player>> {

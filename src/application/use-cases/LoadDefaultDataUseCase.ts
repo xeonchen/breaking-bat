@@ -3,10 +3,10 @@ import {
   Player,
   Season,
   GameType,
-  TeamRepository,
-  PlayerRepository,
-  SeasonRepository,
-  GameTypeRepository,
+  ITeamRepository,
+  IPlayerRepository,
+  ISeasonRepository,
+  IGameTypeRepository,
   Position,
 } from '@/domain';
 import { Result } from '../common/Result';
@@ -22,10 +22,10 @@ export interface LoadDefaultDataResult {
 
 export class LoadDefaultDataUseCase {
   constructor(
-    private teamRepository: TeamRepository,
-    private playerRepository: PlayerRepository,
-    private seasonRepository: SeasonRepository,
-    private gameTypeRepository: GameTypeRepository
+    private teamRepository: ITeamRepository,
+    private playerRepository: IPlayerRepository,
+    private seasonRepository: ISeasonRepository,
+    private gameTypeRepository: IGameTypeRepository
   ) {}
 
   public async execute(): Promise<Result<LoadDefaultDataResult>> {

@@ -1,9 +1,9 @@
 import { Season } from '@/domain/entities';
-import { SeasonRepository } from '@/domain/repositories';
+import { ISeasonRepository } from '@/domain';
 import { getDatabase } from '../database/connection';
 import { BreakingBatDatabase } from '../database/types';
 
-export class IndexedDBSeasonRepository implements SeasonRepository {
+export class IndexedDBSeasonRepository implements ISeasonRepository {
   public async save(season: Season): Promise<Season> {
     const db = getDatabase() as BreakingBatDatabase;
 

@@ -56,4 +56,23 @@ export interface IPlayerRepository {
     jerseyNumber: number,
     excludePlayerId?: string
   ): Promise<boolean>;
+
+  /**
+   * Check if jersey number is unique for a team (alias for isJerseyNumberAvailable)
+   */
+  isJerseyNumberUnique(
+    teamId: string,
+    jerseyNumber: number,
+    excludePlayerId?: string
+  ): Promise<boolean>;
+
+  /**
+   * Create a new player
+   */
+  create(player: Player): Promise<Player>;
+
+  /**
+   * Update an existing player
+   */
+  update(player: Player): Promise<Player>;
 }

@@ -1,7 +1,7 @@
-import { AtBat } from '@/domain/entities/AtBat';
+import { AtBat } from '../entities/AtBat';
 
 /**
- * Application layer repository interface for AtBat entities
+ * Repository interface for AtBat entities
  * Defines the contract for at-bat data persistence
  */
 export interface IAtBatRepository {

@@ -36,6 +36,11 @@ export interface ITeamRepository {
   searchByName(query: string): Promise<Team[]>;
 
   /**
+   * Find team by exact name
+   */
+  findByName(name: string): Promise<Team | null>;
+
+  /**
    * Delete a team
    */
   delete(id: string): Promise<void>;

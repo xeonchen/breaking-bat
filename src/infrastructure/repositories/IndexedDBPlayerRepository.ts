@@ -1,10 +1,10 @@
-import { Player, PlayerRepository, PlayerStatistics } from '@/domain';
+import { Player, IPlayerRepository, PlayerStatistics } from '@/domain';
 import { Position } from '@/domain/values';
 import { getDatabase } from '../database/connection';
 import { PlayerRecord } from '../database/types';
 import Dexie from 'dexie';
 
-export class IndexedDBPlayerRepository implements PlayerRepository {
+export class IndexedDBPlayerRepository implements IPlayerRepository {
   private db: Dexie;
 
   constructor(database?: Dexie) {

@@ -1,10 +1,10 @@
-import { Game, GameRepository } from '@/domain';
+import { Game, IGameRepository } from '@/domain';
 import { GameStatus, GameScore } from '@/domain/entities/Game';
 import { getDatabase } from '../database/connection';
 import { GameRecord } from '../database/types';
 import Dexie from 'dexie';
 
-export class IndexedDBGameRepository implements GameRepository {
+export class IndexedDBGameRepository implements IGameRepository {
   private db: Dexie;
 
   constructor(database?: Dexie) {

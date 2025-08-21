@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import {
-  GameRepository,
-  TeamRepository,
-  PlayerRepository,
+  IGameRepository,
+  ITeamRepository,
+  IPlayerRepository,
   BaserunnerState,
 } from '../../domain';
 import { ScoringService } from '../../domain/services/ScoringService';
@@ -83,9 +83,9 @@ interface GameState {
 }
 
 // Repository interfaces - will be injected in production
-let gameRepository: GameRepository;
-let teamRepository: TeamRepository;
-let playerRepository: PlayerRepository;
+let gameRepository: IGameRepository;
+let teamRepository: ITeamRepository;
+let playerRepository: IPlayerRepository;
 let scoringService: ScoringService;
 
 // Helper functions for baserunner state conversion
@@ -123,9 +123,9 @@ const convertFromBaserunnerState = (
 
 // Initialize function for dependency injection
 export const initializeGameStore = (deps: {
-  gameRepository: GameRepository;
-  teamRepository: TeamRepository;
-  playerRepository: PlayerRepository;
+  gameRepository: IGameRepository;
+  teamRepository: ITeamRepository;
+  playerRepository: IPlayerRepository;
   scoringService: ScoringService;
 }): void => {
   gameRepository = deps.gameRepository;

@@ -1,10 +1,10 @@
-import { AtBat, AtBatRepository, PlayerStatistics, Player } from '@/domain';
+import { AtBat, IAtBatRepository, PlayerStatistics, Player } from '@/domain';
 import { BattingResult, BaserunnerState } from '@/domain/values';
 import { getDatabase } from '../database/connection';
 import { AtBatRecord } from '../database/types';
 import Dexie from 'dexie';
 
-export class IndexedDBAtBatRepository implements AtBatRepository {
+export class IndexedDBAtBatRepository implements IAtBatRepository {
   private db: Dexie;
 
   constructor(database?: Dexie) {
