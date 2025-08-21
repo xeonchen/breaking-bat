@@ -65,8 +65,9 @@ export class RecordAtBatUseCase {
         timestamp
       );
 
-      // Note: Game score is tracked through finalScore when game is completed
-      // For now, score tracking is handled at the inning/at-bat level
+      // Note: Game state updates should be handled by domain services
+      // The baserunner state and score changes are captured in the AtBat entity
+      // and will be properly reflected through the domain layer
 
       // Save at-bat and game
       const savedAtBat = await this.atBatRepository.save(atBat);

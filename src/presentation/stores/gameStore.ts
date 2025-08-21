@@ -431,6 +431,10 @@ export const useGameStore = create<GameState>()(
                 secondBase,
                 thirdBase
               );
+            } else {
+              // Automatic advancement - use domain service result
+              finalBaserunnerState = advancement.newState;
+              finalRunsScored = advancement.runsScored;
             }
 
             // Calculate outs produced by this at-bat

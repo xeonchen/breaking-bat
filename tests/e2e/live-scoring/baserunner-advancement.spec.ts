@@ -324,7 +324,9 @@ test.describe('Live Scoring - Baserunner Advancement (@live-game-scoring:AC006, 
     await expect(page.getByTestId('at-bat-form')).toBeVisible();
 
     // Then: Should show visual baserunner display
-    const baserunnerDisplay = page.locator('[data-testid^="baserunner-"]');
+    const baserunnerDisplay = page.locator(
+      '[data-testid="baserunner-first"], [data-testid="baserunner-second"], [data-testid="baserunner-third"]'
+    );
     await expect(baserunnerDisplay).toHaveCount(3); // 1st, 2nd, 3rd base
 
     // Each base should show its status clearly

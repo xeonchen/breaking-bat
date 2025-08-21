@@ -206,6 +206,12 @@ export function AtBatForm({
           if (runners.third) defaults.third = 'home';
           break;
 
+        case PresentationBattingResult.HOME_RUN: // Home run - all runners score (grand slam)
+          if (runners.first) defaults.first = 'home';
+          if (runners.second) defaults.second = 'home';
+          if (runners.third) defaults.third = 'home';
+          break;
+
         case PresentationBattingResult.WALK: // Walk - only forced runners advance
         case PresentationBattingResult.INTENTIONAL_WALK: {
           // Intentional walk - only forced runners advance
@@ -222,10 +228,8 @@ export function AtBatForm({
               // If third also occupied (bases loaded), third base runner must score
               if (runners.third) {
                 defaults.third = 'home';
-              } else {
-                // Third base empty, second base runner not forced
-                defaults.second = 'stay';
               }
+              // Note: If third base is empty, second base runner still advances to third (forced by walk)
             } else {
               // Second base empty, only first base runner forced
               if (runners.third) defaults.third = 'stay';
@@ -314,7 +318,11 @@ export function AtBatForm({
       if (result === PresentationBattingResult.HOME_RUN) {
         try {
           // Home runs use standard domain logic - no manual advancement needed
-          onAtBatComplete(atBatResult);
+          const homeRunResult = {
+            ...atBatResult,
+            baserunnerAdvancement: undefined, // Home runs never use manual advancement
+          };
+          onAtBatComplete(homeRunResult);
           setHasError(false);
         } catch (error) {
           console.error(
