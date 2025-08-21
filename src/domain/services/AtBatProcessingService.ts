@@ -1,39 +1,20 @@
+import { BattingResult, BaserunnerState } from '@/domain';
+import { IScoringService } from '../interfaces/IScoringService';
+import { IGameSessionService } from '../interfaces/IGameSessionService';
 import {
-  BattingResult,
-  BaserunnerState as BaserunnerStateClass,
-} from '@/domain';
-import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
-import { ScoringService } from './ScoringService';
-import { GameSessionService } from './GameSessionService';
-
-export interface AtBatData {
-  batterId: string;
-  result: BattingResult;
-  finalCount: { balls: number; strikes: number };
-  pitchSequence?: string[];
-  baserunnerAdvancement?: Record<string, string>;
-}
-
-export interface ProcessedAtBatResult {
-  finalBaserunnerState: BaserunnerUI;
-  runsScored: string[];
-  outsProduced: number;
-  nextBatterId: string | null;
-  shouldAdvanceInning: boolean;
-  scoreUpdate?: {
-    homeScore: number;
-    awayScore: number;
-  };
-}
+  IAtBatProcessingService,
+  AtBatData,
+  ProcessedAtBatResult,
+} from '../interfaces/IAtBatProcessingService';
 
 /**
  * Domain service that orchestrates at-bat processing
  * Coordinates between scoring service, game session service, and score calculation
  */
-export class AtBatProcessingService {
+export class AtBatProcessingService implements IAtBatProcessingService {
   constructor(
-    private scoringService: ScoringService,
-    private gameSessionService: GameSessionService
+    private scoringService: IScoringService,
+    private gameSessionService: IGameSessionService
     // scoreCalculationService will be used in future iterations for score updates
   ) {}
 
@@ -42,14 +23,10 @@ export class AtBatProcessingService {
    */
   public processAtBat(
     atBatData: AtBatData,
-    currentBaserunners: BaserunnerUI,
+    currentBaserunnerState: BaserunnerState,
     currentOuts: number,
     lineup: Array<{ playerId: string; playerName: string }>
   ): ProcessedAtBatResult {
-    // Convert UI baserunner state to domain BaserunnerState
-    const currentBaserunnerState =
-      this.gameSessionService.convertBaserunnerStateToClass(currentBaserunners);
-
     // Calculate automatic baserunner advancement
     const advancement = this.scoringService.calculateBaserunnerAdvancement(
       atBatData.result,
@@ -78,12 +55,7 @@ export class AtBatProcessingService {
     const totalOuts = currentOuts + outsProduced;
     const shouldAdvanceInning = totalOuts >= 3;
 
-    // Convert back to UI format
-    const finalBaserunners =
-      this.gameSessionService.convertBaserunnerStateToInterface(
-        finalBaserunnerState,
-        lineup
-      );
+    // finalBaserunnerState is already in domain format
 
     // Determine next batter
     const nextBatterId = this.gameSessionService.advanceToNextBatter(
@@ -92,7 +64,7 @@ export class AtBatProcessingService {
     );
 
     return {
-      finalBaserunnerState: finalBaserunners,
+      finalBaserunnerState: finalBaserunnerState,
       runsScored: finalRunsScored,
       outsProduced,
       nextBatterId,
@@ -119,11 +91,11 @@ export class AtBatProcessingService {
    * Apply manual baserunner advancement
    */
   private applyManualAdvancement(
-    currentBaserunnerState: BaserunnerStateClass,
+    currentBaserunnerState: BaserunnerState,
     result: BattingResult,
     batterId: string,
     manualAdvancement: Record<string, string>
-  ): { newState: BaserunnerStateClass; runsScored: string[] } {
+  ): { newState: BaserunnerState; runsScored: string[] } {
     const finalRunsScored: string[] = [];
 
     // Start with empty bases and apply manual advancement
@@ -182,7 +154,7 @@ export class AtBatProcessingService {
       firstBase = batterId;
     }
 
-    const newState = new BaserunnerStateClass(firstBase, secondBase, thirdBase);
+    const newState = new BaserunnerState(firstBase, secondBase, thirdBase);
 
     return { newState, runsScored: finalRunsScored };
   }
@@ -193,7 +165,7 @@ export class AtBatProcessingService {
   public processAutoCompletedAtBat(
     result: BattingResult,
     batterId: string,
-    currentBaserunners: BaserunnerUI,
+    currentBaserunnerState: BaserunnerState,
     currentOuts: number,
     lineup: Array<{ playerId: string; playerName: string }>
   ): ProcessedAtBatResult {
@@ -209,7 +181,7 @@ export class AtBatProcessingService {
 
     return this.processAtBat(
       atBatData,
-      currentBaserunners,
+      currentBaserunnerState,
       currentOuts,
       lineup
     );

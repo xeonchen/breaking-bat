@@ -9,13 +9,25 @@ import { AddPlayerUseCase } from '@/application/use-cases/AddPlayerUseCase';
 import { UpdatePlayerUseCase } from '@/application/use-cases/UpdatePlayerUseCase';
 import { RemovePlayerUseCase } from '@/application/use-cases/RemovePlayerUseCase';
 import { CreateTeamUseCase } from '@/application/use-cases/CreateTeamUseCase';
-import { TeamHydrationService } from '@/presentation/services/TeamHydrationService';
+import { TeamHydrationService } from '@/infrastructure/adapters/services/TeamHydrationService';
 import { initializeTeamsStore } from '@/presentation/stores/teamsStore';
 import TeamsPage from '@/presentation/pages/TeamsPage';
 import { createFreshTestDatabase } from '../test-helpers/database';
-import { Position } from '@/domain';
+import { PresentationPosition } from '@/presentation/interfaces/IPresentationServices';
 import theme from '@/presentation/theme';
 import Dexie from 'dexie';
+
+// Test helper to create presentation positions
+const createPosition = (value: string): PresentationPosition => ({
+  value,
+  getPositionNumber: () => 0,
+  isDefensivePosition: () => true,
+  getDisplayName: () => value,
+  getAbbreviation: () => value.toUpperCase(),
+  getFullName: () => value,
+  equals: (other) => value === other.value,
+  toString: () => value,
+});
 
 describe('Manage Roster Dialog Integration Tests', () => {
   let db: Dexie;
@@ -96,7 +108,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Ted Williams',
         jerseyNumber: 9,
-        positions: [Position.leftField()],
+        positions: [createPosition('left-field')],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
@@ -190,7 +202,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Mookie Betts',
         jerseyNumber: 50,
-        positions: [Position.rightField()],
+        positions: [createPosition('right-field')],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
@@ -252,7 +264,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Carl Yastrzemski',
         jerseyNumber: 8,
-        positions: [Position.leftField()],
+        positions: [createPosition('left-field')],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);

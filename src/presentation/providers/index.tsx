@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { ErrorBoundary } from '@/presentation/components/ErrorBoundary';
 import { PWAProvider } from './PWAProvider';
-import { DependencyProvider } from './DependencyProvider';
+import { ApplicationProvider } from './ApplicationProvider';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -10,9 +10,9 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ErrorBoundary>
-      <DependencyProvider>
+      <ApplicationProvider>
         <PWAProvider>{children}</PWAProvider>
-      </DependencyProvider>
+      </ApplicationProvider>
     </ErrorBoundary>
   );
 }

@@ -1,4 +1,5 @@
-import { BattingResult, BaserunnerState, Player, AtBat } from '@/domain';
+import { BattingResult, BaserunnerState } from '../values';
+import { Player, AtBat } from '../entities';
 
 export interface BaserunnerAdvancementCalculation {
   newState: BaserunnerState;

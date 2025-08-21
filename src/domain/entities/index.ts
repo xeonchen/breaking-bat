@@ -9,5 +9,4 @@ export * from './AtBat';
 export * from './Lineup';
 export * from './LineupPosition';
 
-// Re-export types
-export * from '../../presentation/types/AtBatResult';
+// AtBatResult should be defined in domain, not re-exported from presentation

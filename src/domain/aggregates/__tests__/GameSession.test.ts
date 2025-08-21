@@ -1,5 +1,6 @@
 import { GameSession, CurrentBatter } from '../GameSession';
-import { CleanGame } from '../../entities/CleanGame';
+import { Game } from '../../entities/Game';
+import { BaserunnerState } from '../../values/BaserunnerState';
 
 describe('GameSession', () => {
   let game: any; // Using any for test compatibility
@@ -7,7 +8,7 @@ describe('GameSession', () => {
   let gameSession: GameSession;
 
   beforeEach(() => {
-    game = new CleanGame(
+    game = new Game(
       'game-1',
       'Test Game',
       'Opponent Team',
@@ -92,16 +93,14 @@ describe('GameSession', () => {
 
     it('should reset outs and baserunners when advancing inning', () => {
       gameSession.addOuts(2);
-      gameSession.updateBaserunners({
-        first: { playerId: 'player-1', playerName: 'Player 1' },
-        second: null,
-        third: null,
-      });
+      gameSession.updateBaserunners(
+        new BaserunnerState('player-1', null, null)
+      );
 
       gameSession.advanceInning();
 
       expect(gameSession.currentOuts).toBe(0);
-      expect(gameSession.baserunners.first).toBeNull();
+      expect(gameSession.baserunners.firstBase).toBeNull();
     });
   });
 

@@ -1,10 +1,6 @@
+import { Game, BattingResult, BaserunnerState } from '@/domain';
 import {
-  Game,
-  BattingResult,
-  BaserunnerState as BaserunnerStateClass,
-} from '@/domain';
-import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
-import {
+  IGameSessionService,
   GameSessionState,
   InningAdvancementResult,
 } from '../interfaces/IGameSessionService';
@@ -31,7 +27,7 @@ export interface AdvanceInningResult {
  * Domain service responsible for managing live game session state
  * Implements IGameSessionService interface
  */
-export class GameSessionService {
+export class GameSessionService implements IGameSessionService {
   /**
    * Advance to the next inning (internal implementation)
    */
@@ -54,31 +50,63 @@ export class GameSessionService {
         currentGame
       )
     ) {
+      const regulationNewState: GameSessionState = {
+        gameId: currentState.gameId,
+        currentInning: newInning,
+        isTopInning: newIsTopInning,
+        currentOuts: 0,
+        baserunners: new BaserunnerState(null, null, null),
+        currentBatterId: null,
+        currentCount: { balls: 0, strikes: 0 },
+      };
       return {
         newInning,
         newIsTopInning,
         shouldResetBatter: true,
         gameCompleted: true,
         completionReason: 'regulation',
+        newState: regulationNewState,
+        reason: 'Home team leads after regulation',
       };
     }
 
     // Check for mercy rule (10+ run difference after 5 innings)
     if (this.shouldCompleteGameMercyRule(newInning, currentGame)) {
+      const mercyNewState: GameSessionState = {
+        gameId: currentState.gameId,
+        currentInning: newInning,
+        isTopInning: newIsTopInning,
+        currentOuts: 0,
+        baserunners: new BaserunnerState(null, null, null),
+        currentBatterId: null,
+        currentCount: { balls: 0, strikes: 0 },
+      };
       return {
         newInning,
         newIsTopInning,
         shouldResetBatter: true,
         gameCompleted: true,
         completionReason: 'mercy-rule',
+        newState: mercyNewState,
+        reason: 'Game completed by mercy rule',
       };
     }
 
+    const continueNewState: GameSessionState = {
+      gameId: currentState.gameId,
+      currentInning: newInning,
+      isTopInning: newIsTopInning,
+      currentOuts: 0,
+      baserunners: new BaserunnerState(null, null, null),
+      currentBatterId: null,
+      currentCount: { balls: 0, strikes: 0 },
+    };
     return {
       newInning,
       newIsTopInning,
       shouldResetBatter: true,
       gameCompleted: false,
+      newState: continueNewState,
     };
   }
 
@@ -161,11 +189,7 @@ export class GameSessionService {
       currentInning: newInning,
       isTopInning: newIsTopInning,
       currentOuts: 0,
-      baserunners: {
-        first: null,
-        second: null,
-        third: null,
-      },
+      baserunners: new BaserunnerState(null, null, null),
       currentCount: { balls: 0, strikes: 0 },
       currentBatterId: firstBatterId || null,
     };
@@ -202,8 +226,8 @@ export class GameSessionService {
     game: Game
   ): boolean {
     // Game completes when advancing FROM bottom of 7th inning if home team leads
-    if (currentInning === 7 && !currentIsTop && game.finalScore) {
-      const { homeScore, awayScore } = game.finalScore;
+    if (currentInning === 7 && !currentIsTop && game.scoreboard) {
+      const { homeScore, awayScore } = game.scoreboard;
       return homeScore > awayScore; // Home team leads after regulation
     }
     return false;
@@ -214,8 +238,8 @@ export class GameSessionService {
    */
   private shouldCompleteGameMercyRule(inning: number, game: Game): boolean {
     // Mercy rule applies after 5 complete innings with 10+ run difference
-    if (inning >= 5 && game.finalScore) {
-      const { homeScore, awayScore } = game.finalScore;
+    if (inning >= 5 && game.scoreboard) {
+      const { homeScore, awayScore } = game.scoreboard;
       const runDifference = Math.abs(homeScore - awayScore);
       return runDifference >= 10;
     }
@@ -226,9 +250,9 @@ export class GameSessionService {
    * Convert domain BaserunnerState class to interface format
    */
   public convertBaserunnerStateToInterface(
-    state: BaserunnerStateClass,
+    state: BaserunnerState,
     lineup: Array<{ playerId: string; playerName: string }>
-  ): BaserunnerState {
+  ): any {
     const getPlayerInfo = (playerId: string | null) => {
       if (!playerId) return null;
       const player = lineup.find((p) => p.playerId === playerId);
@@ -247,10 +271,8 @@ export class GameSessionService {
   /**
    * Convert interface BaserunnerState to domain class
    */
-  public convertBaserunnerStateToClass(
-    state: BaserunnerState
-  ): BaserunnerStateClass {
-    return new BaserunnerStateClass(
+  public convertBaserunnerStateToClass(state: any): BaserunnerState {
+    return new BaserunnerState(
       state.first?.playerId || null,
       state.second?.playerId || null,
       state.third?.playerId || null
@@ -269,7 +291,9 @@ export class GameSessionService {
     _lineupId: string
   ): AtBatSessionResult {
     let runsScored = 0;
-    let newBaserunners = { ...currentState.baserunners };
+    let newFirst = currentState.baserunners.firstBase;
+    let newSecond = currentState.baserunners.secondBase;
+    let newThird = currentState.baserunners.thirdBase;
     let outsProduced = 0;
     let advanceInning = false;
 
@@ -282,48 +306,58 @@ export class GameSessionService {
         break;
 
       case '1B': // Single
-        runsScored += this.advanceRunnersForHit(newBaserunners, 1);
-        newBaserunners.first = {
-          playerId: batterId,
-          playerName: `Player ${batterId}`,
-        };
+        // Runner from 3rd scores, runner from 2nd scores, runner from 1st to 2nd
+        if (newThird) runsScored++;
+        if (newSecond) runsScored++;
+        newSecond = newFirst;
+        newFirst = batterId;
+        newThird = null; // cleared after scoring
         break;
 
       case '2B': // Double
-        runsScored += this.advanceRunnersForHit(newBaserunners, 2);
-        newBaserunners.second = {
-          playerId: batterId,
-          playerName: `Player ${batterId}`,
-        };
+        // All runners advance 2 bases
+        if (newThird) runsScored++;
+        if (newSecond) runsScored++;
+        if (newFirst) runsScored++;
+        newSecond = batterId;
+        newFirst = null;
+        newThird = null;
         break;
 
       case '3B': // Triple
-        runsScored += this.advanceRunnersForHit(newBaserunners, 3);
-        newBaserunners.third = {
-          playerId: batterId,
-          playerName: `Player ${batterId}`,
-        };
+        // All runners score
+        if (newThird) runsScored++;
+        if (newSecond) runsScored++;
+        if (newFirst) runsScored++;
+        newThird = batterId;
+        newFirst = null;
+        newSecond = null;
         break;
 
       case 'HR': // Home run
-        runsScored += this.countRunners(newBaserunners) + 1; // All runners + batter
-        newBaserunners = { first: null, second: null, third: null };
+        // All runners + batter score
+        if (newThird) runsScored++;
+        if (newSecond) runsScored++;
+        if (newFirst) runsScored++;
+        runsScored++; // batter scores
+        newFirst = null;
+        newSecond = null;
+        newThird = null;
         break;
 
       case 'BB': // Walk
-        if (
-          newBaserunners.first &&
-          newBaserunners.second &&
-          newBaserunners.third
-        ) {
-          // Bases loaded - force runner home
-          runsScored = 1;
+        // Force advancement only
+        if (newFirst) {
+          if (newSecond) {
+            if (newThird) {
+              // Bases loaded - runner from third scores
+              runsScored++;
+            }
+            newThird = newSecond;
+          }
+          newSecond = newFirst;
         }
-        this.advanceRunnersForWalk(newBaserunners);
-        newBaserunners.first = {
-          playerId: batterId,
-          playerName: `Player ${batterId}`,
-        };
+        newFirst = batterId;
         break;
     }
 
@@ -336,8 +370,8 @@ export class GameSessionService {
       ...currentState,
       currentOuts: advanceInning ? 0 : newOuts, // Reset outs when inning advances
       baserunners: advanceInning
-        ? { first: null, second: null, third: null }
-        : newBaserunners,
+        ? new BaserunnerState(null, null, null)
+        : new BaserunnerState(newFirst, newSecond, newThird),
       currentBatterId: batterId, // Simplified for testing
     };
 
@@ -414,108 +448,32 @@ export class GameSessionService {
   public advanceInning(
     currentState: GameSessionState,
     currentGame: Game
-  ): AdvanceInningResult {
+  ): InningAdvancementResult {
     // Call the parent interface method
     const baseResult = this.advanceInningInternal(currentState, currentGame);
 
-    // Check for game completion
-    let gameCompleted = false;
-    let reason: string | undefined;
-
-    if (baseResult.gameCompleted) {
-      gameCompleted = true;
-      reason =
-        baseResult.completionReason === 'regulation'
-          ? 'Home team leads after regulation'
-          : 'Game completed';
-    }
+    // Check for game completion - logic handled in return statement below
 
     const newState: GameSessionState = {
       ...currentState,
       currentInning: baseResult.newInning,
       isTopInning: baseResult.newIsTopInning,
       currentOuts: 0,
-      baserunners: { first: null, second: null, third: null },
+      baserunners: new BaserunnerState(null, null, null),
       currentBatterId: null,
     };
 
     return {
-      newState,
-      gameCompleted,
-      reason,
+      newInning: baseResult.newInning,
+      newIsTopInning: baseResult.newIsTopInning,
+      shouldResetBatter: baseResult.shouldResetBatter,
+      gameCompleted: baseResult.gameCompleted,
+      completionReason: baseResult.completionReason,
+      newState: newState,
+      reason:
+        baseResult.completionReason === 'regulation'
+          ? 'Home team leads after regulation'
+          : 'Game completed',
     };
-  }
-
-  // Helper methods for at-bat processing
-  private advanceRunnersForHit(
-    baserunners: BaserunnerState,
-    bases: number
-  ): number {
-    let runs = 0;
-
-    // Save current runner positions
-    const originalFirst = baserunners.first;
-    const originalSecond = baserunners.second;
-    const originalThird = baserunners.third;
-
-    // Clear bases first
-    baserunners.first = null;
-    baserunners.second = null;
-    baserunners.third = null;
-
-    // Advance runners based on hit type
-    if (bases === 1) {
-      // Single: runners advance 1 base
-      if (originalThird) runs++; // Third base runner scores
-      if (originalSecond) runs++; // Second base runner scores (advances 2 bases on single)
-      if (originalFirst) baserunners.second = originalFirst; // First to second
-    } else if (bases === 2) {
-      // Double: runners advance 2 bases
-      if (originalThird) runs++; // Third base runner scores
-      if (originalSecond) runs++; // Second base runner scores
-      if (originalFirst) baserunners.third = originalFirst; // First to third
-    } else if (bases === 3) {
-      // Triple: all runners score
-      if (originalThird) runs++;
-      if (originalSecond) runs++;
-      if (originalFirst) runs++;
-    }
-
-    return runs;
-  }
-
-  private advanceRunnersForWalk(baserunners: BaserunnerState): void {
-    // Save original positions
-    const originalFirst = baserunners.first;
-    const originalSecond = baserunners.second;
-    const originalThird = baserunners.third;
-
-    // On a walk, runners are only forced to advance if there's a runner behind them
-    if (originalFirst) {
-      // Batter goes to first, so first base runner is forced to advance
-      if (originalSecond) {
-        // Second base runner is forced to advance
-        if (originalThird) {
-          // Third base runner scores (forced home)
-          baserunners.third = originalSecond; // Second to third
-        } else {
-          // Third is empty, second stays at second
-          baserunners.third = originalSecond; // Second to third
-        }
-        baserunners.second = originalFirst; // First to second
-      } else {
-        // Second is empty, first runner stays at first
-        baserunners.second = originalFirst; // First to second
-      }
-    }
-    // Batter always goes to first (handled by calling code)
-  }
-
-  private countRunners(baserunners: BaserunnerState): number {
-    let count = 0;
-    if (baserunners.first) count++;
-    if (baserunners.second) count++;
-    if (baserunners.third) count++;
-    return count;
   }
 }

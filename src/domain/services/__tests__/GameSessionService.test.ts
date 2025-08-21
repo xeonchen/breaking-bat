@@ -1,7 +1,8 @@
 import { GameSessionService } from '../GameSessionService';
 import { Game } from '@/domain/entities/Game';
 import { BattingResult } from '@/domain/values/BattingResult';
-import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
+import { BaserunnerState } from '@/domain/values/BaserunnerState';
+import { Scoreboard } from '@/domain/values/Scoreboard';
 import { GameSessionState } from '../../interfaces/IGameSessionService';
 
 describe('GameSessionService', () => {
@@ -25,11 +26,7 @@ describe('GameSessionService', () => {
       'in_progress',
       'lineup-1',
       [],
-      {
-        homeScore: 2,
-        awayScore: 1,
-        inningScores: [],
-      }
+      new Scoreboard(2, 1, [])
     );
 
     // Create mock game session state
@@ -40,11 +37,7 @@ describe('GameSessionService', () => {
       currentOuts: 1,
       currentBatterId: 'batter-1',
       currentCount: { balls: 0, strikes: 0 },
-      baserunners: {
-        first: null,
-        second: { playerId: 'runner-1', playerName: 'Runner One' },
-        third: null,
-      },
+      baserunners: new BaserunnerState(null, 'runner-1', null),
     } as GameSessionState;
   });
 
@@ -61,11 +54,9 @@ describe('GameSessionService', () => {
       expect(result.newState.currentInning).toBe(4);
       expect(result.newState.isTopInning).toBe(true);
       expect(result.newState.currentOuts).toBe(0);
-      expect(result.newState.baserunners).toEqual({
-        first: null,
-        second: null,
-        third: null,
-      });
+      expect(result.newState.baserunners).toEqual(
+        new BaserunnerState(null, null, null)
+      );
     });
 
     it('should advance from top of inning to bottom of same inning', () => {
@@ -80,11 +71,9 @@ describe('GameSessionService', () => {
       expect(result.newState.currentInning).toBe(3);
       expect(result.newState.isTopInning).toBe(false);
       expect(result.newState.currentOuts).toBe(0);
-      expect(result.newState.baserunners).toEqual({
-        first: null,
-        second: null,
-        third: null,
-      });
+      expect(result.newState.baserunners).toEqual(
+        new BaserunnerState(null, null, null)
+      );
     });
 
     it('should complete game after 7 innings regulation with home team leading', () => {
@@ -100,11 +89,7 @@ describe('GameSessionService', () => {
         'in_progress',
         'lineup-1',
         [],
-        {
-          homeScore: 5,
-          awayScore: 3,
-          inningScores: [],
-        }
+        new Scoreboard(5, 3, [])
       );
 
       const currentState = {
@@ -136,11 +121,7 @@ describe('GameSessionService', () => {
         'in_progress',
         'lineup-1',
         [],
-        {
-          homeScore: 3,
-          awayScore: 3,
-          inningScores: [],
-        }
+        new Scoreboard(3, 3, [])
       );
 
       const currentState = {
@@ -160,11 +141,7 @@ describe('GameSessionService', () => {
 
   describe('processAtBat', () => {
     it('should process a single and advance baserunners correctly', () => {
-      const baserunners: BaserunnerState = {
-        first: null,
-        second: { playerId: 'runner-2', playerName: 'Runner Two' },
-        third: null,
-      };
+      const baserunners = new BaserunnerState(null, 'runner-2', null);
 
       const currentState = {
         ...mockGameState,
@@ -180,9 +157,9 @@ describe('GameSessionService', () => {
       );
 
       expect(result.runsScored).toBe(1); // Runner from second scores
-      expect(result.newGameState.baserunners.first?.playerId).toBe('batter-1');
-      expect(result.newGameState.baserunners.second).toBeNull();
-      expect(result.newGameState.baserunners.third).toBeNull();
+      expect(result.newGameState.baserunners.firstBase).toBe('batter-1');
+      expect(result.newGameState.baserunners.secondBase).toBeNull();
+      expect(result.newGameState.baserunners.thirdBase).toBeNull();
       expect(result.advanceInning).toBe(false);
     });
 
@@ -205,11 +182,11 @@ describe('GameSessionService', () => {
     });
 
     it('should handle home run with bases loaded', () => {
-      const basesLoaded: BaserunnerState = {
-        first: { playerId: 'runner-1', playerName: 'Runner One' },
-        second: { playerId: 'runner-2', playerName: 'Runner Two' },
-        third: { playerId: 'runner-3', playerName: 'Runner Three' },
-      };
+      const basesLoaded = new BaserunnerState(
+        'runner-1',
+        'runner-2',
+        'runner-3'
+      );
 
       const currentState = {
         ...mockGameState,
@@ -225,18 +202,18 @@ describe('GameSessionService', () => {
       );
 
       expect(result.runsScored).toBe(4); // 3 runners + batter
-      expect(result.newGameState.baserunners.first).toBeNull();
-      expect(result.newGameState.baserunners.second).toBeNull();
-      expect(result.newGameState.baserunners.third).toBeNull();
+      expect(result.newGameState.baserunners.firstBase).toBeNull();
+      expect(result.newGameState.baserunners.secondBase).toBeNull();
+      expect(result.newGameState.baserunners.thirdBase).toBeNull();
       expect(result.advanceInning).toBe(false);
     });
 
     it('should handle walk with bases loaded (forced run)', () => {
-      const basesLoaded: BaserunnerState = {
-        first: { playerId: 'runner-1', playerName: 'Runner One' },
-        second: { playerId: 'runner-2', playerName: 'Runner Two' },
-        third: { playerId: 'runner-3', playerName: 'Runner Three' },
-      };
+      const basesLoaded = new BaserunnerState(
+        'runner-1',
+        'runner-2',
+        'runner-3'
+      );
 
       const currentState = {
         ...mockGameState,
@@ -252,9 +229,9 @@ describe('GameSessionService', () => {
       );
 
       expect(result.runsScored).toBe(1); // Runner from third forced home
-      expect(result.newGameState.baserunners.first?.playerId).toBe('batter-1');
-      expect(result.newGameState.baserunners.second?.playerId).toBe('runner-1');
-      expect(result.newGameState.baserunners.third?.playerId).toBe('runner-2');
+      expect(result.newGameState.baserunners.firstBase).toBe('batter-1');
+      expect(result.newGameState.baserunners.secondBase).toBe('runner-1');
+      expect(result.newGameState.baserunners.thirdBase).toBe('runner-2');
       expect(result.advanceInning).toBe(false);
     });
   });

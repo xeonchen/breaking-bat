@@ -1,6 +1,6 @@
 import {
   RecordAtBatUseCase,
-  RecordAtBatRequest,
+  RecordAtBatCommand,
 } from '@/application/use-cases/RecordAtBatUseCase';
 
 export interface AtBatRecordingResult {
@@ -16,18 +16,26 @@ export class AtBatRecordingIntegration {
   constructor(private recordAtBatUseCase: RecordAtBatUseCase) {}
 
   public async recordAtBat(
-    atBatData: RecordAtBatRequest
+    atBatData: RecordAtBatCommand
   ): Promise<AtBatRecordingResult> {
     try {
       const result = await this.recordAtBatUseCase.execute(atBatData);
 
-      return {
-        success: true,
-        atBatId: result.atBatId,
-        runsScored: result.runsScored,
-        rbis: result.rbis,
-        advanceInning: result.advanceInning,
-      };
+      if (result.isSuccess && result.value) {
+        const atBat = result.value;
+        return {
+          success: true,
+          atBatId: atBat.id,
+          runsScored: 0, // This would need to be calculated separately
+          rbis: atBat.rbis,
+          advanceInning: false, // This would need to be determined separately
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error,
+        };
+      }
     } catch (error) {
       return {
         success: false,

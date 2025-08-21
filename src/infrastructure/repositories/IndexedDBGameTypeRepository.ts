@@ -1,9 +1,9 @@
 import { GameType } from '@/domain/entities';
-import { IGameTypeRepository } from '@/domain';
+import { IGameTypePersistencePort } from '@/application/ports/secondary/IPersistencePorts';
 import { getDatabase } from '../database/connection';
 import { BreakingBatDatabase } from '../database/types';
 
-export class IndexedDBGameTypeRepository implements IGameTypeRepository {
+export class IndexedDBGameTypeRepository implements IGameTypePersistencePort {
   public async save(gameType: GameType): Promise<GameType> {
     const db = getDatabase() as BreakingBatDatabase;
 
@@ -113,5 +113,17 @@ export class IndexedDBGameTypeRepository implements IGameTypeRepository {
 
   public async findAllOrderedByName(): Promise<GameType[]> {
     return this.findAll(); // Already ordered by name in findAll()
+  }
+
+  // Required by IGameTypePersistencePort interface
+  public async findDefault(): Promise<GameType | null> {
+    // Return the first game type or null if none exist
+    const gameTypes = await this.findAll();
+    return gameTypes.length > 0 ? gameTypes[0] : null;
+  }
+
+  public async exists(id: string): Promise<boolean> {
+    const gameType = await this.findById(id);
+    return gameType !== null;
   }
 }

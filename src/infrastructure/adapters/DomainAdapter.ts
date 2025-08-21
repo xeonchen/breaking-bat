@@ -1,6 +1,6 @@
 /**
- * Application layer adapter for converting between domain and presentation models
- * This provides a clean boundary between domain and presentation layers
+ * Presentation layer adapter for converting from domain to presentation models
+ * Follows Clean Architecture: Presentation → Application → Domain dependency flow
  */
 
 import {
@@ -12,7 +12,7 @@ import {
   AtBat as DomainAtBat,
 } from '@/domain/entities';
 import { BattingResult as DomainBattingResult } from '@/domain/values';
-import type { BaserunnerUI as DomainBaserunnerState } from '@/presentation/types/BaserunnerUI';
+import { BaserunnerState as DomainBaserunnerState } from '@/domain/values';
 
 import {
   TeamDTO,
@@ -31,9 +31,10 @@ import {
 } from '@/presentation/types/presentation-values';
 
 /**
- * Adapter service for converting between domain and presentation models
+ * Presentation layer adapter for converting domain models to presentation DTOs
+ * Only converts FROM domain TO presentation (unidirectional)
  */
-export class PresentationAdapter {
+export class DomainAdapter {
   // ========== Team Conversions ==========
 
   /**
@@ -140,8 +141,8 @@ export class PresentationAdapter {
       ),
       currentInning: 1, // Default or from game state
       isTopInning: true, // Default or from game state
-      homeScore: domainGame.finalScore?.homeScore || 0,
-      awayScore: domainGame.finalScore?.awayScore || 0,
+      homeScore: domainGame.scoreboard?.homeScore || 0,
+      awayScore: domainGame.scoreboard?.awayScore || 0,
       lineupId: domainGame.lineupId || undefined,
       currentBatterId: undefined, // From game state
       currentBaserunners: {
@@ -150,12 +151,8 @@ export class PresentationAdapter {
         third: null,
       }, // Default empty baserunners
       totalInnings: 7, // Standard softball
-      finalScore: domainGame.finalScore
-        ? {
-            homeScore: domainGame.finalScore.homeScore,
-            awayScore: domainGame.finalScore.awayScore,
-            inningScores: domainGame.finalScore.inningScores || [],
-          }
+      finalScore: domainGame.scoreboard
+        ? domainGame.scoreboard.toGameScore()
         : undefined,
       createdAt: domainGame.createdAt || new Date(),
       updatedAt: domainGame.updatedAt || new Date(),
@@ -270,9 +267,24 @@ export class PresentationAdapter {
     domainState: DomainBaserunnerState
   ): PresentationBaserunnerState {
     return {
-      first: domainState.first,
-      second: domainState.second,
-      third: domainState.third,
+      first: domainState.firstBase
+        ? {
+            playerId: domainState.firstBase,
+            playerName: `Player ${domainState.firstBase.slice(-4)}`,
+          }
+        : null,
+      second: domainState.secondBase
+        ? {
+            playerId: domainState.secondBase,
+            playerName: `Player ${domainState.secondBase.slice(-4)}`,
+          }
+        : null,
+      third: domainState.thirdBase
+        ? {
+            playerId: domainState.thirdBase,
+            playerName: `Player ${domainState.thirdBase.slice(-4)}`,
+          }
+        : null,
     };
   }
 
@@ -282,11 +294,11 @@ export class PresentationAdapter {
   public static baserunnerStateToDomain(
     presentationState: PresentationBaserunnerState
   ): DomainBaserunnerState {
-    return {
-      first: presentationState.first,
-      second: presentationState.second,
-      third: presentationState.third,
-    };
+    return new DomainBaserunnerState(
+      presentationState.first?.playerId || null,
+      presentationState.second?.playerId || null,
+      presentationState.third?.playerId || null
+    );
   }
 
   // ========== Value Object Conversions ==========
@@ -353,5 +365,57 @@ export class PresentationAdapter {
       name: formData.name,
       isActive: formData.isActive,
     };
+  }
+
+  // ========== Reverse Conversion Methods ==========
+
+  /**
+   * Convert GameDTO back to domain Game entity (for compatibility with old gameAdapter)
+   */
+  public static gameDTOToDomain(gameDTO: GameDTO): DomainGame {
+    // This is primarily for backward compatibility during the transition
+    // The consolidated Game entity uses Scoreboard instead of GameScore
+    const legacyFormat = {
+      id: gameDTO.id,
+      name: gameDTO.name,
+      opponent: gameDTO.opponent,
+      date: gameDTO.date,
+      seasonId: gameDTO.seasonId || null,
+      gameTypeId: gameDTO.gameTypeId || null,
+      homeAway: gameDTO.isAwayGame() ? ('away' as const) : ('home' as const),
+      teamId: gameDTO.homeTeamId,
+      status: gameDTO.status,
+      lineupId: gameDTO.lineupId || null,
+      inningIds: [],
+      finalScore: gameDTO.finalScore
+        ? {
+            homeScore: gameDTO.finalScore.homeScore,
+            awayScore: gameDTO.finalScore.awayScore,
+            inningScores: gameDTO.finalScore.inningScores || [],
+          }
+        : null,
+      createdAt: gameDTO.createdAt,
+      updatedAt: gameDTO.updatedAt,
+    };
+
+    return DomainGame.fromLegacy(legacyFormat);
+  }
+
+  /**
+   * Convert presentation position to domain Position (for compatibility)
+   */
+  public static presentationPositionToDomain(
+    presentationPosition: PresentationPosition
+  ): string {
+    return PresentationValueConverter.toDomainPosition(presentationPosition);
+  }
+
+  /**
+   * Convert domain position to presentation Position (for compatibility)
+   */
+  public static domainPositionToPresentation(
+    domainPosition: string
+  ): PresentationPosition {
+    return PresentationValueConverter.toPresentationPosition(domainPosition);
   }
 }

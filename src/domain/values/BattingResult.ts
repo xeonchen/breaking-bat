@@ -31,6 +31,10 @@ export class BattingResult {
     return (BattingResult.VALID_RESULTS as readonly string[]).includes(result);
   }
 
+  public static fromValue(result: string): BattingResult {
+    return new BattingResult(result);
+  }
+
   // Hit results
   public static single(): BattingResult {
     return new BattingResult('1B');

@@ -28,13 +28,14 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
-import { GameType } from '@/domain';
+import { PresentationGameType } from '@/presentation/interfaces/IPresentationServices';
 
 export function GameTypesManagement() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingGameType, setEditingGameType] = useState<GameType | null>(null);
+  const [editingGameType, setEditingGameType] =
+    useState<PresentationGameType | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -73,7 +74,7 @@ export function GameTypesManagement() {
     onOpen();
   };
 
-  const handleEditGameType = (gameType: GameType) => {
+  const handleEditGameType = (gameType: PresentationGameType) => {
     setFormData({
       name: gameType.name,
       description: gameType.description,

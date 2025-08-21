@@ -1,5 +1,5 @@
 import { Game, GameStatus } from '../entities/Game';
-import type { BaserunnerUI } from '../../presentation/types/BaserunnerUI';
+import { BaserunnerState } from '../values/BaserunnerState';
 
 export interface CurrentBatter {
   playerId: string;
@@ -17,7 +17,7 @@ export interface SessionState {
   currentInning: number;
   isTopInning: boolean;
   currentOuts: number;
-  baserunners: BaserunnerUI;
+  baserunners: BaserunnerState;
   currentCount: SessionCount;
   currentBatter: CurrentBatter | null;
   totalRunsScored: number;
@@ -50,11 +50,7 @@ export class GameSession {
       currentInning: 1,
       isTopInning: true,
       currentOuts: 0,
-      baserunners: {
-        first: null,
-        second: null,
-        third: null,
-      },
+      baserunners: new BaserunnerState(null, null, null),
       currentCount: { balls: 0, strikes: 0 },
       currentBatter: lineup.length > 0 ? lineup[0] : null,
       totalRunsScored: 0,
@@ -86,7 +82,7 @@ export class GameSession {
   }
 
   public get finalScore() {
-    return this._game.finalScore;
+    return this._game.scoreboard?.toGameScore() || null;
   }
 
   public isHomeGame(): boolean {
@@ -119,7 +115,7 @@ export class GameSession {
     return this._sessionState.currentOuts;
   }
 
-  public get baserunners(): BaserunnerUI {
+  public get baserunners(): BaserunnerState {
     return this._sessionState.baserunners;
   }
 
@@ -162,7 +158,7 @@ export class GameSession {
       currentInning: 1,
       isTopInning: true,
       currentOuts: 0,
-      baserunners: { first: null, second: null, third: null },
+      baserunners: new BaserunnerState(null, null, null),
       currentCount: { balls: 0, strikes: 0 },
       currentBatter: this._lineup.length > 0 ? this._lineup[0] : null,
       totalRunsScored: 0,
@@ -178,11 +174,11 @@ export class GameSession {
       throw new Error('Game can only be completed from in_progress status');
     }
 
-    if (!this._game.finalScore) {
-      throw new Error('Cannot complete game without final score');
+    if (!this._game.scoreboard) {
+      throw new Error('Cannot complete game without scoreboard');
     }
 
-    this._game = this._game.complete(this._game.finalScore);
+    this._game = this._game.complete(this._game.scoreboard);
   }
 
   /**
@@ -231,8 +227,8 @@ export class GameSession {
   /**
    * Update baserunner positions
    */
-  public updateBaserunners(baserunners: BaserunnerUI): void {
-    this._sessionState.baserunners = { ...baserunners };
+  public updateBaserunners(baserunners: BaserunnerState): void {
+    this._sessionState.baserunners = baserunners;
   }
 
   /**
@@ -270,7 +266,7 @@ export class GameSession {
     this._sessionState.currentInning = newInning;
     this._sessionState.isTopInning = newIsTopInning;
     this._sessionState.currentOuts = 0;
-    this._sessionState.baserunners = { first: null, second: null, third: null };
+    this._sessionState.baserunners = new BaserunnerState(null, null, null);
     this._sessionState.currentCount = { balls: 0, strikes: 0 };
     this._sessionState.pitchSequence = [];
 
@@ -363,7 +359,7 @@ export class GameSession {
       currentInning: this._sessionState.currentInning,
       isTopInning: this._sessionState.isTopInning,
       currentOuts: this._sessionState.currentOuts,
-      baserunners: { ...this._sessionState.baserunners },
+      baserunners: this._sessionState.baserunners,
       currentCount: { ...this._sessionState.currentCount },
       currentBatter: this._sessionState.currentBatter
         ? { ...this._sessionState.currentBatter }
@@ -379,7 +375,7 @@ export class GameSession {
   public restoreFromSnapshot(snapshot: SessionState): void {
     this._sessionState = {
       ...snapshot,
-      baserunners: { ...snapshot.baserunners },
+      baserunners: snapshot.baserunners,
       currentCount: { ...snapshot.currentCount },
       currentBatter: snapshot.currentBatter
         ? { ...snapshot.currentBatter }

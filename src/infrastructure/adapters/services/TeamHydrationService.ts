@@ -4,8 +4,11 @@ import {
   IPlayerRepository,
   Position,
 } from '@/domain';
-import { PresentationValueConverter } from '../types/presentation-values';
-import { PresentationTeam, PresentationPlayer } from '../types/TeamWithPlayers';
+import { PresentationValueConverter } from '@/presentation/types/presentation-values';
+import {
+  PresentationTeam,
+  PresentationPlayer,
+} from '@/presentation/types/TeamWithPlayers';
 
 /**
  * Service to convert domain teams to presentation teams with hydrated player data

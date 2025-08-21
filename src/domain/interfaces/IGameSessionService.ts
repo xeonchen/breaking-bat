@@ -1,12 +1,11 @@
-import { Game } from '../entities/Game';
-import type { BaserunnerUI } from '../../presentation/types/BaserunnerUI';
+import { Game, BaserunnerState } from '@/domain';
 
 export interface GameSessionState {
   gameId: string;
   currentInning: number;
   isTopInning: boolean;
   currentOuts: number;
-  baserunners: BaserunnerUI;
+  baserunners: BaserunnerState;
   currentBatterId: string | null;
   currentCount: {
     balls: number;
@@ -20,6 +19,8 @@ export interface InningAdvancementResult {
   shouldResetBatter: boolean;
   gameCompleted: boolean;
   completionReason?: 'regulation' | 'mercy-rule';
+  newState: GameSessionState;
+  reason?: string;
 }
 
 /**
@@ -71,7 +72,7 @@ export interface IGameSessionService {
   updateAfterAtBat(
     currentState: GameSessionState,
     outsProduced: number,
-    newBaserunners: BaserunnerUI,
+    newBaserunners: BaserunnerState,
     nextBatterId?: string
   ): GameSessionState;
 }

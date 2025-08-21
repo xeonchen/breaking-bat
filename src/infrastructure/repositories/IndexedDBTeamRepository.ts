@@ -1,8 +1,9 @@
-import { Team, ITeamRepository } from '@/domain';
+import { Team } from '@/domain';
+import { ITeamPersistencePort } from '@/application/ports/secondary/IPersistencePorts';
 import { getDatabase } from '../database/connection';
 import Dexie from 'dexie';
 
-export class IndexedDBTeamRepository implements ITeamRepository {
+export class IndexedDBTeamRepository implements ITeamPersistencePort {
   private db: Dexie;
 
   constructor(database?: Dexie) {
@@ -131,7 +132,13 @@ export class IndexedDBTeamRepository implements ITeamRepository {
     return await this.save(updatedTeam);
   }
 
-  public async search(query: string): Promise<Team[]> {
+  public async findByOrganization(_organizationId: string): Promise<Team[]> {
+    // For now, return all teams as we don't have organization structure yet
+    // TODO: Implement organization filtering when organizations are added
+    return await this.findAll();
+  }
+
+  public async searchByName(query: string): Promise<Team[]> {
     const lowerQuery = query.toLowerCase();
 
     const records = await this.db
@@ -140,6 +147,32 @@ export class IndexedDBTeamRepository implements ITeamRepository {
       .toArray();
 
     return records.map((record) => this.recordToTeam(record));
+  }
+
+  public async isNameAvailable(
+    _organizationId: string,
+    name: string,
+    excludeTeamId?: string
+  ): Promise<boolean> {
+    const existingTeam = await this.findByName(name);
+
+    if (!existingTeam) {
+      return true;
+    }
+
+    // If excludeTeamId is provided and matches the existing team, name is available
+    return excludeTeamId === existingTeam.id;
+  }
+
+  public async search(query: string): Promise<Team[]> {
+    // Delegate to searchByName for consistency
+    return await this.searchByName(query);
+  }
+
+  // Required by IRepository interface
+  public async exists(id: string): Promise<boolean> {
+    const record = await this.db.table('teams').get(id);
+    return record !== undefined;
   }
 
   private recordToTeam(record: {

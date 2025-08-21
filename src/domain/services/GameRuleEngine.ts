@@ -415,12 +415,12 @@ export class GameRuleEngine {
 
   // ========== Validation Helper Methods ==========
 
-  private validateNoRunnerPassing(_data: any): ValidationResult {
+  private validateNoRunnerPassing(_data: unknown): ValidationResult {
     // Implementation for runner passing validation
     return ValidationResult.valid();
   }
 
-  private validateRBIs(data: any): ValidationResult {
+  private validateRBIs(data: unknown): ValidationResult {
     if (data.rbis > data.runsScored.length) {
       return ValidationResult.invalid(
         new RuleViolation(
@@ -429,7 +429,7 @@ export class GameRuleEngine {
           {
             before: data.beforeState,
             after: data.afterState,
-            hitType: data.battingResult.value as any,
+            hitType: (data as Record<string, unknown>).battingResult as unknown,
             rbis: data.rbis,
           }
         )
@@ -438,7 +438,7 @@ export class GameRuleEngine {
     return ValidationResult.valid();
   }
 
-  private validateMaxOuts(data: any): ValidationResult {
+  private validateMaxOuts(data: unknown): ValidationResult {
     if (data.outs > 3) {
       return ValidationResult.invalid(
         new RuleViolation(
@@ -447,7 +447,7 @@ export class GameRuleEngine {
           {
             before: data.beforeState,
             after: data.afterState,
-            hitType: data.battingResult.value as any,
+            hitType: (data as Record<string, unknown>).battingResult as unknown,
             rbis: data.rbis,
             outs: data.outs,
           }
@@ -457,7 +457,7 @@ export class GameRuleEngine {
     return ValidationResult.valid();
   }
 
-  private validateBaseOccupancy(data: any): ValidationResult {
+  private validateBaseOccupancy(data: unknown): ValidationResult {
     // Check for duplicate runners on different bases
     const runners = [
       data.afterState.firstBase,
@@ -474,7 +474,7 @@ export class GameRuleEngine {
           {
             before: data.beforeState,
             after: data.afterState,
-            hitType: data.battingResult.value as any,
+            hitType: (data as Record<string, unknown>).battingResult as unknown,
             rbis: data.rbis,
           }
         )

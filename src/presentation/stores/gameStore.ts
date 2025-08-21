@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import {
-  IGameRepository,
-  ITeamRepository,
-  IPlayerRepository,
-  BaserunnerState,
-} from '../../domain';
-import { ScoringService } from '../../domain/services/ScoringService';
+  IScoringApplicationService,
+  PresentationBaserunnerState,
+} from '@/application/services/interfaces/IScoringApplicationService';
+import {
+  IGameApplicationService,
+  ITeamApplicationService,
+  UpdateGameCommand,
+} from '@/application/services/interfaces';
 import { GameDTO, TeamDTO } from '../types/presentation-entities';
 import {
   PresentationPosition,
@@ -14,7 +16,7 @@ import {
   PresentationGameStatus,
   PresentationBattingHelper,
 } from '../types/presentation-values';
-import { GameAdapter } from '../adapters/gameAdapter';
+import { DomainAdapter } from '@/infrastructure/adapters/DomainAdapter';
 
 interface CurrentBatter {
   playerId: string;
@@ -82,55 +84,55 @@ interface GameState {
   clearError: () => void;
 }
 
-// Repository interfaces - will be injected in production
-let gameRepository: IGameRepository;
-let teamRepository: ITeamRepository;
-let playerRepository: IPlayerRepository;
-let scoringService: ScoringService;
+// Application services - will be injected in production
+let gameApplicationService: IGameApplicationService;
+let teamApplicationService: ITeamApplicationService;
+let scoringService: IScoringApplicationService;
 
 // Helper functions for baserunner state conversion
 const convertToBaserunnerState = (
   baserunners: Baserunners
-): BaserunnerState => {
-  return new BaserunnerState(
-    baserunners.first?.playerId || null,
-    baserunners.second?.playerId || null,
-    baserunners.third?.playerId || null
-  );
+): PresentationBaserunnerState => {
+  return {
+    first: baserunners.first
+      ? {
+          playerId: baserunners.first.playerId,
+          playerName: baserunners.first.playerName,
+        }
+      : null,
+    second: baserunners.second
+      ? {
+          playerId: baserunners.second.playerId,
+          playerName: baserunners.second.playerName,
+        }
+      : null,
+    third: baserunners.third
+      ? {
+          playerId: baserunners.third.playerId,
+          playerName: baserunners.third.playerName,
+        }
+      : null,
+  };
 };
 
 const convertFromBaserunnerState = (
-  baserunnerState: BaserunnerState,
-  lineup: CurrentBatter[]
+  baserunnerState: PresentationBaserunnerState
 ): Baserunners => {
-  const getPlayerInfo = (playerId: string | null) => {
-    if (!playerId) return null;
-    const player = lineup.find((p) => p.playerId === playerId);
-    return player
-      ? {
-          playerId: player.playerId,
-          playerName: player.playerName,
-        }
-      : { playerId, playerName: `Player ${playerId}` };
-  };
-
   return {
-    first: getPlayerInfo(baserunnerState.firstBase),
-    second: getPlayerInfo(baserunnerState.secondBase),
-    third: getPlayerInfo(baserunnerState.thirdBase),
+    first: baserunnerState.first,
+    second: baserunnerState.second,
+    third: baserunnerState.third,
   };
 };
 
 // Initialize function for dependency injection
 export const initializeGameStore = (deps: {
-  gameRepository: IGameRepository;
-  teamRepository: ITeamRepository;
-  playerRepository: IPlayerRepository;
-  scoringService: ScoringService;
+  gameApplicationService: IGameApplicationService;
+  teamApplicationService: ITeamApplicationService;
+  scoringService: IScoringApplicationService;
 }): void => {
-  gameRepository = deps.gameRepository;
-  teamRepository = deps.teamRepository;
-  playerRepository = deps.playerRepository;
+  gameApplicationService = deps.gameApplicationService;
+  teamApplicationService = deps.teamApplicationService;
   scoringService = deps.scoringService;
 };
 
@@ -189,11 +191,18 @@ export const useGameStore = create<GameState>()(
         getCurrentGame: async () => {
           set({ loading: true, error: null });
           try {
-            // In a real implementation, this would fetch the current active game
-            const game = await gameRepository?.findCurrent();
-            const gameDTO = game ? GameAdapter.toGameDTO(game) : null;
-            set({ currentGame: gameDTO, loading: false });
-          } catch (error) {
+            // Fetch the current active game using application service
+            const result = await gameApplicationService.getCurrentGames({
+              limit: 1,
+            });
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to fetch current game');
+            }
+            const games = result.value;
+            const currentGame =
+              games.length > 0 ? DomainAdapter.gameToDTO(games[0]) : null;
+            set({ currentGame, loading: false });
+          } catch {
             set({
               loading: false,
               error: 'Failed to load current game',
@@ -204,11 +213,19 @@ export const useGameStore = create<GameState>()(
         loadGame: async (gameId: string) => {
           set({ loading: true, error: null });
           try {
-            const game = await gameRepository?.findById(gameId);
+            const result = await gameApplicationService.getGameById({
+              gameId,
+              includeLineups: true,
+              includeAtBats: true,
+            });
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to load game');
+            }
+            const game = result.value;
             if (!game) {
               throw new Error(`Game not found: ${gameId}`);
             }
-            const gameDTO = GameAdapter.toGameDTO(game);
+            const gameDTO = DomainAdapter.gameToDTO(game);
             set({ currentGame: gameDTO, loading: false });
           } catch (error) {
             set({
@@ -223,9 +240,20 @@ export const useGameStore = create<GameState>()(
         updateGame: async (gameDTO: GameDTO) => {
           set({ loading: true, error: null });
           try {
-            const domainGame = GameAdapter.fromGameDTO(gameDTO);
-            const updatedGame = await gameRepository?.save(domainGame);
-            const updatedGameDTO = GameAdapter.toGameDTO(updatedGame);
+            const updateCommand: UpdateGameCommand = {
+              gameId: gameDTO.id,
+              name: gameDTO.name,
+              opponent: gameDTO.opponent,
+              date: gameDTO.date,
+              location: gameDTO.location,
+              isHomeGame: gameDTO.isHomeGame,
+            };
+            const result =
+              await gameApplicationService.updateGame(updateCommand);
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to update game');
+            }
+            const updatedGameDTO = DomainAdapter.gameToDTO(result.value);
             set({ currentGame: updatedGameDTO, loading: false });
           } catch (error) {
             const message =
@@ -321,14 +349,9 @@ export const useGameStore = create<GameState>()(
               state.baserunners
             );
 
-            // Convert presentation result to domain result for scoring service
-            const domainResult = GameAdapter.fromPresentationBattingResult(
-              atBatData.result
-            );
-
             // Calculate baserunner advancement using the scoring service
             const advancement = scoringService.calculateBaserunnerAdvancement(
-              domainResult,
+              atBatData.result, // Use presentation string instead of domain object
               currentBaserunnerState,
               atBatData.batterId
             );
@@ -345,14 +368,6 @@ export const useGameStore = create<GameState>()(
                 (value) => value && value.trim() !== ''
               );
 
-            console.log('🔍 Baserunner Debug:', {
-              result: atBatData.result,
-              manualAdvancement: atBatData.baserunnerAdvancement,
-              hasManualAdvancement,
-              automaticAdvancement: advancement.newState,
-              currentState: currentBaserunnerState,
-            });
-
             if (hasManualAdvancement) {
               // Manual advancement provided - apply it instead of automatic
               const manualAdvancement = atBatData.baserunnerAdvancement;
@@ -365,57 +380,57 @@ export const useGameStore = create<GameState>()(
 
               // Handle existing runners based on manual advancement
               if (
-                currentBaserunnerState.firstBase &&
+                currentBaserunnerState.first &&
                 manualAdvancement &&
                 manualAdvancement.first
               ) {
                 switch (manualAdvancement.first) {
                   case 'second':
-                    secondBase = currentBaserunnerState.firstBase;
+                    secondBase = currentBaserunnerState.first.playerId;
                     break;
                   case 'third':
-                    thirdBase = currentBaserunnerState.firstBase;
+                    thirdBase = currentBaserunnerState.first.playerId;
                     break;
                   case 'home':
-                    finalRunsScored.push(currentBaserunnerState.firstBase);
+                    finalRunsScored.push(currentBaserunnerState.first);
                     break;
                   case 'stay':
-                    firstBase = currentBaserunnerState.firstBase;
+                    firstBase = currentBaserunnerState.first.playerId;
                     break;
                   // 'out' case - runner is removed (no assignment)
                 }
               }
 
               if (
-                currentBaserunnerState.secondBase &&
+                currentBaserunnerState.second &&
                 manualAdvancement &&
                 manualAdvancement.second
               ) {
                 switch (manualAdvancement.second) {
                   case 'third':
-                    thirdBase = currentBaserunnerState.secondBase;
+                    thirdBase = currentBaserunnerState.second.playerId;
                     break;
                   case 'home':
-                    finalRunsScored.push(currentBaserunnerState.secondBase);
+                    finalRunsScored.push(currentBaserunnerState.second);
                     break;
                   case 'stay':
-                    secondBase = currentBaserunnerState.secondBase;
+                    secondBase = currentBaserunnerState.second.playerId;
                     break;
                   // 'out' case - runner is removed (no assignment)
                 }
               }
 
               if (
-                currentBaserunnerState.thirdBase &&
+                currentBaserunnerState.third &&
                 manualAdvancement &&
                 manualAdvancement.third
               ) {
                 switch (manualAdvancement.third) {
                   case 'home':
-                    finalRunsScored.push(currentBaserunnerState.thirdBase);
+                    finalRunsScored.push(currentBaserunnerState.third);
                     break;
                   case 'stay':
-                    thirdBase = currentBaserunnerState.thirdBase;
+                    thirdBase = currentBaserunnerState.third.playerId;
                     break;
                   // 'out' case - runner is removed (no assignment)
                 }
@@ -426,11 +441,22 @@ export const useGameStore = create<GameState>()(
                 firstBase = atBatData.batterId;
               }
 
-              finalBaserunnerState = new BaserunnerState(
-                firstBase,
-                secondBase,
-                thirdBase
-              );
+              // Convert player IDs back to player objects for presentation state
+              const getPlayerInfo = (playerId: string | null) => {
+                if (!playerId) return null;
+                const player = state.lineup.find(
+                  (p) => p.playerId === playerId
+                );
+                return player
+                  ? { playerId: player.playerId, playerName: player.playerName }
+                  : null;
+              };
+
+              finalBaserunnerState = {
+                first: getPlayerInfo(firstBase),
+                second: getPlayerInfo(secondBase),
+                third: getPlayerInfo(thirdBase),
+              };
             } else {
               // Automatic advancement - use domain service result
               finalBaserunnerState = advancement.newState;
@@ -438,7 +464,7 @@ export const useGameStore = create<GameState>()(
             }
 
             // Calculate outs produced by this at-bat
-            const outsProduced = scoringService.calculateOuts(domainResult);
+            const outsProduced = scoringService.calculateOuts(atBatData.result);
             const newOuts = state.currentOuts + outsProduced;
 
             // TODO: Create and persist AtBat entity
@@ -461,10 +487,8 @@ export const useGameStore = create<GameState>()(
             // );
 
             // Convert new baserunner state back to UI format
-            const newBaserunners = convertFromBaserunnerState(
-              finalBaserunnerState,
-              state.lineup
-            );
+            const newBaserunners =
+              convertFromBaserunnerState(finalBaserunnerState);
 
             // Update game state
             set({
@@ -606,10 +630,12 @@ export const useGameStore = create<GameState>()(
         getTeams: async () => {
           set({ error: null });
           try {
-            const teams = await teamRepository?.findAll();
-            const teamDTOs = teams
-              ? teams.map((team) => GameAdapter.toTeamDTO(team))
-              : [];
+            const result = await teamApplicationService.getTeams();
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to load teams');
+            }
+            const teams = result.value || [];
+            const teamDTOs = teams.map((team) => DomainAdapter.teamToDTO(team));
             set({ teams: teamDTOs });
           } catch (error) {
             const message =
@@ -625,50 +651,49 @@ export const useGameStore = create<GameState>()(
           set({ error: null });
           try {
             const state = get();
-            if (!state.currentGame?.lineupId) return;
+            if (!state.currentGame?.lineupId || !state.currentGame?.id) return;
 
-            // Fetch player IDs from the lineup
-            const playerIds = await gameRepository?.getLineup(
-              state.currentGame.lineupId
-            );
+            // Fetch lineup from the game application service
+            const result = await gameApplicationService.getGameLineup({
+              gameId: state.currentGame.id,
+              lineupId: state.currentGame.lineupId,
+            });
 
-            if (!playerIds || playerIds.length === 0) {
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to load lineup');
+            }
+
+            const lineup = result.value;
+            if (!lineup || !lineup.playerIds || lineup.playerIds.length === 0) {
               set({ lineup: [] });
               return;
             }
 
-            // Fetch player details for each ID
-            const playerPromises = playerIds.map(async (playerId, index) => {
-              const player = await playerRepository?.findById(playerId);
-              if (!player) {
-                return {
-                  playerId,
-                  playerName: 'Unknown Player',
-                  jerseyNumber: '0',
-                  position: PresentationPosition.EXTRA_PLAYER,
-                  battingOrder: index + 1,
-                };
-              }
+            // TODO: Need player details to build complete lineup
+            // For now, use basic player info from lineup
+            const lineupPlayers = lineup.playerIds.map((playerId, index) => {
+              const position = lineup.defensivePositions[index] || 'EP';
+              const order = lineup.battingOrder[index] || index + 1;
+
               return {
-                playerId: player.id,
-                playerName: player.name,
-                jerseyNumber: player.jerseyNumber.toString(),
+                playerId,
+                playerName: `Player ${playerId.slice(-4)}`, // Use last 4 chars of ID as placeholder
+                jerseyNumber: '0',
                 position:
-                  GameAdapter.toPresentationPosition(player.positions[0]) ||
+                  DomainAdapter.domainPositionToPresentation(position) ||
                   PresentationPosition.EXTRA_PLAYER,
-                battingOrder: index + 1,
+                battingOrder: order,
               };
             });
 
-            const typedLineup = await Promise.all(playerPromises);
             const currentState = get();
 
             // Only set current batter to first player if no current batter exists
             // This prevents resetting batter progression during lineup reloads
-            if (typedLineup.length > 0 && !currentState.currentBatter) {
-              set({ lineup: typedLineup, currentBatter: typedLineup[0] });
+            if (lineupPlayers.length > 0 && !currentState.currentBatter) {
+              set({ lineup: lineupPlayers, currentBatter: lineupPlayers[0] });
             } else {
-              set({ lineup: typedLineup });
+              set({ lineup: lineupPlayers });
             }
           } catch (error) {
             const message =
@@ -709,7 +734,7 @@ export const useGameStore = create<GameState>()(
             }));
 
             // Use Game entity method to advance batter (maintains proper game state)
-            const gameEntity = GameAdapter.fromGameDTO(state.currentGame);
+            const gameEntity = DomainAdapter.gameDTOToDomain(state.currentGame);
             gameEntity.advanceToNextBatter(gameLineup);
 
             // Get updated current batter from Game entity

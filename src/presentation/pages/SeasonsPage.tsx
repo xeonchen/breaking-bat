@@ -28,13 +28,15 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
-import { Season } from '@/domain';
+import { PresentationSeason } from '@/presentation/interfaces/IPresentationServices';
 
 export default function SeasonsPage() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingSeason, setEditingSeason] = useState<Season | null>(null);
+  const [editingSeason, setEditingSeason] = useState<PresentationSeason | null>(
+    null
+  );
 
   // Form state
   const [formData, setFormData] = useState({
@@ -77,7 +79,7 @@ export default function SeasonsPage() {
     onOpen();
   };
 
-  const handleEditSeason = (season: Season) => {
+  const handleEditSeason = (season: PresentationSeason) => {
     setFormData({
       name: season.name,
       year: season.year,
@@ -111,16 +113,30 @@ export default function SeasonsPage() {
     try {
       if (isEditMode && editingSeason) {
         // Update existing season
-        const updatedSeason = new Season(
-          editingSeason.id,
-          formData.name,
-          formData.year,
-          new Date(formData.startDate),
-          new Date(formData.endDate),
-          editingSeason.teamIds,
-          editingSeason.createdAt,
-          new Date()
-        );
+        const updatedSeason = {
+          id: editingSeason.id,
+          name: formData.name,
+          year: formData.year,
+          startDate: new Date(formData.startDate),
+          endDate: new Date(formData.endDate),
+          teamIds: editingSeason.teamIds,
+          isActive: () => {
+            const now = new Date();
+            return (
+              now >= updatedSeason.startDate && now <= updatedSeason.endDate
+            );
+          },
+          hasStarted: () => new Date() >= updatedSeason.startDate,
+          hasEnded: () => new Date() > updatedSeason.endDate,
+          getDurationInDays: () => {
+            const timeDiff =
+              updatedSeason.endDate.getTime() -
+              updatedSeason.startDate.getTime();
+            return Math.ceil(timeDiff / (1000 * 3600 * 24));
+          },
+          containsDate: (date: Date) =>
+            date >= updatedSeason.startDate && date <= updatedSeason.endDate,
+        } as PresentationSeason;
         await updateSeason(updatedSeason);
 
         toast({
@@ -170,7 +186,7 @@ export default function SeasonsPage() {
     }
   };
 
-  const getStatusBadge = (season: Season) => {
+  const getStatusBadge = (season: PresentationSeason) => {
     if (season.isActive()) {
       return <Badge colorScheme="green">Active</Badge>;
     } else if (season.hasEnded()) {

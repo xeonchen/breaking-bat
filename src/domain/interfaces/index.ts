@@ -1,9 +1,5 @@
-export * from './IAtBatRepository';
-export * from './IGameRepository';
-export * from './IPlayerRepository';
-export * from './ITeamRepository';
-export * from './ISeasonRepository';
-export * from './IGameTypeRepository';
+// Domain Service Interfaces - removing duplicates to fix ambiguity
+export * from './IAtBatProcessingService';
 export * from './IGameSessionService';
 export * from './IScoreCalculationService';
 export * from './IScoringService';

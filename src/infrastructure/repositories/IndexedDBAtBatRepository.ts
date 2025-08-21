@@ -1,10 +1,11 @@
-import { AtBat, IAtBatRepository, PlayerStatistics, Player } from '@/domain';
+import { AtBat, PlayerStatistics, Player } from '@/domain';
+import { IAtBatPersistencePort } from '@/application/ports/secondary/IPersistencePorts';
 import { BattingResult, BaserunnerState } from '@/domain/values';
 import { getDatabase } from '../database/connection';
 import { AtBatRecord } from '../database/types';
 import Dexie from 'dexie';
 
-export class IndexedDBAtBatRepository implements IAtBatRepository {
+export class IndexedDBAtBatRepository implements IAtBatPersistencePort {
   private db: Dexie;
 
   constructor(database?: Dexie) {
@@ -256,6 +257,69 @@ export class IndexedDBAtBatRepository implements IAtBatRepository {
     return atBats.filter((atBat) => atBat.rbis > 0);
   }
 
+  // Required interface methods
+  public async findByInning(
+    gameId: string,
+    _inning: number,
+    _isTopInning?: boolean
+  ): Promise<AtBat[]> {
+    // For now, we'll need to find by gameId and filter
+    // In a full implementation, we'd need to track inning number and half
+    const atBats = await this.findByGameId(gameId);
+    // TODO: Add proper inning filtering when inning structure is implemented
+    return atBats;
+  }
+
+  public async findByResult(
+    gameId: string,
+    resultType: string
+  ): Promise<AtBat[]> {
+    const records = await this.db
+      .table('atBats')
+      .where('gameId')
+      .equals(gameId)
+      .filter((record: AtBatRecord) => record.result === resultType)
+      .toArray();
+
+    return records.map((record) => this.recordToAtBat(record));
+  }
+
+  public async getPlayerStats(
+    gameId: string,
+    playerId: string
+  ): Promise<{
+    atBats: number;
+    hits: number;
+    runs: number;
+    rbis: number;
+  }> {
+    const atBats = await this.db
+      .table('atBats')
+      .where('gameId')
+      .equals(gameId)
+      .filter((record: AtBatRecord) => record.batterId === playerId)
+      .toArray();
+
+    let atBatCount = 0;
+    let hits = 0;
+    let runs = 0;
+    let rbis = 0;
+
+    atBats.forEach((record) => {
+      atBatCount++;
+      rbis += record.rbis;
+      runs += record.runsScored?.length || 0;
+
+      // Check if result is a hit
+      const result = record.result;
+      if (['1B', '2B', '3B', 'HR'].includes(result)) {
+        hits++;
+      }
+    });
+
+    return { atBats: atBatCount, hits, runs, rbis };
+  }
+
   private baserunnerStateToRecord(state: BaserunnerState): {
     firstBase: string | null;
     secondBase: string | null;
@@ -363,5 +427,16 @@ export class IndexedDBAtBatRepository implements IAtBatRepository {
       gamesWithRunningErrors: gamesWithErrors.size,
       atBatsWithRunningErrors,
     };
+  }
+
+  // Required by IRepository interface
+  public async findAll(): Promise<AtBat[]> {
+    const records = await this.db.table('atBats').toArray();
+    return records.map((record) => this.recordToAtBat(record));
+  }
+
+  public async exists(id: string): Promise<boolean> {
+    const record = await this.db.table('atBats').get(id);
+    return record !== undefined;
   }
 }

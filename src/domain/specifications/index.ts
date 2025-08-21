@@ -5,8 +5,8 @@
  */
 
 // Domain specifications
-export * from './domain/BaserunnerState.schema';
-export * from './domain/PlayerStatistics.schema';
+export * from './BaserunnerState.schema';
+export * from './PlayerStatistics.schema';
 
 // Validation system
 export * from './validators/BoundaryValidator';

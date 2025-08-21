@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface CreateTeamCommand {
   name: string;
-  seasonIds: string[];
-  playerIds: string[];
+  seasonIds?: string[];
+  playerIds?: string[];
 }
 
 export class CreateTeamUseCase {
@@ -29,12 +29,12 @@ export class CreateTeamUseCase {
       const teamId = uuidv4();
       const trimmedName = command.name.trim();
 
-      // Deduplicate arrays
+      // Deduplicate arrays with defaults
       const uniqueSeasonIds = [
-        ...new Set(command.seasonIds.filter((id) => id)),
+        ...new Set((command.seasonIds || []).filter((id) => id)),
       ];
       const uniquePlayerIds = [
-        ...new Set(command.playerIds.filter((id) => id)),
+        ...new Set((command.playerIds || []).filter((id) => id)),
       ];
 
       const team = new Team(
@@ -65,6 +65,7 @@ export class CreateTeamUseCase {
 
     // Validate season IDs
     if (
+      command.seasonIds &&
       command.seasonIds.some(
         (id) => !id || typeof id !== 'string' || id.trim().length === 0
       )
@@ -74,6 +75,7 @@ export class CreateTeamUseCase {
 
     // Validate player IDs
     if (
+      command.playerIds &&
       command.playerIds.some(
         (id) => !id || typeof id !== 'string' || id.trim().length === 0
       )

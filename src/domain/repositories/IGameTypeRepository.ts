@@ -1,4 +1,4 @@
-import { GameType } from '../entities';
+import { GameType } from '@/domain/entities';
 
 /**
  * Repository interface for GameType entity operations

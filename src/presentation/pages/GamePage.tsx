@@ -40,7 +40,11 @@ import {
 import { AddIcon, SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
-import { Game, GameStatus, Player } from '@/domain';
+import {
+  PresentationGame,
+  PresentationGameStatus,
+  PresentationPlayer,
+} from '@/presentation/interfaces/IPresentationServices';
 import { LineupSetupModal } from '../components/LineupSetupModal';
 
 export default function GamePage() {
@@ -54,8 +58,10 @@ export default function GamePage() {
   } = useDisclosure();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGameForLineup, setSelectedGameForLineup] =
-    useState<Game | null>(null);
-  const [playersForLineup, setPlayersForLineup] = useState<Player[]>([]);
+    useState<PresentationGame | null>(null);
+  const [playersForLineup, setPlayersForLineup] = useState<
+    PresentationPlayer[]
+  >([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -278,7 +284,7 @@ export default function GamePage() {
     }
   };
 
-  const handleGameAction = (game: Game) => {
+  const handleGameAction = (game: PresentationGame) => {
     if (game.status === 'setup') {
       // Check if game has a lineup before starting
       if (!game.lineupId) {
@@ -304,7 +310,7 @@ export default function GamePage() {
     }
   };
 
-  const handleSetupLineup = async (game: Game) => {
+  const handleSetupLineup = async (game: PresentationGame) => {
     setSelectedGameForLineup(game);
 
     // Load players for the team
@@ -387,7 +393,7 @@ export default function GamePage() {
     setPlayersForLineup([]);
   };
 
-  const getStatusBadge = (status: GameStatus) => {
+  const getStatusBadge = (status: PresentationGameStatus) => {
     const statusConfig = {
       setup: { colorScheme: 'yellow', label: 'Setup' },
       in_progress: { colorScheme: 'green', label: 'In Progress' },
@@ -403,7 +409,7 @@ export default function GamePage() {
     );
   };
 
-  const getActionButtons = (game: Game) => {
+  const getActionButtons = (game: PresentationGame) => {
     if (game.status === 'setup') {
       return (
         <VStack spacing={2} align="stretch">
@@ -552,7 +558,7 @@ export default function GamePage() {
         {/* Status Filter Tabs */}
         <Tabs
           onChange={(index) => {
-            const statuses: (GameStatus | 'all')[] = [
+            const statuses: (PresentationGameStatus | 'all')[] = [
               'all',
               'setup',
               'in_progress',

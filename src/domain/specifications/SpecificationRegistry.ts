@@ -12,8 +12,8 @@ import {
 import {
   BaserunnerStateSchema,
   BaserunnerSchema,
-} from './domain/BaserunnerState.schema';
-import { PlayerStatisticsSchema } from './domain/PlayerStatistics.schema';
+} from './BaserunnerState.schema';
+import { PlayerStatisticsSchema } from './PlayerStatistics.schema';
 
 export class SpecificationRegistry {
   private static initialized = false;

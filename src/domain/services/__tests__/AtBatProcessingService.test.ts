@@ -1,11 +1,9 @@
-import { AtBatProcessingService, AtBatData } from '../AtBatProcessingService';
+import { AtBatProcessingService } from '../AtBatProcessingService';
+import { AtBatData } from '../../interfaces/IAtBatProcessingService';
 import { ScoringService } from '../ScoringService';
 import { GameSessionService } from '../GameSessionService';
-import {
-  BattingResult,
-  BaserunnerState as BaserunnerStateClass,
-} from '@/domain';
-import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
+import { BattingResult, BaserunnerState } from '@/domain';
+// Removed presentation type import - domain tests should only use domain types
 import { StatisticsCalculationService } from '../StatisticsCalculationService';
 
 describe('AtBatProcessingService', () => {
@@ -51,27 +49,23 @@ describe('AtBatProcessingService', () => {
         pitchSequence: ['B', 'S', 'B', 'X'],
       };
 
-      const currentBaserunners: BaserunnerState = {
-        first: null,
-        second: { playerId: 'runner-2', playerName: 'Runner 2' },
-        third: { playerId: 'runner-3', playerName: 'Runner 3' },
-      };
-
-      const mockBaserunnerClass = new BaserunnerStateClass(
+      const currentBaserunners = new BaserunnerState(
         null,
         'runner-2',
         'runner-3'
       );
-      const mockNewState = new BaserunnerStateClass(
+
+      const mockBaserunnerClass = new BaserunnerState(
+        null,
+        'runner-2',
+        'runner-3'
+      );
+      const mockNewState = new BaserunnerState('batter-1', null, 'runner-2');
+      const mockFinalBaserunners = new BaserunnerState(
         'batter-1',
         null,
         'runner-2'
       );
-      const mockFinalBaserunners: BaserunnerState = {
-        first: { playerId: 'batter-1', playerName: 'Batter 1' },
-        second: null,
-        third: { playerId: 'runner-2', playerName: 'Runner 2' },
-      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -96,7 +90,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(result).toEqual({
-        finalBaserunnerState: mockFinalBaserunners,
+        finalBaserunnerUI: mockFinalBaserunners,
         runsScored: ['runner-3'],
         outsProduced: 0,
         nextBatterId: 'batter-2',
@@ -115,22 +109,10 @@ describe('AtBatProcessingService', () => {
         finalCount: { balls: 1, strikes: 3 },
       };
 
-      const currentBaserunners: BaserunnerState = {
-        first: { playerId: 'runner-1', playerName: 'Runner 1' },
-        second: null,
-        third: null,
-      };
+      const currentBaserunners = new BaserunnerState('runner-1', null, null);
 
-      const mockBaserunnerClass = new BaserunnerStateClass(
-        'runner-1',
-        null,
-        null
-      );
-      const mockFinalBaserunners: BaserunnerState = {
-        first: { playerId: 'runner-1', playerName: 'Runner 1' },
-        second: null,
-        third: null,
-      };
+      const mockBaserunnerClass = new BaserunnerState('runner-1', null, null);
+      const mockFinalBaserunners = new BaserunnerState('runner-1', null, null);
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -155,7 +137,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(result).toEqual({
-        finalBaserunnerState: mockFinalBaserunners,
+        finalBaserunnerUI: mockFinalBaserunners,
         runsScored: [],
         outsProduced: 1,
         nextBatterId: 'batter-2',
@@ -174,27 +156,23 @@ describe('AtBatProcessingService', () => {
         },
       };
 
-      const currentBaserunners: BaserunnerState = {
-        first: { playerId: 'runner-1', playerName: 'Runner 1' },
-        second: { playerId: 'runner-2', playerName: 'Runner 2' },
-        third: null,
-      };
-
-      const mockBaserunnerClass = new BaserunnerStateClass(
+      const currentBaserunners = new BaserunnerState(
         'runner-1',
         'runner-2',
         null
       );
-      const mockNewState = new BaserunnerStateClass(
+
+      const mockBaserunnerClass = new BaserunnerState(
+        'runner-1',
+        'runner-2',
+        null
+      );
+      const mockNewState = new BaserunnerState('batter-1', null, 'runner-1');
+      const mockFinalBaserunners = new BaserunnerState(
         'batter-1',
         null,
         'runner-1'
       );
-      const mockFinalBaserunners: BaserunnerState = {
-        first: { playerId: 'batter-1', playerName: 'Batter 1' },
-        second: null,
-        third: { playerId: 'runner-1', playerName: 'Runner 1' },
-      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -220,7 +198,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(result).toEqual({
-        finalBaserunnerState: mockFinalBaserunners,
+        finalBaserunnerUI: mockFinalBaserunners,
         runsScored: ['runner-2'], // runner-2 advanced home
         outsProduced: 0,
         nextBatterId: 'batter-2',
@@ -237,19 +215,11 @@ describe('AtBatProcessingService', () => {
   describe('processAutoCompletedAtBat', () => {
     it('should process a walk with correct count', () => {
       const result = new BattingResult('BB');
-      const currentBaserunners: BaserunnerState = {
-        first: null,
-        second: null,
-        third: null,
-      };
+      const currentBaserunners = new BaserunnerState(null, null, null);
 
-      const mockBaserunnerClass = new BaserunnerStateClass(null, null, null);
-      const mockNewState = new BaserunnerStateClass('batter-1', null, null);
-      const mockFinalBaserunners: BaserunnerState = {
-        first: { playerId: 'batter-1', playerName: 'Batter 1' },
-        second: null,
-        third: null,
-      };
+      const mockBaserunnerClass = new BaserunnerState(null, null, null);
+      const mockNewState = new BaserunnerState('batter-1', null, null);
+      const mockFinalBaserunners = new BaserunnerState('batter-1', null, null);
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -275,7 +245,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(processResult).toEqual({
-        finalBaserunnerState: mockFinalBaserunners,
+        finalBaserunnerUI: mockFinalBaserunners,
         runsScored: [],
         outsProduced: 0,
         nextBatterId: 'batter-2',
@@ -285,18 +255,10 @@ describe('AtBatProcessingService', () => {
 
     it('should process a strikeout with correct count', () => {
       const result = new BattingResult('SO');
-      const currentBaserunners: BaserunnerState = {
-        first: null,
-        second: null,
-        third: null,
-      };
+      const currentBaserunners = new BaserunnerState(null, null, null);
 
-      const mockBaserunnerClass = new BaserunnerStateClass(null, null, null);
-      const mockFinalBaserunners: BaserunnerState = {
-        first: null,
-        second: null,
-        third: null,
-      };
+      const mockBaserunnerClass = new BaserunnerState(null, null, null);
+      const mockFinalBaserunners = new BaserunnerState(null, null, null);
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -322,7 +284,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(processResult).toEqual({
-        finalBaserunnerState: mockFinalBaserunners,
+        finalBaserunnerUI: mockFinalBaserunners,
         runsScored: [],
         outsProduced: 1,
         nextBatterId: 'batter-2',
@@ -452,7 +414,7 @@ describe('AtBatProcessingService', () => {
 
   describe('applyManualAdvancement', () => {
     it('should advance runners based on manual advancement', () => {
-      const currentState = new BaserunnerStateClass(
+      const currentState = new BaserunnerState(
         'runner-1',
         'runner-2',
         'runner-3'
@@ -479,11 +441,7 @@ describe('AtBatProcessingService', () => {
     });
 
     it('should handle outs in manual advancement', () => {
-      const currentState = new BaserunnerStateClass(
-        'runner-1',
-        'runner-2',
-        null
-      );
+      const currentState = new BaserunnerState('runner-1', 'runner-2', null);
       const result = new BattingResult('GO');
       const batterId = 'batter-1';
       const manualAdvancement = {

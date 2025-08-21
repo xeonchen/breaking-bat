@@ -1,9 +1,9 @@
 import { Season } from '@/domain/entities';
-import { ISeasonRepository } from '@/domain';
+import { ISeasonPersistencePort } from '@/application/ports/secondary/IPersistencePorts';
 import { getDatabase } from '../database/connection';
 import { BreakingBatDatabase } from '../database/types';
 
-export class IndexedDBSeasonRepository implements ISeasonRepository {
+export class IndexedDBSeasonRepository implements ISeasonPersistencePort {
   public async save(season: Season): Promise<Season> {
     const db = getDatabase() as BreakingBatDatabase;
 
@@ -116,6 +116,24 @@ export class IndexedDBSeasonRepository implements ISeasonRepository {
       activeSeason.createdAt,
       activeSeason.updatedAt
     );
+  }
+
+  // Required by ISeasonPersistencePort interface
+  public async findCurrent(): Promise<Season | null> {
+    return this.findActiveSeason();
+  }
+
+  public async isActive(seasonId: string): Promise<boolean> {
+    const season = await this.findById(seasonId);
+    if (!season) {
+      return false;
+    }
+    return season.isActive();
+  }
+
+  public async exists(id: string): Promise<boolean> {
+    const season = await this.findById(id);
+    return season !== null;
   }
 
   public async findByTeamId(teamId: string): Promise<Season[]> {

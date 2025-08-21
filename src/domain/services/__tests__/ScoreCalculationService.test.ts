@@ -1,5 +1,6 @@
 import { ScoreCalculationService } from '../ScoreCalculationService';
 import { Game, GameScore } from '@/domain';
+import { Scoreboard } from '@/domain/values/Scoreboard';
 
 describe('ScoreCalculationService', () => {
   let service: ScoreCalculationService;
@@ -34,7 +35,7 @@ describe('ScoreCalculationService', () => {
       'in_progress',
       'lineup-1',
       ['inning-1', 'inning-2', 'inning-3'],
-      score
+      Scoreboard.fromGameScore(score)
     );
   };
 

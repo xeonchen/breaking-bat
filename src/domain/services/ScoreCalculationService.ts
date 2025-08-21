@@ -1,4 +1,5 @@
 import { Game } from '@/domain';
+import { Scoreboard } from '@/domain/values/Scoreboard';
 import {
   IScoreCalculationService,
   ScoreUpdate,
@@ -19,11 +20,11 @@ export class ScoreCalculationService implements IScoreCalculationService {
     currentInning: number,
     isTopInning: boolean
   ): ScoreCalculationResult {
-    if (!game.finalScore) {
+    if (!game.scoreboard) {
       throw new Error('Game must have an initialized score to update');
     }
 
-    const currentScore = game.finalScore;
+    const currentScore = game.scoreboard;
 
     // Determine which team scored
     const isHomeTeamBatting = game.isHomeGame() && !isTopInning;
@@ -81,7 +82,11 @@ export class ScoreCalculationService implements IScoreCalculationService {
       game.status,
       game.lineupId,
       game.inningIds,
-      newScore,
+      new Scoreboard(
+        newScore.homeScore,
+        newScore.awayScore,
+        newScore.inningScores
+      ),
       game.createdAt,
       new Date()
     );
@@ -96,9 +101,9 @@ export class ScoreCalculationService implements IScoreCalculationService {
    * Calculate the current run differential
    */
   public calculateRunDifferential(game: Game): number {
-    if (!game.finalScore) return 0;
+    if (!game.scoreboard) return 0;
 
-    const { homeScore, awayScore } = game.finalScore;
+    const { homeScore, awayScore } = game.scoreboard;
     return Math.abs(homeScore - awayScore);
   }
 
@@ -106,9 +111,9 @@ export class ScoreCalculationService implements IScoreCalculationService {
    * Determine which team is winning
    */
   public getWinningTeam(game: Game): 'home' | 'away' | 'tied' {
-    if (!game.finalScore) return 'tied';
+    if (!game.scoreboard) return 'tied';
 
-    const { homeScore, awayScore } = game.finalScore;
+    const { homeScore, awayScore } = game.scoreboard;
 
     if (homeScore > awayScore) return 'home';
     if (awayScore > homeScore) return 'away';
@@ -179,7 +184,7 @@ export class ScoreCalculationService implements IScoreCalculationService {
       awayRuns: number;
     }>;
   } {
-    if (!game.finalScore) {
+    if (!game.scoreboard) {
       return {
         homeScore: 0,
         awayScore: 0,
@@ -189,14 +194,14 @@ export class ScoreCalculationService implements IScoreCalculationService {
       };
     }
 
-    const { homeScore, awayScore, inningScores } = game.finalScore;
+    const { homeScore, awayScore, inningScores } = game.scoreboard;
 
     return {
       homeScore,
       awayScore,
       currentLeader: this.getWinningTeam(game),
       runDifferential: this.calculateRunDifferential(game),
-      inningByInningScores: inningScores,
+      inningByInningScores: [...inningScores],
     };
   }
 }

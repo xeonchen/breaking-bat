@@ -1,4 +1,4 @@
-import { AtBat } from '../entities/AtBat';
+import { AtBat } from '@/domain/entities/AtBat';
 
 /**
  * Repository interface for AtBat entities
