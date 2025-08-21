@@ -2,6 +2,7 @@ export * from './entities';
 export * from './values';
 export * from './services';
 export * from './interfaces';
+export * from './specifications';
 
 // Re-export interfaces with cleaner names for backward compatibility
 export type {

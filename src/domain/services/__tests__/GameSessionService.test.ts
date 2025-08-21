@@ -1,7 +1,7 @@
 import { GameSessionService } from '../GameSessionService';
 import { Game } from '@/domain/entities/Game';
 import { BattingResult } from '@/domain/values/BattingResult';
-import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
+import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
 import { GameSessionState } from '../../interfaces/IGameSessionService';
 
 describe('GameSessionService', () => {

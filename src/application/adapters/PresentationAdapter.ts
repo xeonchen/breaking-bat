@@ -12,7 +12,7 @@ import {
   AtBat as DomainAtBat,
 } from '@/domain/entities';
 import { BattingResult as DomainBattingResult } from '@/domain/values';
-import type { BaserunnerState as DomainBaserunnerState } from '@/presentation/types/BaserunnerState';
+import type { BaserunnerUI as DomainBaserunnerState } from '@/presentation/types/BaserunnerUI';
 
 import {
   TeamDTO,

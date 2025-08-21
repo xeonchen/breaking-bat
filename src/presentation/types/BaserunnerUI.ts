@@ -1,7 +1,7 @@
 /**
- * Interface for baserunner state used in live scoring
+ * Interface for baserunner state used in UI components
  */
-export interface BaserunnerState {
+export interface BaserunnerUI {
   first: { playerId: string; playerName: string } | null;
   second: { playerId: string; playerName: string } | null;
   third: { playerId: string; playerName: string } | null;

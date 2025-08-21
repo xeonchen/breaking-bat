@@ -2,10 +2,10 @@ import {
   BattingResult,
   BaserunnerState as BaserunnerStateClass,
 } from '@/domain';
-import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
+// Import removed - using domain BaserunnerState class instead
 
 export interface AdvancementResult {
-  finalBaserunners: BaserunnerState;
+  finalBaserunners: BaserunnerStateClass;
   finalBaserunnersClass: BaserunnerStateClass;
   scoringRunners: string[];
   rbis: number;

@@ -1,12 +1,12 @@
 import { Game } from '../entities/Game';
-import type { BaserunnerState } from '../../presentation/types/BaserunnerState';
+import type { BaserunnerUI } from '../../presentation/types/BaserunnerUI';
 
 export interface GameSessionState {
   gameId: string;
   currentInning: number;
   isTopInning: boolean;
   currentOuts: number;
-  baserunners: BaserunnerState;
+  baserunners: BaserunnerUI;
   currentBatterId: string | null;
   currentCount: {
     balls: number;
@@ -71,7 +71,7 @@ export interface IGameSessionService {
   updateAfterAtBat(
     currentState: GameSessionState,
     outsProduced: number,
-    newBaserunners: BaserunnerState,
+    newBaserunners: BaserunnerUI,
     nextBatterId?: string
   ): GameSessionState;
 }

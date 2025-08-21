@@ -1,8 +1,8 @@
-import { AtBatRecordingIntegration } from '@/integration/AtBatRecordingIntegration';
+import { AtBatRecordingIntegration } from '@/application/integrations/AtBatRecordingIntegration';
 import { IndexedDBGameRepository } from '@/infrastructure/repositories/IndexedDBGameRepository';
 import { IndexedDBAtBatRepository } from '@/infrastructure/repositories/IndexedDBAtBatRepository';
 import { BaserunnerAdvancementService } from '@/domain/services/BaserunnerAdvancementService';
-import { RecordAtBatUseCase } from '@/application/usecases/RecordAtBatUseCase';
+import { RecordAtBatUseCase } from '@/application/use-cases/RecordAtBatUseCase';
 import { BattingResult, Game, AtBat } from '@/domain';
 import { DatabaseHelper } from '@/tests/helpers/DatabaseHelper';
 import Dexie from 'dexie';

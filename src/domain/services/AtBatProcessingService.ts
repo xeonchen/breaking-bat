@@ -2,7 +2,7 @@ import {
   BattingResult,
   BaserunnerState as BaserunnerStateClass,
 } from '@/domain';
-import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
+import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
 import { ScoringService } from './ScoringService';
 import { GameSessionService } from './GameSessionService';
 
@@ -15,7 +15,7 @@ export interface AtBatData {
 }
 
 export interface ProcessedAtBatResult {
-  finalBaserunnerState: BaserunnerState;
+  finalBaserunnerState: BaserunnerUI;
   runsScored: string[];
   outsProduced: number;
   nextBatterId: string | null;
@@ -42,7 +42,7 @@ export class AtBatProcessingService {
    */
   public processAtBat(
     atBatData: AtBatData,
-    currentBaserunners: BaserunnerState,
+    currentBaserunners: BaserunnerUI,
     currentOuts: number,
     lineup: Array<{ playerId: string; playerName: string }>
   ): ProcessedAtBatResult {
@@ -193,7 +193,7 @@ export class AtBatProcessingService {
   public processAutoCompletedAtBat(
     result: BattingResult,
     batterId: string,
-    currentBaserunners: BaserunnerState,
+    currentBaserunners: BaserunnerUI,
     currentOuts: number,
     lineup: Array<{ playerId: string; playerName: string }>
   ): ProcessedAtBatResult {

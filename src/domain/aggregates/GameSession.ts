@@ -1,5 +1,5 @@
 import { Game, GameStatus } from '../entities/Game';
-import type { BaserunnerState } from '../../presentation/types/BaserunnerState';
+import type { BaserunnerUI } from '../../presentation/types/BaserunnerUI';
 
 export interface CurrentBatter {
   playerId: string;
@@ -17,7 +17,7 @@ export interface SessionState {
   currentInning: number;
   isTopInning: boolean;
   currentOuts: number;
-  baserunners: BaserunnerState;
+  baserunners: BaserunnerUI;
   currentCount: SessionCount;
   currentBatter: CurrentBatter | null;
   totalRunsScored: number;
@@ -119,7 +119,7 @@ export class GameSession {
     return this._sessionState.currentOuts;
   }
 
-  public get baserunners(): BaserunnerState {
+  public get baserunners(): BaserunnerUI {
     return this._sessionState.baserunners;
   }
 
@@ -231,7 +231,7 @@ export class GameSession {
   /**
    * Update baserunner positions
    */
-  public updateBaserunners(baserunners: BaserunnerState): void {
+  public updateBaserunners(baserunners: BaserunnerUI): void {
     this._sessionState.baserunners = { ...baserunners };
   }
 

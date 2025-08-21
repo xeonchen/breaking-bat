@@ -1,8 +1,8 @@
 import { RecordAtBatUseCase } from '@/application/use-cases/RecordAtBatUseCase';
 import { BattingResult, AtBat, Game } from '@/domain';
-import type { BaserunnerState } from '@/presentation/types/BaserunnerState';
+import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
 import { IGameRepository, IAtBatRepository } from '@/domain';
-import { SpecificationRegistry } from '@/specifications';
+import { SpecificationRegistry } from '@/domain';
 
 describe('RecordAtBatUseCase', () => {
   let useCase: RecordAtBatUseCase;
