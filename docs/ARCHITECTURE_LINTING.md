@@ -93,6 +93,53 @@ Ensures that the Presentation layer only imports from Domain and Application lay
 
 - Test files (`*.test.ts`, `*.spec.ts`, `__tests__/`) are allowed by default
 
+### no-implementation-in-ports
+
+Ensures that port directories only contain interfaces and types, not implementations.
+
+**Configuration**: `error` level (blocks commits)
+
+**What it checks**:
+
+- Files in `/ports/` directories should only export interfaces or types
+- No classes with method implementations
+- No concrete functions (except type guards)
+
+**What is allowed**:
+
+- Interface declarations
+- Type declarations and aliases
+- Abstract classes without implementations
+- Enum declarations
+- Type guards (functions like `isValidTeam`, `hasProperty`)
+- Function declarations without body (`declare function`)
+
+**Exceptions**:
+
+- Test files (`*.test.ts`, `*.spec.ts`, `__tests__/`) are allowed by default
+- Type guard functions are allowed by default (can be disabled via config)
+
+## Circular Dependency Detection
+
+The project uses **madge** to detect circular dependencies which can lead to runtime errors and indicate architectural problems.
+
+**Configuration**: Uses madge with TypeScript extensions
+
+**What it detects**:
+
+- Circular imports between modules
+- Dependency cycles that could cause loading issues
+- Complex dependency graphs that indicate tight coupling
+
+**Usage**:
+
+```bash
+npm run lint:circular          # Check for circular dependencies
+npm run lint:circular:json     # Output results in JSON format
+```
+
+**Integration**: Circular dependency checks can be integrated into CI/CD pipelines to prevent problematic dependencies from being merged.
+
 ## Usage
 
 ### Check architecture violations
@@ -113,6 +160,7 @@ npm run test:domain-architecture-rule         # Run domain layer integration tes
 npm run test:application-architecture-rule     # Run application layer integration tests
 npm run test:infrastructure-architecture-rule  # Run infrastructure layer integration tests
 npm run test:presentation-architecture-rule    # Run presentation layer integration tests
+npm run test:ports-architecture-rule           # Run ports implementation integration tests
 ```
 
 **Note**: The unit tests use direct Node.js execution with ESLint's RuleTester. While not the typical Jest approach, this is intentional for this minimal implementation to avoid Jest configuration complexity.
@@ -193,6 +241,36 @@ import React from 'react'; // UI framework
 import { Button } from '@mui/material'; // UI library
 ```
 
+### Port Implementation Violations
+
+```typescript
+// ❌ Ports importing with class implementations
+// src/application/ports/secondary/TeamRepository.ts
+export class TeamRepository {
+  async save(team: Team): Promise<void> {
+    console.log('Saving team'); // Implementation not allowed in ports
+  }
+}
+
+// ❌ Ports with function implementations
+// src/application/ports/primary/GameHelpers.ts
+export function validateGame(game: Game): boolean {
+  return game.teams.length === 2; // Implementation not allowed
+}
+
+// ✅ Valid ports with interfaces only
+// src/application/ports/secondary/ITeamRepository.ts
+export interface ITeamRepository {
+  save(team: Team): Promise<void>;
+  findById(id: string): Promise<Team | null>;
+}
+
+// ✅ Valid type guards (allowed by default)
+export function isValidTeam(obj: unknown): obj is Team {
+  return typeof obj === 'object' && obj !== null;
+}
+```
+
 ## Configuration
 
 All rules can be configured in `eslint.config.js`:
@@ -216,6 +294,12 @@ All rules can be configured in `eslint.config.js`:
 // Presentation layer rule configuration
 'clean-architecture/no-presentation-violations': ['error', {
   allowTestFiles: false  // Also check test files for violations
+}]
+
+// Ports implementation rule configuration
+'clean-architecture/no-implementation-in-ports': ['error', {
+  allowTestFiles: false,   // Also check test files for violations
+  allowTypeGuards: false   // Disallow type guard functions
 }]
 ```
 
@@ -245,6 +329,12 @@ All rules can be configured in `eslint.config.js`:
 - **Unit tests**: `tools/eslint-rules/__tests__/no-presentation-violations.test.cjs`
 - **Integration tests**: `scripts/test-presentation-architecture-rule.cjs`
 
+### Ports Implementation Rule
+
+- **Rule file**: `tools/eslint-rules/no-implementation-in-ports.cjs`
+- **Unit tests**: `tools/eslint-rules/__tests__/no-implementation-in-ports.test.cjs`
+- **Integration tests**: `scripts/test-ports-architecture-rule.cjs`
+
 ### Common Properties
 
 - **Rule type**: Error (blocks builds and commits)
@@ -254,9 +344,10 @@ All rules can be configured in `eslint.config.js`:
 
 ## Future Enhancements
 
-Current implementation covers all four Clean Architecture layers. Future versions could add:
+Current implementation covers all four Clean Architecture layers plus advanced checks. Future versions could add:
 
-1. Port vs implementation distinction
-2. Dependency graph visualization
-3. Custom framework pattern configuration
-4. Architectural dependency metrics and reporting
+1. Dependency graph visualization
+2. Custom framework pattern configuration
+3. Architectural dependency metrics and reporting
+4. Integration with build-time dependency analysis
+5. Port-adapter pairing validation
