@@ -1,6 +1,9 @@
 import { Team } from '@/domain/entities/Team';
 import { Player } from '@/domain/entities/Player';
-import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
+import {
+  PresentationTeam,
+  PresentationPlayer,
+} from '@/presentation/interfaces/IPresentationServices';
 import { PlayerMapper } from './PlayerMapper';
 
 /**
@@ -27,6 +30,8 @@ export class TeamMapper {
       id: domainTeam.id,
       name: domainTeam.name,
       players: teamPlayers,
+      seasonIds: domainTeam.seasonIds || [],
+      isActive: true, // Domain team doesn't have isActive, default to true
     };
   }
 
@@ -43,7 +48,7 @@ export class TeamMapper {
     return {
       id: presentationTeam.id,
       name: presentationTeam.name,
-      seasonIds: [], // Not available in PresentationTeam
+      seasonIds: presentationTeam.seasonIds,
       playerIds: presentationTeam.players.map((player) => player.id),
     };
   }
@@ -59,6 +64,8 @@ export class TeamMapper {
       id: domainTeam.id,
       name: domainTeam.name,
       players: [], // Empty until hydrated
+      seasonIds: domainTeam.seasonIds || [],
+      isActive: true, // Domain team doesn't have isActive, default to true
     };
   }
 
@@ -95,7 +102,7 @@ export class TeamMapper {
    */
   public static updatePlayerInTeam(
     team: PresentationTeam,
-    updatedPlayer: import('@/presentation/types/TeamWithPlayers').PresentationPlayer
+    updatedPlayer: PresentationPlayer
   ): PresentationTeam {
     return {
       ...team,
@@ -110,7 +117,7 @@ export class TeamMapper {
    */
   public static addPlayerToTeam(
     team: PresentationTeam,
-    newPlayer: import('@/presentation/types/TeamWithPlayers').PresentationPlayer
+    newPlayer: PresentationPlayer
   ): PresentationTeam {
     // Check if player already exists
     if (team.players.some((player) => player.id === newPlayer.id)) {

@@ -45,6 +45,7 @@ import {
   PresentationGameStatus,
   PresentationPlayer,
 } from '@/presentation/interfaces/IPresentationServices';
+import { GameMapper } from '@/presentation/mappers/GameMapper';
 import { LineupSetupModal } from '../components/LineupSetupModal';
 
 export default function GamePage() {
@@ -80,7 +81,7 @@ export default function GamePage() {
 
   // Store hooks
   const {
-    games,
+    games: gamesRaw,
     seasons,
     gameTypes,
     teams,
@@ -92,12 +93,14 @@ export default function GamePage() {
     loadTeams,
     loadPlayersForTeam,
     createGame,
-    updateGame,
     saveLineup,
     searchGames,
     filterGamesByStatus,
     clearError,
   } = useGamesStore();
+
+  // Transform GameDto[] to PresentationGame[] for UI compatibility
+  const games: PresentationGame[] = GameMapper.dtoArrayToPresentation(gamesRaw);
 
   // Helper functions for smart defaults
   const getSmartDefaults = useCallback(() => {
@@ -248,9 +251,9 @@ export default function GamePage() {
         opponent: formData.opponent,
         date: new Date(formData.date),
         teamId: formData.teamId,
-        seasonId: formData.seasonId || null,
-        gameTypeId: formData.gameTypeId || null,
-        homeAway: formData.homeAway,
+        seasonId: formData.seasonId || undefined,
+        gameTypeId: formData.gameTypeId || undefined,
+        isHomeGame: formData.homeAway === 'home',
       });
 
       toast({
@@ -319,7 +322,7 @@ export default function GamePage() {
     // Load players for the team
     try {
       const players = await loadPlayersForTeam(game.teamId);
-      setPlayersForLineup(players);
+      setPlayersForLineup(players as PresentationPlayer[]);
     } catch (error) {
       console.error('Failed to load players for team:', error);
       setPlayersForLineup([]);
@@ -362,11 +365,8 @@ export default function GamePage() {
         defensivePositions
       );
 
-      // Create updated game with the lineup ID
-      const gameWithLineup = currentGame.setLineup(lineupId);
-
-      // Update the game using the store's updateGame method
-      await updateGame(gameWithLineup);
+      // Save the lineup to the game using the store's saveLineup method
+      await saveLineup(currentGame.id, lineupId, playerIds, defensivePositions);
 
       toast({
         title: 'Lineup saved successfully',
@@ -567,7 +567,14 @@ export default function GamePage() {
               'in_progress',
               'completed',
             ];
-            filterGamesByStatus(statuses[index]);
+            const selectedStatus = statuses[index];
+            if (selectedStatus === 'all') {
+              filterGamesByStatus('all');
+            } else {
+              filterGamesByStatus(
+                GameMapper.statusFromPresentation(selectedStatus)
+              );
+            }
           }}
         >
           <TabList>
@@ -822,17 +829,17 @@ export default function GamePage() {
           isOpen={isLineupModalOpen}
           onClose={handleLineupModalClose}
           onSave={handleLineupSave}
-          game={selectedGameForLineup}
+          game={selectedGameForLineup as any} // TODO: Refactor LineupSetupModal to use PresentationGame instead of Game
           team={
-            teams.find((t) => t.id === selectedGameForLineup.teamId) ||
-            teams[0] || {
-              id: '',
-              name: 'Unknown Team',
-              seasonIds: [],
-              playerIds: [],
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            }
+            (teams.find((t) => t.id === selectedGameForLineup.teamId) ||
+              teams[0] || {
+                id: '',
+                name: 'Unknown Team',
+                seasonIds: [],
+                playerIds: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              }) as any // TODO: Refactor LineupSetupModal to use TeamDto instead of Team
           }
           players={playersForLineup as any} // TODO: Refactor LineupSetupModal to use PresentationPlayer[] instead of Player[]
         />

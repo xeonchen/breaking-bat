@@ -1,4 +1,4 @@
-import { AtBat, AtBatRepository } from '@/domain';
+import { AtBat, IAtBatRepository } from '@/domain';
 import { BattingResult, BaserunnerState } from '@/domain/values';
 import { IndexedDBAtBatRepository } from '@/infrastructure/repositories/IndexedDBAtBatRepository';
 import {
@@ -7,7 +7,7 @@ import {
 } from '../../test-helpers/database';
 
 describe('AtBatRepository', () => {
-  let repository: AtBatRepository;
+  let repository: IAtBatRepository;
   let testAtBat: AtBat;
   let baserunnersBefore: BaserunnerState;
   let baserunnersAfter: BaserunnerState;

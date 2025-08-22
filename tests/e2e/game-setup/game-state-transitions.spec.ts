@@ -1,9 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import {
-  createTestPrerequisites,
-  createTestGame,
-  setupTestLineup,
-} from '../helpers/test-data-setup';
+import { createTestGame, setupTestLineup } from '../helpers/test-data-setup';
 
 /**
  * Game State Transitions E2E Tests
@@ -571,15 +567,12 @@ async function analyzeInProgressToCompletedRequirements(
   // Implementation for analyzing completion conditions
 }
 
-async function testSetupStateUI(page: Page, gameName: string): Promise<void> {
+async function testSetupStateUI(): Promise<void> {
   console.log('Testing setup state UI elements...');
   // Implementation for testing setup state specific UI
 }
 
-async function testInProgressStateUI(
-  page: Page,
-  gameName: string
-): Promise<void> {
+async function testInProgressStateUI(): Promise<void> {
   console.log('Testing in_progress state UI elements...');
   // Implementation for testing in_progress state specific UI
 }

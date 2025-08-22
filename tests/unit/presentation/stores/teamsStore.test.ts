@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { Team, Position } from '@/domain';
+import { Team } from '@/domain';
 import {
   useTeamsStore,
   initializeTeamsStore,
@@ -7,8 +7,7 @@ import {
 import {
   PresentationTeam,
   PresentationPlayer,
-} from '@/presentation/types/TeamWithPlayers';
-import { PresentationPosition } from '@/presentation/types/presentation-values';
+} from '@/presentation/interfaces/IPresentationServices';
 import { TeamMapper } from '@/presentation/mappers/TeamMapper';
 import {
   resetZustandStore,
@@ -108,7 +107,6 @@ beforeEach(() => {
 
   initializeTeamsStore({
     teamApplicationService: mockTeamApplicationService,
-    teamHydrationService: mockTeamHydrationService as any, // Type assertion to bypass complex mock typing
   });
 });
 
@@ -311,6 +309,7 @@ describe('TeamsStore', () => {
           id: 'team-1',
           name: 'New Yankees',
           seasonIds: [],
+          playerIds: [],
         });
       });
 
@@ -345,6 +344,7 @@ describe('TeamsStore', () => {
           id: 'team-1',
           name: 'New Yankees',
           seasonIds: [],
+          playerIds: [],
         });
       });
 
@@ -441,7 +441,7 @@ describe('TeamsStore', () => {
         await result.current.addPlayer('team-1', {
           name: 'John Smith',
           jerseyNumber: '12',
-          positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
+          positions: ['pitcher'], // This is presentation layer input (string[])
           isActive: true,
         });
       });
@@ -463,20 +463,18 @@ describe('TeamsStore', () => {
         id: 'player-1',
         name: 'John Smith',
         jerseyNumber: '12',
-        positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
+        positions: ['pitcher'], // This is presentation layer input (string[])
         isActive: true,
       };
       const updatedPlayer = { ...player, name: 'Johnny Smith' };
 
       // Set up a team with the player
-      const teamWithPlayer = {
+      const teamWithPlayer: PresentationTeam = {
         id: 'team-1',
         name: 'Test Team',
         players: [player],
-        playerCount: 1,
+        seasonIds: [],
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
       mockTeamApplicationService.updatePlayer.mockResolvedValue({
@@ -492,7 +490,7 @@ describe('TeamsStore', () => {
         {
           name: 'Johnny Smith',
           jerseyNumber: 12,
-          positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
+          positions: ['pitcher'], // This is presentation layer input (string[])
           isActive: true,
         }
       );
@@ -580,7 +578,8 @@ describe('TeamsStore', () => {
 
   describe('Team Selection', () => {
     it('should select team successfully', () => {
-      const team = new Team('team-1', 'Yankees', [], []);
+      const domainTeam = new Team('team-1', 'Yankees', [], []);
+      const team = TeamMapper.domainToPresentation(domainTeam);
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -592,7 +591,8 @@ describe('TeamsStore', () => {
     });
 
     it('should clear team selection', () => {
-      const team = new Team('team-1', 'Yankees', [], []);
+      const domainTeam = new Team('team-1', 'Yankees', [], []);
+      const team = TeamMapper.domainToPresentation(domainTeam);
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -742,7 +742,7 @@ describe('TeamsStore', () => {
       name,
       players,
       seasonIds: [],
-      playerIds: players.map((p) => p.id),
+      isActive: true,
     });
 
     const createMockPlayer = (
@@ -753,7 +753,7 @@ describe('TeamsStore', () => {
       id,
       name,
       jerseyNumber,
-      positions: [Position.fromValue('pitcher')], // Domain objects in hydrated team
+      positions: ['pitcher'], // Presentation objects for UI
       isActive: true,
     });
 
@@ -794,7 +794,7 @@ describe('TeamsStore', () => {
           await result.current.addPlayer('team-1', {
             name: 'Jane Smith',
             jerseyNumber: '12',
-            positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
+            positions: ['pitcher'], // This is presentation layer input (string[])
             isActive: true,
           });
         });
@@ -836,7 +836,7 @@ describe('TeamsStore', () => {
           await result.current.addPlayer('team-2', {
             name: 'John Doe',
             jerseyNumber: '10',
-            positions: [Position.fromValue('pitcher')], // Domain objects in hydrated team
+            positions: ['pitcher'], // Presentation objects for UI
             isActive: true,
           });
         });
@@ -903,7 +903,7 @@ describe('TeamsStore', () => {
           {
             name: 'Johnny Doe',
             jerseyNumber: 10,
-            positions: [Position.fromValue('pitcher')], // Domain objects in hydrated team
+            positions: ['pitcher'], // Presentation objects for UI
             isActive: true,
           }
         );

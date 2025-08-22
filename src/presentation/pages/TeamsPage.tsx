@@ -40,7 +40,7 @@ import {
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { TeamManagement } from '@/presentation/components/TeamManagement';
 import { useTeamsStore } from '@/presentation/stores/teamsStore';
-import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
+import { PresentationTeam } from '@/presentation/interfaces/IPresentationServices';
 
 export default function TeamsPage() {
   const {

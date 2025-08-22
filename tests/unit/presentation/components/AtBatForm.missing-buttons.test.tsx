@@ -12,14 +12,17 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
-import { Position, BattingResult } from '@/domain';
+import {
+  PresentationPosition,
+  PresentationBattingResult,
+} from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
 const mockCurrentBatter = {
   playerId: 'player1',
   playerName: 'John Smith',
   jerseyNumber: '12',
-  position: Position.pitcher(),
+  position: PresentationPosition.PITCHER,
   battingOrder: 3,
 };
 

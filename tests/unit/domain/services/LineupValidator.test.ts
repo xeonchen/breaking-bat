@@ -21,22 +21,30 @@ describe('LineupValidator - TDD Tests', () => {
 
     // Create mock players for testing
     mockPlayers = [
-      new Player('player-1', 'Player One', 1, Position.pitcher(), 'team-1'),
-      new Player('player-2', 'Player Two', 2, Position.catcher(), 'team-1'),
-      new Player('player-3', 'Player Three', 3, Position.firstBase(), 'team-1'),
-      new Player('player-4', 'Player Four', 4, Position.secondBase(), 'team-1'),
-      new Player('player-5', 'Player Five', 5, Position.thirdBase(), 'team-1'),
-      new Player('player-6', 'Player Six', 6, Position.shortstop(), 'team-1'),
-      new Player('player-7', 'Player Seven', 7, Position.leftField(), 'team-1'),
-      new Player(
-        'player-8',
-        'Player Eight',
-        8,
+      new Player('player-1', 'Player One', 1, 'team-1', [Position.pitcher()]),
+      new Player('player-2', 'Player Two', 2, 'team-1', [Position.catcher()]),
+      new Player('player-3', 'Player Three', 3, 'team-1', [
+        Position.firstBase(),
+      ]),
+      new Player('player-4', 'Player Four', 4, 'team-1', [
+        Position.secondBase(),
+      ]),
+      new Player('player-5', 'Player Five', 5, 'team-1', [
+        Position.thirdBase(),
+      ]),
+      new Player('player-6', 'Player Six', 6, 'team-1', [Position.shortstop()]),
+      new Player('player-7', 'Player Seven', 7, 'team-1', [
+        Position.leftField(),
+      ]),
+      new Player('player-8', 'Player Eight', 8, 'team-1', [
         Position.centerField(),
-        'team-1'
-      ),
-      new Player('player-9', 'Player Nine', 9, Position.rightField(), 'team-1'),
-      new Player('player-10', 'Player Ten', 10, Position.leftField(), 'team-1'),
+      ]),
+      new Player('player-9', 'Player Nine', 9, 'team-1', [
+        Position.rightField(),
+      ]),
+      new Player('player-10', 'Player Ten', 10, 'team-1', [
+        Position.leftField(),
+      ]),
     ];
   });
 

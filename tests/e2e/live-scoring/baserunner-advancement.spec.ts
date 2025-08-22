@@ -1,55 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createTestGame, setupTestLineup } from '../helpers/test-data-setup';
 
-/**
- * Helper function for proper modal handling in baserunner tests
- */
-async function clickButtonWithModalHandling(
-  page: any,
-  buttonTestId: string
-): Promise<void> {
-  try {
-    // Check if page is still available
-    if (page.isClosed()) {
-      console.log('❌ Page is closed, cannot continue');
-      return;
-    }
-
-    // Click the button
-    await page.getByTestId(buttonTestId).click();
-
-    // Wait for and handle the baserunner advancement modal if it appears
-    try {
-      await page.waitForSelector(
-        '[data-testid="baserunner-advancement-modal"]',
-        { timeout: 2000 }
-      );
-      await page.getByTestId('confirm-advancement').click();
-    } catch {
-      // Modal may not appear for some actions (like strikeouts)
-    }
-
-    // Wait for success toast and let it disappear
-    try {
-      await page.waitForSelector('text="At-bat recorded"', { timeout: 3000 });
-      await page.waitForSelector('text="At-bat recorded"', {
-        state: 'hidden',
-        timeout: 3000,
-      });
-    } catch {
-      // Toast may not appear or may disappear quickly
-    }
-
-    // Small delay to ensure UI is stable - check page is still open
-    if (!page.isClosed()) {
-      await page.waitForTimeout(500);
-    }
-  } catch (error) {
-    console.log(`❌ Error in clickButtonWithModalHandling: ${error.message}`);
-    throw error;
-  }
-}
-
 test.describe('Live Scoring - Baserunner Advancement (@live-game-scoring:AC006, @live-game-scoring:AC007, @live-game-scoring:AC008, @live-game-scoring:AC009)', () => {
   test.beforeEach(async ({ page }) => {
     // Create test game using dedicated test setup

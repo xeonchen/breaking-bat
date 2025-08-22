@@ -13,11 +13,10 @@ import { renderHook, act } from '@testing-library/react';
 import { useState } from 'react';
 import { useGameStore } from '@/presentation/stores/gameStore';
 import { ScoringService } from '@/domain/services/ScoringService';
-import { BattingResult, BaserunnerState } from '@/domain';
+import { PresentationBattingResult } from '@/presentation/types/presentation-values';
 
 // Mock dependencies
 jest.mock('@/domain/services/ScoringService');
-const mockScoringService = jest.mocked(ScoringService);
 
 describe('UX Improvements Integration Tests', () => {
   beforeEach(() => {
@@ -153,7 +152,7 @@ describe('UX Improvements Integration Tests', () => {
       // Simulate at-bat completion with collapsed UI
       const atBatResult = {
         batterId: 'player1',
-        result: BattingResult.walk(),
+        result: PresentationBattingResult.WALK,
         finalCount: { balls: 4, strikes: 0 },
         pitchSequence: ['B', 'B', 'B', 'B'],
       };
@@ -190,15 +189,19 @@ describe('UX Improvements Integration Tests', () => {
       };
 
       // Test scenarios
-      expect(shouldShowModal(BattingResult.single(), {})).toBe(false); // No runners
+      expect(shouldShowModal(PresentationBattingResult.SINGLE, {})).toBe(false); // No runners
       expect(
-        shouldShowModal(BattingResult.homeRun(), { first: 'player1' })
+        shouldShowModal(PresentationBattingResult.HOME_RUN, {
+          first: 'player1',
+        })
       ).toBe(false); // Auto-handled
       expect(
-        shouldShowModal(BattingResult.single(), { first: 'player1' })
+        shouldShowModal(PresentationBattingResult.SINGLE, { first: 'player1' })
       ).toBe(true); // Should show
       expect(
-        shouldShowModal(BattingResult.strikeout(), { first: 'player1' })
+        shouldShowModal(PresentationBattingResult.STRIKEOUT, {
+          first: 'player1',
+        })
       ).toBe(false); // No advancement
     });
   });
@@ -277,7 +280,7 @@ describe('UX Improvements Integration Tests', () => {
       const validResult = validateAdvancement(
         { first: 'runner1', third: 'runner3' },
         { first: 'second', third: 'home' },
-        BattingResult.single()
+        PresentationBattingResult.SINGLE
       );
       expect(validResult.isValid).toBe(true);
 
@@ -285,7 +288,7 @@ describe('UX Improvements Integration Tests', () => {
       const incompleteResult = validateAdvancement(
         { first: 'runner1', third: 'runner3' },
         { first: 'second' }, // Missing third base selection
-        BattingResult.single()
+        PresentationBattingResult.SINGLE
       );
       expect(incompleteResult.isValid).toBe(false);
       expect(incompleteResult.errors).toContain(
@@ -296,7 +299,7 @@ describe('UX Improvements Integration Tests', () => {
       const conflictResult = validateAdvancement(
         { first: 'runner1', second: 'runner2' },
         { first: 'stay', second: 'first' }, // Both end up on first
-        BattingResult.single()
+        PresentationBattingResult.SINGLE
       );
       expect(conflictResult.isValid).toBe(false);
       expect(conflictResult.errors).toContain(
@@ -438,13 +441,13 @@ describe('UX Improvements Integration Tests', () => {
         return hasRunners && requiresAdvancement;
       };
 
-      expect(shouldShowModal(BattingResult.single())).toBe(true);
-      expect(shouldShowModal(BattingResult.homeRun())).toBe(false);
+      expect(shouldShowModal(PresentationBattingResult.SINGLE)).toBe(true);
+      expect(shouldShowModal(PresentationBattingResult.HOME_RUN)).toBe(false);
 
       // 4. Test at-bat with manual advancement
       const atBatWithAdvancement = {
         batterId: 'player1',
-        result: BattingResult.single(),
+        result: PresentationBattingResult.SINGLE,
         finalCount: { balls: 1, strikes: 1 },
         baserunnerAdvancement: {
           first: 'second',

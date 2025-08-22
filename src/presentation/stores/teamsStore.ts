@@ -10,8 +10,8 @@ import {
   AddPlayerToTeamCommand,
   UpdatePlayerInTeamCommand,
   RemovePlayerFromTeamCommand,
+  TeamDto,
   // GetTeamByIdQuery, // TODO: Remove unused import
-  // TeamDto, // TODO: Remove unused import
   // TeamWithPlayersDto, // TODO: Remove unused import
   // TeamPlayerDto, // TODO: Remove unused import
 } from '@/application/services/interfaces/ITeamApplicationService';
@@ -19,19 +19,21 @@ import {
 import {
   PresentationTeam,
   PresentationPlayer,
-} from '@/presentation/types/TeamWithPlayers';
-import {
-  PresentationPosition,
-  PresentationValueConverter,
-} from '@/presentation/types/presentation-values';
-import { TeamHydrationService } from '@/infrastructure/adapters/services/TeamHydrationService';
+} from '@/presentation/interfaces/IPresentationServices';
 
-interface PlayerData {
-  name: string;
-  jerseyNumber: string;
-  positions: PresentationPosition[];
-  isActive: boolean;
+// Helper function to convert TeamDto to PresentationTeam
+function convertDtoToPresentation(dto: TeamDto): PresentationTeam {
+  return {
+    id: dto.id,
+    name: dto.name,
+    players: [], // Will be loaded separately when needed
+    seasonIds: dto.seasonIds || [],
+    isActive: dto.isActive || true,
+  };
 }
+
+// Using canonical PresentationPlayer type instead of custom PlayerData
+type PlayerData = Omit<PresentationPlayer, 'id'>;
 
 interface TeamData {
   id: string;
@@ -74,20 +76,16 @@ interface TeamsState {
 
 // Application services - will be injected in production
 let teamApplicationService: ITeamApplicationService;
-let teamHydrationService: TeamHydrationService;
 
 // Initialize function for dependency injection
 export const initializeTeamsStore = (deps: {
   teamApplicationService: ITeamApplicationService;
-  teamHydrationService: TeamHydrationService;
 }): void => {
   console.log('🔧 Initializing TeamsStore with dependencies:', {
     teamApplicationService: !!deps.teamApplicationService,
-    teamHydrationService: !!deps.teamHydrationService,
   });
 
   teamApplicationService = deps.teamApplicationService;
-  teamHydrationService = deps.teamHydrationService;
 
   console.log('✅ TeamsStore dependencies initialized successfully');
 };
@@ -113,7 +111,7 @@ export const useTeamsStore = create<TeamsState>()(
             if (!result.isSuccess) {
               throw new Error(result.error || 'Failed to fetch teams');
             }
-            const domainTeams = result.value;
+            const domainTeams = result.value || [];
             console.log(
               `✅ Found ${domainTeams.length} teams from application layer:`,
               domainTeams.map((t) => ({
@@ -122,10 +120,9 @@ export const useTeamsStore = create<TeamsState>()(
               }))
             );
 
-            console.log('💧 Hydrating teams...');
-            // Hydrate domain teams to presentation teams
-            const hydratedTeams =
-              await teamHydrationService.hydrateTeams(domainTeams);
+            console.log('💧 Converting teams to presentation format...');
+            // Convert DTOs to presentation teams
+            const hydratedTeams = domainTeams.map(convertDtoToPresentation);
             console.log(
               `✅ Hydrated ${hydratedTeams.length} teams:`,
               hydratedTeams.map((t: PresentationTeam) => ({
@@ -172,8 +169,8 @@ export const useTeamsStore = create<TeamsState>()(
             if (!teamsResult.isSuccess) {
               throw new Error(teamsResult.error || 'Failed to refresh teams');
             }
-            const hydratedTeams = await teamHydrationService.hydrateTeams(
-              teamsResult.value || []
+            const hydratedTeams = (teamsResult.value || []).map(
+              convertDtoToPresentation
             );
 
             set({
@@ -213,8 +210,8 @@ export const useTeamsStore = create<TeamsState>()(
             if (!teamsResult.isSuccess) {
               throw new Error(teamsResult.error || 'Failed to refresh teams');
             }
-            const hydratedTeams = await teamHydrationService.hydrateTeams(
-              teamsResult.value || []
+            const hydratedTeams = (teamsResult.value || []).map(
+              convertDtoToPresentation
             );
 
             set({ teams: hydratedTeams, loading: false });
@@ -265,9 +262,14 @@ export const useTeamsStore = create<TeamsState>()(
               teamId,
               playerName: playerData.name,
               jerseyNumber: parseInt(playerData.jerseyNumber, 10),
-              positions: playerData.positions.map((pos) =>
-                PositionMapper.presentationToDomainString(pos)
-              ),
+              positions: playerData.positions.map((posString) => {
+                // Convert string to PresentationPosition first, then to domain string
+                const presentationPos =
+                  PositionMapper.domainStringToPresentation(posString);
+                return PositionMapper.presentationToDomainString(
+                  presentationPos
+                );
+              }),
               isActive: playerData.isActive,
             };
 
@@ -283,8 +285,8 @@ export const useTeamsStore = create<TeamsState>()(
             if (!teamsResult.isSuccess) {
               throw new Error(teamsResult.error || 'Failed to refresh teams');
             }
-            const hydratedTeams = await teamHydrationService.hydrateTeams(
-              teamsResult.value || []
+            const hydratedTeams = (teamsResult.value || []).map(
+              convertDtoToPresentation
             );
 
             // Update selectedTeam if it matches the affected team
@@ -343,9 +345,14 @@ export const useTeamsStore = create<TeamsState>()(
               playerId,
               playerName: playerData.name,
               jerseyNumber: parseInt(playerData.jerseyNumber, 10),
-              positions: playerData.positions.map((pos) =>
-                PositionMapper.presentationToDomainString(pos)
-              ),
+              positions: playerData.positions.map((posString) => {
+                // Convert string to PresentationPosition first, then to domain string
+                const presentationPos =
+                  PositionMapper.domainStringToPresentation(posString);
+                return PositionMapper.presentationToDomainString(
+                  presentationPos
+                );
+              }),
               isActive: playerData.isActive,
             };
             const result =
@@ -360,8 +367,8 @@ export const useTeamsStore = create<TeamsState>()(
             if (!teamsResult.isSuccess) {
               throw new Error(teamsResult.error || 'Failed to refresh teams');
             }
-            const hydratedTeams = await teamHydrationService.hydrateTeams(
-              teamsResult.value || []
+            const hydratedTeams = (teamsResult.value || []).map(
+              convertDtoToPresentation
             );
 
             // Update selectedTeam if it contains the updated player
@@ -418,8 +425,8 @@ export const useTeamsStore = create<TeamsState>()(
             if (!teamsResult.isSuccess) {
               throw new Error(teamsResult.error || 'Failed to refresh teams');
             }
-            const hydratedTeams = await teamHydrationService.hydrateTeams(
-              teamsResult.value || []
+            const hydratedTeams = (teamsResult.value || []).map(
+              convertDtoToPresentation
             );
 
             // Update selectedTeam if it matches the affected team

@@ -91,7 +91,6 @@ export class ApplicationBootstrap {
       // Initialize stores with application services (not repositories)
       initializeTeamsStore({
         teamApplicationService: container.teamApplicationService,
-        teamHydrationService: container.teamHydrationService,
       });
 
       initializeGamesStore({

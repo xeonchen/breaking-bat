@@ -5,232 +5,385 @@ This document describes the Hexagonal Architecture (Ports & Adapters) implementa
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        HEXAGONAL ARCHITECTURE                       │
-│                         (Ports & Adapters)                         │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    Clean Architecture                   │
+│                  (Hexagonal Architecture)               │
+└─────────────────────────────────────────────────────────┘
 
-   Primary Adapters                                    Secondary Adapters
-        (Drivers)                                          (Driven)
-┌──────────────────────┐                           ┌──────────────────────┐
-│  Presentation Layer  │                           │ Infrastructure Layer │
-│                      │                           │                      │
-│  • React Components  │────┐                 ┌────│  • IndexedDB         │
-│  • Zustand Stores    │    │                 │    │  • LocalStorage      │
-│  • UI Controllers    │    │                 │    │  • Console Logger    │
-│                      │    │                 │    │  • Browser APIs      │
-└──────────────────────┘    │                 │    └──────────────────────┘
-                            │                 │
-                       ┌────▼─────────────────▼────┐
-                       │     APPLICATION CORE      │
-                       │                           │
-                       │  ┌─────────────────────┐  │
-                       │  │   PRIMARY PORTS     │  │
-                       │  │ (Command Handlers)  │  │
-                       │  └─────────────────────┘  │
-                       │                           │
-                       │  ┌─────────────────────┐  │
-                       │  │  DOMAIN SERVICES    │  │
-                       │  │ (Business Logic)    │  │
-                       │  └─────────────────────┘  │
-                       │                           │
-                       │  ┌─────────────────────┐  │
-                       │  │  SECONDARY PORTS    │  │
-                       │  │ (Repository Intfs)  │  │
-                       │  └─────────────────────┘  │
-                       └───────────────────────────┘
+       Primary Adapters            Secondary Adapters
+          (Drivers)                    (Driven)
+    ┌──────────────────────┐   ┌──────────────────────┐
+    │  Presentation Layer  │   │ Infrastructure Layer │
+    │                      │   │                      │
+    │  • React Components  │   │  • IndexedDB         │
+    │  • Zustand Stores    │   │  • LocalStorage      │
+    │  • UI Controllers    │   │  • Console Logger    │
+    │                      │   │  • Browser APIs      │
+    └──────────────────────┘   └──────────────────────┘
+               ↓                        ⇡ implements
+               ↓                        ⇡
+    ┌─────────────────────────────────────────────────┐
+    │              APPLICATION LAYER                  │
+    │                                                 │
+    │  ┌──────────────────┐  ┌──────────────────┐     │
+    │  │  Primary Ports   │  │ Secondary Ports  │     │
+    │  │  <<interfaces>>  │  │  <<interfaces>>  │     │
+    │  └──────────────────┘  └──────────────────┘     │
+    │              ↓                ↑                 │
+    │  ┌────────────────────────────────────────┐     │
+    │  │     Application Services (Use Cases)   │     │
+    │  └────────────────────────────────────────┘     │
+    └─────────────────────────────────────────────────┘
+                            ↓
+    ┌─────────────────────────────────────────────────┐
+    │                  DOMAIN LAYER                   │
+    │                                                 │
+    │  ┌──────────────────┐  ┌──────────────────┐     │
+    │  │     Entities     │  │  Domain Services │     │
+    │  └──────────────────┘  └──────────────────┘     │
+    │  ┌──────────────────┐  ┌──────────────────┐     │
+    │  │  Value Objects   │  │  Domain Events   │     │
+    │  └──────────────────┘  └──────────────────┘     │
+    └─────────────────────────────────────────────────┘
+
+Legend:
+→  Direct dependency (imports concrete implementations or uses)
+⇡  Implements interface (depends on abstraction)
+```
+
+## Dependency Rules
+
+### Compile-Time Dependencies
+
+```
+Presentation Layer:
+  → imports Application Use Cases
+  → imports Domain Entities (for type definitions)
+
+Infrastructure Layer:
+  → imports Application Ports (interfaces only)
+  → imports Domain Entities
+
+Application Layer:
+  → imports Domain Entities
+  → imports Domain Services
+  → defines but doesn't implement Secondary Ports
+
+Domain Layer:
+  → No external dependencies (pure business logic)
+```
+
+### Runtime Dependencies
+
+```
+User → Presentation → Application → Infrastructure
+                ↓           ↓            ↓
+                └───────→ Domain ←───────┘
 ```
 
 ## Layer Responsibilities
 
-### Application Core
+### Domain Layer (Core Business Logic)
 
-- **Domain Entities**: Team, Player, Game, AtBat, etc.
-- **Domain Services**: ScoringService, GameSessionService, etc.
-- **Use Cases**: CreateTeamUseCase, RecordAtBatUseCase, etc.
-- **Ports**: Interfaces defining external contracts
+**Location**: `src/domain/`
+**Dependencies**: None - this is the innermost layer
 
-### Primary Adapters (Driving Side)
+- **Entities**: Core business objects with identity (Team, Player, Game, AtBat)
+- **Value Objects**: Immutable objects without identity (Score, Statistics, GameSettings)
+- **Domain Services**: Business logic that doesn't belong to a single entity (ScoringService, StatisticsCalculator)
+- **Domain Events**: Business events that occur (GameCompleted, AtBatRecorded, InningChanged)
+- **Domain Exceptions**: Business rule violations (InvalidLineupException, GameAlreadyStartedException)
 
-- **React Components**: UI that drives application behavior
-- **Zustand Stores**: State management adapters
-- **REST Controllers**: (Future) API endpoints
+### Application Layer (Use Case Orchestration)
 
-### Secondary Adapters (Driven Side)
+**Location**: `src/application/`
+**Dependencies**: Domain Layer only
 
-- **Persistence**: IndexedDB adapters for data storage
-- **Infrastructure**: Logging, caching, file storage adapters
-- **External APIs**: (Future) External service integrations
+- **Application Services (Use Cases)**: Orchestrate business operations (CreateTeamUseCase, StartGameUseCase, RecordAtBatUseCase)
+- **Primary Ports**: Interfaces that external actors use to drive the application (ICommandHandler, IQueryHandler)
+- **Secondary Ports**: Interfaces that the application needs from external systems (ITeamRepository, IGameRepository, INotificationService)
+- **DTOs**: Data Transfer Objects for communication across boundaries
+- **Application Exceptions**: Application-level errors (UseCaseValidationException)
 
-## Ports & Adapters
+### Infrastructure Layer (Technical Implementation)
 
-### Primary Ports (Application → External)
+**Location**: `src/infrastructure/`
+**Dependencies**: Application Ports (interfaces), Domain Entities
 
-Located in: `src/application/ports/primary/`
+- **Persistence Adapters**: Concrete implementations of repository interfaces (IndexedDBTeamRepository, LocalStorageSettingsRepository)
+- **External Service Adapters**: Implementations of external service interfaces (ConsoleLoggerAdapter, BrowserNotificationAdapter)
+- **Dependency Injection**: Composition root and container configuration
+- **Framework Configuration**: Technical setup and bootstrapping
 
-- **ICommandHandlers.ts**: Command and query handler interfaces
-- Define what external actors can request from our application
+### Presentation Layer (User Interface)
 
-### Secondary Ports (Application ← External)
+**Location**: `src/presentation/`
+**Dependencies**: Application Use Cases, Domain Entities (for types)
 
-Located in: `src/application/ports/secondary/`
+- **React Components**: UI components that interact with use cases
+- **State Management**: Zustand stores that coordinate UI state
+- **View Models**: UI-specific data transformations
+- **Routes**: Application routing configuration
+- **UI Utilities**: Formatting, validation helpers
 
-- **IPersistencePorts.ts**: Data persistence contracts
-- **IInfrastructurePorts.ts**: Infrastructure service contracts
-- Define what our application needs from external systems
+## Port & Adapter Details
 
-### Primary Adapters (External → Application)
+### Primary Ports (Driving Ports)
 
-Located in: `src/presentation/`
+**Purpose**: Define how external actors can interact with the application
+**Location**: `src/application/ports/primary/`
 
-- **React Components**: UI adapters that call application use cases
-- **Zustand Stores**: State management adapters
-- **ApplicationProvider**: Dependency injection adapter
+```typescript
+// Example: Command Handler Interface
+export interface ICommandHandler<TCommand, TResult> {
+  execute(command: TCommand): Promise<TResult>;
+}
 
-### Secondary Adapters (Application → External)
-
-Located in: `src/infrastructure/adapters/`
-
-- **IndexedDBPersistenceAdapter**: Database persistence implementations
-- **InfrastructureServiceAdapters**: Logging, caching, etc. implementations
-
-## Dependency Flow
-
+// Example: Query Handler Interface
+export interface IQueryHandler<TQuery, TResult> {
+  handle(query: TQuery): Promise<TResult>;
+}
 ```
-Presentation Layer ──→ Application Ports ──→ Domain Services
-                                          ↙
-Infrastructure Adapters ←── Secondary Ports
+
+### Secondary Ports (Driven Ports)
+
+**Purpose**: Define what the application needs from external systems
+**Location**: `src/application/ports/secondary/`
+
+```typescript
+// Example: Repository Interface
+export interface ITeamRepository {
+  save(team: Team): Promise<void>;
+  findById(id: string): Promise<Team | null>;
+  findAll(): Promise<Team[]>;
+  delete(id: string): Promise<void>;
+}
+
+// Example: External Service Interface
+export interface INotificationService {
+  notify(message: string, type: NotificationType): Promise<void>;
+}
 ```
 
-**Key Principles:**
+### Primary Adapters (Driving Adapters)
 
-1. **Dependency Inversion**: All dependencies point inward toward the domain
-2. **Interface Segregation**: Specific, focused port interfaces
-3. **Single Responsibility**: Each adapter handles one concern
-4. **Testability**: Ports can be easily mocked for testing
+**Purpose**: Adapt external inputs to application use cases
+**Location**: `src/presentation/`
 
-## Benefits Achieved
+```typescript
+// Example: React Component using Use Case
+const TeamCreator: React.FC = () => {
+  const createTeam = useCreateTeamUseCase(); // Injected use case
 
-### ✅ **Testability**
+  const handleSubmit = async (name: string) => {
+    await createTeam.execute({ name });
+  };
 
-- Domain logic can be tested without external dependencies
-- Adapters can be mocked through port interfaces
-- Unit tests focus on business logic
+  return <TeamForm onSubmit={handleSubmit} />;
+};
+```
 
-### ✅ **Flexibility**
+### Secondary Adapters (Driven Adapters)
 
-- Storage mechanism can be changed (IndexedDB → PostgreSQL)
-- UI framework can be swapped (React → Vue)
-- External services can be replaced
+**Purpose**: Implement application requirements using specific technologies
+**Location**: `src/infrastructure/adapters/`
 
-### ✅ **Maintainability**
+```typescript
+// Example: IndexedDB Implementation of Repository
+export class IndexedDBTeamRepository implements ITeamRepository {
+  async save(team: Team): Promise<void> {
+    // IndexedDB-specific implementation
+    const db = await this.openDatabase();
+    const tx = db.transaction(['teams'], 'readwrite');
+    await tx.objectStore('teams').put(team.toJSON());
+  }
 
-- Clear separation of concerns
-- Business logic isolated from technical concerns
-- Easy to understand dependency relationships
-
-### ✅ **Extensibility**
-
-- New adapters can be added without changing core logic
-- Multiple adapters can implement the same port
-- Feature flags can switch between adapters
+  async findById(id: string): Promise<Team | null> {
+    // IndexedDB-specific implementation
+    const db = await this.openDatabase();
+    const data = await db.get('teams', id);
+    return data ? Team.fromJSON(data) : null;
+  }
+}
+```
 
 ## File Structure
 
 ```
 src/
-├── application/
+├── domain/                    # Domain Layer (Core Business)
+│   ├── entities/              # Business entities with identity
+│   │   ├── Team.ts
+│   │   ├── Player.ts
+│   │   └── Game.ts
+│   ├── value-objects/         # Immutable values without identity
+│   │   ├── Score.ts
+│   │   └── Statistics.ts
+│   ├── services/              # Domain services (business logic)
+│   │   ├── ScoringService.ts
+│   │   └── StatisticsCalculator.ts
+│   ├── events/                # Domain events
+│   │   └── GameCompletedEvent.ts
+│   └── exceptions/            # Domain-specific exceptions
+│       └── InvalidLineupException.ts
+│
+├── application/               # Application Layer (Use Cases)
 │   ├── ports/
-│   │   ├── primary/           # Driving ports
-│   │   │   └── ICommandHandlers.ts
-│   │   └── secondary/         # Driven ports
-│   │       ├── IPersistencePorts.ts
-│   │       └── IInfrastructurePorts.ts
+│   │   ├── primary/           # Driving ports (interfaces)
+│   │   │   └── ICommandHandler.ts
+│   │   └── secondary/         # Driven ports (interfaces)
+│   │       ├── ITeamRepository.ts
+│   │       └── INotificationService.ts
 │   ├── use-cases/             # Application services
-│   └── common/                # Shared application logic
+│   │   ├── teams/
+│   │   │   └── CreateTeamUseCase.ts
+│   │   └── games/
+│   │       └── StartGameUseCase.ts
+│   ├── dtos/                  # Data transfer objects
+│   └── exceptions/            # Application exceptions
 │
-├── domain/
-│   ├── entities/              # Business entities
-│   ├── services/              # Domain services
-│   └── values/                # Value objects
-│
-├── infrastructure/
+├── infrastructure/            # Infrastructure Layer (Technical Details)
 │   ├── adapters/
-│   │   ├── persistence/       # Database adapters
-│   │   └── services/          # Infrastructure service adapters
-│   ├── di/
-│   │   └── CompositionRoot.ts # Dependency wiring
+│   │   ├── persistence/       # Database implementations
+│   │   │   ├── IndexedDBTeamRepository.ts
+│   │   │   └── IndexedDBGameRepository.ts
+│   │   └── services/          # External service implementations
+│   │       └── ConsoleLoggerAdapter.ts
+│   ├── di/                    # Dependency injection
+│   │   └── CompositionRoot.ts
 │   └── bootstrap/             # Application startup
+│       └── ApplicationBootstrap.ts
 │
-└── presentation/
-    ├── components/            # UI components (primary adapters)
-    ├── stores/                # State management (primary adapters)
-    └── providers/             # React context providers
+└── presentation/              # Presentation Layer (UI)
+    ├── components/            # React components
+    ├── stores/                # State management (Zustand)
+    ├── hooks/                 # Custom React hooks
+    ├── providers/             # React context providers
+    └── routes/                # Routing configuration
 ```
 
-## Usage Examples
-
-### Adding a New Storage Mechanism
-
-1. **Create new adapter**:
+## Dependency Injection & Composition
 
 ```typescript
-// infrastructure/adapters/persistence/PostgreSQLPersistenceAdapter.ts
-export class PostgreSQLTeamPersistenceAdapter implements ITeamPersistencePort {
-  // Implementation using PostgreSQL
+// infrastructure/di/CompositionRoot.ts
+export class CompositionRoot {
+  static compose(): ApplicationContainer {
+    // Create infrastructure adapters
+    const teamRepository = new IndexedDBTeamRepository();
+    const gameRepository = new IndexedDBGameRepository();
+    const notificationService = new ConsoleLoggerAdapter();
+
+    // Create domain services
+    const scoringService = new ScoringService();
+    const statsCalculator = new StatisticsCalculator();
+
+    // Create application services (use cases)
+    const createTeamUseCase = new CreateTeamUseCase(
+      teamRepository,
+      notificationService
+    );
+
+    const startGameUseCase = new StartGameUseCase(
+      gameRepository,
+      teamRepository,
+      scoringService
+    );
+
+    // Return container with all services
+    return {
+      useCases: {
+        createTeam: createTeamUseCase,
+        startGame: startGameUseCase,
+      },
+      // Expose repositories if needed for queries
+      repositories: {
+        team: teamRepository,
+        game: gameRepository,
+      },
+    };
+  }
 }
 ```
 
-2. **Update composition root**:
+## Testing Strategy
 
-```typescript
-// Switch adapter in CompositionRoot.ts
-const teamPersistencePort = new PostgreSQLTeamPersistenceAdapter();
-```
+### Domain Layer Tests
 
-3. **No changes needed** in application core or presentation layer!
+- Test pure business logic without any dependencies
+- Focus on business rules and invariants
+- No mocking required
 
-### Adding a New External Service
+### Application Layer Tests
 
-1. **Define port**:
+- Mock secondary ports (repositories, services)
+- Test use case orchestration and flow
+- Verify correct delegation to domain services
 
-```typescript
-// application/ports/secondary/IEmailPort.ts
-export interface IEmailPort {
-  sendNotification(to: string, subject: string, body: string): Promise<void>;
-}
-```
+### Infrastructure Layer Tests
 
-2. **Create adapter**:
+- Integration tests with real databases/services
+- Test adapter implementations against port contracts
+- Verify technical implementation details
 
-```typescript
-// infrastructure/adapters/services/SendGridEmailAdapter.ts
-export class SendGridEmailAdapter implements IEmailPort {
-  // SendGrid implementation
-}
-```
+### Presentation Layer Tests
 
-3. **Wire in composition root** and use in application services
+- Component testing with mocked use cases
+- User interaction testing
+- Visual regression testing
 
-## Migration Status
+## Key Principles
 
-### ✅ Completed
+1. **Dependency Rule**: Dependencies only point inward. Inner layers know nothing about outer layers.
 
-- [x] Hexagonal architecture foundation
-- [x] Primary and secondary port definitions
-- [x] Core infrastructure adapters
-- [x] Composition root with port wiring
-- [x] Legacy compatibility layer
+2. **Abstraction Rule**: Depend on abstractions (interfaces), not concretions (implementations).
 
-### 🔄 In Progress
+3. **Stability Rule**: More stable components (domain) should not depend on less stable components (infrastructure).
 
-- [ ] Migrate all repository implementations to adapters
-- [ ] Complete command/query handler implementations
-- [ ] Full presentation layer adapter migration
+4. **Testability**: Every layer can be tested in isolation by mocking its dependencies.
 
-### 📋 Future Enhancements
+5. **Flexibility**: Technical details (database, UI framework) can be changed without affecting business logic.
 
-- [ ] Event sourcing adapter
-- [ ] External API adapters
-- [ ] Advanced caching strategies
-- [ ] Multiple storage backends
+## Common Patterns
+
+### Command Query Separation (CQS)
+
+- Commands: Modify state, return void or simple result
+- Queries: Read state, don't modify anything
+
+### Repository Pattern
+
+- Abstracts data persistence
+- Domain works with collections, not databases
+
+### Use Case Pattern
+
+- One class per use case
+- Clear, focused responsibilities
+- Easy to test and understand
+
+### Dependency Injection
+
+- Dependencies provided from outside
+- Enables testing and flexibility
+- Composition root wires everything
+
+## Migration Checklist
+
+When migrating existing code to this architecture:
+
+- [ ] Identify and extract domain entities
+- [ ] Move business logic to domain services
+- [ ] Define repository interfaces in application layer
+- [ ] Implement repository adapters in infrastructure
+- [ ] Create use cases for each user action
+- [ ] Wire dependencies in composition root
+- [ ] Update UI components to use use cases
+- [ ] Add comprehensive tests at each layer
+
+## Benefits
+
+1. **Testability**: Each layer can be tested independently
+2. **Maintainability**: Clear boundaries and responsibilities
+3. **Flexibility**: Easy to change technical implementations
+4. **Scalability**: New features fit naturally into the structure
+5. **Understanding**: Architecture mirrors business domain

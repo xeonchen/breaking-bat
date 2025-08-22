@@ -58,6 +58,12 @@ describe('ApplicationFacade', () => {
       updateLineup: jest.fn(),
       getGameStatistics: jest.fn(),
       searchGames: jest.fn(),
+      // Missing interface methods
+      setupLineup: jest.fn(),
+      addInning: jest.fn(),
+      substitutePlayer: jest.fn(),
+      getGameLineup: jest.fn(),
+      getInningDetails: jest.fn(),
     } as jest.Mocked<IGameApplicationService>;
 
     mockStatisticsService = {
@@ -69,6 +75,13 @@ describe('ApplicationFacade', () => {
       calculateOnBasePercentage: jest.fn(),
       getLeaderboard: jest.fn(),
       exportStatistics: jest.fn(),
+      // Missing interface methods
+      getPlayerComparison: jest.fn(),
+      getTeamRankings: jest.fn(),
+      getTrendsAnalysis: jest.fn(),
+      getAdvancedAnalytics: jest.fn(),
+      createStatisticsSnapshot: jest.fn(),
+      generatePerformanceReport: jest.fn(),
     } as jest.Mocked<IStatisticsApplicationService>;
 
     mockDataService = {
@@ -80,6 +93,19 @@ describe('ApplicationFacade', () => {
       restoreData: jest.fn(),
       validateDataIntegrity: jest.fn(),
       getDataSummary: jest.fn(),
+      // Missing interface methods
+      createSeason: jest.fn(),
+      updateSeason: jest.fn(),
+      createGameType: jest.fn(),
+      updateGameType: jest.fn(),
+      deleteGameType: jest.fn(),
+      getAllSeasons: jest.fn(),
+      getSeasonById: jest.fn(),
+      getAllGameTypes: jest.fn(),
+      getSystemHealth: jest.fn(),
+      createMigration: jest.fn(),
+      applyMigration: jest.fn(),
+      rollbackMigration: jest.fn(),
     } as jest.Mocked<IDataApplicationService>;
 
     // Create facade instance

@@ -236,9 +236,8 @@ export class DataApplicationService implements IDataApplicationService {
       return Result.success(undefined);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      this.loggingPort.error('Failed to delete game type', {
+      this.loggingPort.error('Failed to delete game type', error as Error, {
         gameTypeId,
-        error: message,
       });
       return Result.failure(message);
     }

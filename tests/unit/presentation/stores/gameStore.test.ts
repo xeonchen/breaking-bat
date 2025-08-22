@@ -1,5 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
-import { Game, Team, Position, BattingResult, Scoreboard } from '@/domain';
+import { Game, Team, Scoreboard } from '@/domain';
+import {
+  PresentationPosition,
+  PresentationBattingResult,
+  PresentationGameStatus,
+} from '@/presentation/types/presentation-values';
 import {
   useGameStore,
   initializeGameStore,
@@ -31,6 +36,7 @@ const mockScoringService = {
   recordAtBat: jest.fn(),
   calculateFinalScore: jest.fn(),
   calculateOuts: jest.fn().mockReturnValue(1), // Default to 1 out
+  validateAdvancement: jest.fn(),
 };
 
 // Test data - using DTOs instead of domain entities
@@ -44,7 +50,7 @@ const mockGameDTO = {
   awayTeamId: 'Yankees',
   teamId: 'team-1',
   gameTypeId: 'type-1',
-  status: 'in_progress' as const,
+  status: PresentationGameStatus.IN_PROGRESS,
   currentInning: 1,
   isTopInning: true,
   homeScore: 3,
@@ -91,7 +97,7 @@ const mockBatter = {
   playerId: 'player-1',
   playerName: 'Ted Williams',
   jerseyNumber: '9',
-  position: Position.leftField(),
+  position: PresentationPosition.LEFT_FIELD,
   battingOrder: 1,
 };
 
@@ -101,7 +107,7 @@ const mockLineup = [
     playerId: 'player-2',
     playerName: 'David Ortiz',
     jerseyNumber: '34',
-    position: Position.firstBase(),
+    position: PresentationPosition.FIRST_BASE,
     battingOrder: 2,
   },
 ];
@@ -192,7 +198,7 @@ describe('GameStore', () => {
           id: 'game-1',
           name: 'Red Sox vs Yankees',
           opponent: 'Yankees',
-          status: 'in_progress',
+          status: PresentationGameStatus.IN_PROGRESS,
           homeScore: 3,
           awayScore: 2,
         })
@@ -414,7 +420,7 @@ describe('GameStore', () => {
     it('should record at-bat successfully', async () => {
       const atBatResult = {
         batterId: 'player-1',
-        result: '1B',
+        result: PresentationBattingResult.SINGLE,
         finalCount: { balls: 1, strikes: 2 },
         runsScored: 0,
         advanceInning: false,
@@ -460,7 +466,7 @@ describe('GameStore', () => {
     it('should handle at-bat recording errors when no game loaded', async () => {
       const atBatResult = {
         batterId: 'player-1',
-        result: '1B',
+        result: PresentationBattingResult.SINGLE,
         finalCount: { balls: 1, strikes: 2 },
       };
 
@@ -717,7 +723,7 @@ describe('GameStore', () => {
 
       const atBatResult = {
         batterId: 'player-1',
-        result: '1B',
+        result: PresentationBattingResult.SINGLE,
         finalCount: { balls: 1, strikes: 2 },
       };
 
@@ -744,7 +750,7 @@ describe('GameStore', () => {
 
       const atBatResult = {
         batterId: 'player-1',
-        result: '1B',
+        result: PresentationBattingResult.SINGLE,
         finalCount: { balls: 1, strikes: 2 },
       };
 
@@ -853,7 +859,7 @@ describe('GameStore', () => {
 
       const atBatResult = {
         batterId: 'player-1',
-        result: '1B',
+        result: PresentationBattingResult.SINGLE,
         finalCount: { balls: 1, strikes: 2 },
       };
 

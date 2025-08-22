@@ -45,6 +45,49 @@ class MockPlayerRepository implements PlayerRepository {
     );
     return !teamPlayers.some((p) => p.jerseyNumber === jerseyNumber);
   }
+
+  // Missing interface methods
+  public async save(player: Player): Promise<Player> {
+    this.players.set(player.id, player);
+    return player;
+  }
+
+  public async findAll(): Promise<Player[]> {
+    return Array.from(this.players.values());
+  }
+
+  public async findByPosition(position: string): Promise<Player[]> {
+    return Array.from(this.players.values()).filter((p) =>
+      p.positions.some((pos) => pos.value === position)
+    );
+  }
+
+  public async findByJerseyNumber(
+    teamId: string,
+    jerseyNumber: number
+  ): Promise<Player | null> {
+    const teamPlayers = Array.from(this.players.values()).filter(
+      (p) => p.teamId === teamId
+    );
+    return teamPlayers.find((p) => p.jerseyNumber === jerseyNumber) || null;
+  }
+
+  public async searchByName(query: string): Promise<Player[]> {
+    return Array.from(this.players.values()).filter((p) =>
+      p.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+
+  public async isJerseyNumberAvailable(
+    teamId: string,
+    jerseyNumber: number,
+    excludePlayerId?: string
+  ): Promise<boolean> {
+    const teamPlayers = Array.from(this.players.values()).filter(
+      (p) => p.teamId === teamId && p.id !== excludePlayerId
+    );
+    return !teamPlayers.some((p) => p.jerseyNumber === jerseyNumber);
+  }
 }
 
 class MockTeamRepository implements TeamRepository {

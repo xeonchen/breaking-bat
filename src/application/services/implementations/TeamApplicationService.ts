@@ -556,7 +556,7 @@ export class TeamApplicationService implements ITeamApplicationService {
     return Result.failure('Not implemented yet');
   }
 
-  async searchTeams(_query: SearchTeamsQuery): Promise<
+  public async searchTeams(_query: SearchTeamsQuery): Promise<
     Result<{
       teams: TeamDto[];
       totalCount: number;
@@ -566,19 +566,19 @@ export class TeamApplicationService implements ITeamApplicationService {
     return Result.failure('Not implemented yet');
   }
 
-  async getTeamRoster(
+  public async getTeamRoster(
     _query: GetTeamRosterQuery
   ): Promise<Result<TeamRosterDto>> {
     return Result.failure('Not implemented yet');
   }
 
-  async getTeamStatistics(
+  public async getTeamStatistics(
     _query: GetTeamStatisticsQuery
   ): Promise<Result<TeamStatisticsDto>> {
     return Result.failure('Not implemented yet');
   }
 
-  async isTeamNameAvailable(
+  public async isTeamNameAvailable(
     _organizationId: string,
     name: string,
     excludeTeamId?: string
@@ -606,7 +606,7 @@ export class TeamApplicationService implements ITeamApplicationService {
     }
   }
 
-  async isJerseyNumberAvailable(
+  public async isJerseyNumberAvailable(
     teamId: string,
     jerseyNumber: number,
     excludePlayerId?: string
@@ -649,7 +649,7 @@ export class TeamApplicationService implements ITeamApplicationService {
     }
   }
 
-  async getTeams(_query?: any): Promise<Result<any[]>> {
+  public async getTeams(_query?: any): Promise<Result<any[]>> {
     try {
       const teams = await this.teamPersistencePort.findAll();
       return Result.success(teams);

@@ -1,4 +1,4 @@
-import { Player, PlayerRepository } from '@/domain';
+import { Player, IPlayerRepository } from '@/domain';
 import { Position } from '@/domain/values';
 import { IndexedDBPlayerRepository } from '@/infrastructure/repositories/IndexedDBPlayerRepository';
 import {
@@ -7,7 +7,7 @@ import {
 } from '../../test-helpers/database';
 
 describe('PlayerRepository', () => {
-  let repository: PlayerRepository;
+  let repository: IPlayerRepository;
   let testPlayer: Player;
 
   beforeEach(async () => {

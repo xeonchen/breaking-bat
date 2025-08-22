@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import '@testing-library/jest-dom';
 import {
   render,
   screen,
@@ -16,6 +17,7 @@ import { UpdatePlayerUseCase } from '@/application/use-cases/UpdatePlayerUseCase
 import { RemovePlayerUseCase } from '@/application/use-cases/RemovePlayerUseCase';
 import { CreateTeamUseCase } from '@/application/use-cases/CreateTeamUseCase';
 import { TeamHydrationService } from '@/infrastructure/adapters/services/TeamHydrationService';
+import { Position } from '@/domain/values';
 import {
   initializeTeamsStore,
   useTeamsStore,
@@ -75,7 +77,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
 
     // Create a simple application service wrapper for integration testing
     const teamApplicationService = {
-      getTeams: async () => {
+      getTeams: async (query?: any) => {
         const teams = await teamRepository.findAll();
         return { isSuccess: true, value: teams };
       },
@@ -118,6 +120,17 @@ describe('Manage Roster Dialog Integration Tests', () => {
       removePlayer: async (command: any) => {
         return await removePlayerUseCase.execute(command);
       },
+      // Missing interface methods (not used in this test but required for interface compliance)
+      archiveTeam: async () => ({ isSuccess: true, value: null }),
+      getTeamsBySeason: async () => ({ isSuccess: true, value: [] }),
+      searchTeams: async () => ({
+        isSuccess: true,
+        value: { teams: [], totalCount: 0, hasMore: false },
+      }),
+      getTeamRoster: async () => ({ isSuccess: true, value: null }),
+      getTeamStatistics: async () => ({ isSuccess: true, value: null }),
+      isTeamNameAvailable: async () => ({ isSuccess: true, value: true }),
+      isJerseyNumberAvailable: async () => ({ isSuccess: true, value: true }),
     };
 
     // Initialize the store with the application service
@@ -208,7 +221,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Ted Williams',
         jerseyNumber: 9,
-        positions: ['left-field'],
+        positions: [Position.leftField()],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
@@ -361,7 +374,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'Mookie Betts',
         jerseyNumber: 50,
-        positions: ['right-field'],
+        positions: [Position.rightField()],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);
@@ -423,7 +436,7 @@ describe('Manage Roster Dialog Integration Tests', () => {
         teamId: testTeamId,
         name: 'TestPlayer',
         jerseyNumber: 99,
-        positions: ['left-field'],
+        positions: [Position.leftField()],
         isActive: true,
       });
       expect(addResult.isSuccess).toBe(true);

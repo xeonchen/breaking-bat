@@ -37,20 +37,10 @@ import {
 } from '@chakra-ui/icons';
 import { useState, useMemo, useCallback } from 'react';
 import { PresentationPosition } from '@/presentation/types/presentation-values';
-
-interface Player {
-  id: string;
-  name: string;
-  jerseyNumber: string;
-  positions: PresentationPosition[];
-  isActive: boolean;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  players: Player[];
-}
+import {
+  PresentationTeam,
+  PresentationPlayer,
+} from '@/presentation/interfaces/IPresentationServices';
 
 interface PlayerStats {
   avg: number;
@@ -60,12 +50,12 @@ interface PlayerStats {
 }
 
 interface TeamManagementProps {
-  team: Team;
+  team: PresentationTeam;
   playerStats: Record<string, PlayerStats>;
-  onPlayerAdd: (player: Omit<Player, 'id'>) => void;
-  onPlayerEdit: (playerId: string, player: Player) => void;
+  onPlayerAdd: (player: Omit<PresentationPlayer, 'id'>) => void;
+  onPlayerEdit: (playerId: string, player: PresentationPlayer) => void;
   onPlayerRemove: (playerId: string) => void;
-  onTeamEdit: (team: Team) => void;
+  onTeamEdit: (team: PresentationTeam) => void;
   isEditable?: boolean;
   isMobile?: boolean;
   showStats?: boolean;
@@ -337,7 +327,7 @@ export function TeamManagement({
   );
 
   const openEditModal = useCallback(
-    (player: Player) => {
+    (player: PresentationPlayer) => {
       setEditingPlayerId(player.id);
       setPlayerForm({
         name: player.name,
@@ -800,7 +790,7 @@ export function TeamManagement({
 }
 
 interface PlayerCardProps {
-  player: Player;
+  player: PresentationPlayer;
   stats?: PlayerStats;
   showStats: boolean;
   isEditable: boolean;

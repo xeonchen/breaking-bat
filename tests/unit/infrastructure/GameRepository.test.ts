@@ -1,4 +1,4 @@
-import { Game, GameRepository, GameScore, Scoreboard } from '@/domain';
+import { Game, IGameRepository, GameScore, Scoreboard } from '@/domain';
 import { IndexedDBGameRepository } from '@/infrastructure/repositories/IndexedDBGameRepository';
 import {
   clearTestDatabase,
@@ -6,7 +6,7 @@ import {
 } from '../../test-helpers/database';
 
 describe('GameRepository', () => {
-  let repository: GameRepository;
+  let repository: IGameRepository;
   let testGame: Game;
 
   beforeEach(async () => {

@@ -1,6 +1,6 @@
 import { Player } from '@/domain/entities/Player';
-import { PresentationPlayer } from '@/presentation/types/TeamWithPlayers';
-import { PositionMapper } from './PositionMapper';
+import { Position } from '@/domain/values/Position';
+import { PresentationPlayer } from '@/presentation/interfaces/IPresentationServices';
 
 /**
  * Mapper utility for converting between Domain Player and PresentationPlayer
@@ -17,9 +17,7 @@ export class PlayerMapper {
       id: domainPlayer.id,
       name: domainPlayer.name,
       jerseyNumber: domainPlayer.jerseyNumber.toString(), // number -> string
-      positions: domainPlayer.positions.map((position) =>
-        PositionMapper.domainToPresentation(position)
-      ),
+      positions: domainPlayer.positions.map((position) => position.value), // Convert to string[]
       isActive: domainPlayer.isActive,
     };
   }
@@ -36,7 +34,7 @@ export class PlayerMapper {
     name: string;
     jerseyNumber: number;
     teamId: string;
-    positions: import('@/domain/values').Position[];
+    positions: Position[];
     isActive: boolean;
   } {
     return {
@@ -44,8 +42,8 @@ export class PlayerMapper {
       name: presentationPlayer.name,
       jerseyNumber: parseInt(presentationPlayer.jerseyNumber, 10), // string -> number
       teamId,
-      positions: presentationPlayer.positions.map((position) =>
-        PositionMapper.presentationToDomain(position)
+      positions: presentationPlayer.positions.map(
+        (position) => new Position(position)
       ),
       isActive: presentationPlayer.isActive,
     };

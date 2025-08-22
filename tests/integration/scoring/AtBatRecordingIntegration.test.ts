@@ -80,10 +80,23 @@ describe.skip('At-Bat Recording Integration Tests (@live-game-scoring:AC001, @li
       const atBatData = {
         gameId: game.id,
         batterId: 'player-3',
-        battingResult: BattingResult.double(),
-        finalCount: { balls: 1, strikes: 2 },
-        pitchSequence: ['B', 'S', 'S (FB)'],
-        baserunnerAdvancement: {}, // Use standard rules
+        inning: 1,
+        isTopInning: true,
+        result: BattingResult.double(),
+        description: 'Double to left field',
+        rbi: 2,
+        baserunnersBefore: {
+          first: { playerId: 'player-1', playerName: 'Player One' },
+          second: { playerId: 'player-2', playerName: 'Player Two' },
+          third: null,
+        },
+        baserunnersAfter: {
+          first: null,
+          second: null,
+          third: { playerId: 'player-3', playerName: 'Player Three' },
+        },
+        runsScored: ['player-1', 'player-2'],
+        runningErrors: [],
       };
 
       const result = await integration.recordAtBat(atBatData);

@@ -11,14 +11,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
-import { Position } from '@/domain';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
 const mockCurrentBatter = {
   playerId: 'batter2',
   playerName: 'Second Batter',
   jerseyNumber: '24',
-  position: Position.pitcher(),
+  position: PresentationPosition.PITCHER,
   battingOrder: 2,
 };
 

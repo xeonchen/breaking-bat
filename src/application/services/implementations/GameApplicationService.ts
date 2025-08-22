@@ -58,7 +58,9 @@ export class GameApplicationService implements IGameApplicationService {
 
   // Command Operations (Write Side)
 
-  async createGame(command: CreateGameCommand): Promise<Result<GameDto>> {
+  public async createGame(
+    command: CreateGameCommand
+  ): Promise<Result<GameDto>> {
     const correlationId = this.idGenerator.generateShortId();
 
     try {
@@ -186,9 +188,8 @@ export class GameApplicationService implements IGameApplicationService {
       return Result.success(undefined);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      this.loggingPort.error('Failed to delete game', {
+      this.loggingPort.error('Failed to delete game', error as Error, {
         gameId,
-        error: message,
       });
       return Result.failure(message);
     }
@@ -228,7 +229,7 @@ export class GameApplicationService implements IGameApplicationService {
 
   // Query Operations (Read Side)
 
-  async getGameById(
+  public async getGameById(
     query: GetGameByIdQuery
   ): Promise<Result<GameWithDetailsDto | null>> {
     const correlationId = this.idGenerator.generateShortId();
@@ -323,7 +324,7 @@ export class GameApplicationService implements IGameApplicationService {
 
   // Note: GetGamesBySeasonQuery not defined in interface yet
 
-  async getGamesByTeam(_query: GetGamesByTeamQuery): Promise<
+  public async getGamesByTeam(_query: GetGamesByTeamQuery): Promise<
     Result<{
       games: GameDto[];
       totalCount: number;
@@ -338,32 +339,32 @@ export class GameApplicationService implements IGameApplicationService {
 
   // Note: GetLineupQuery not defined in interface yet
 
-  async getGameStatistics(
+  public async getGameStatistics(
     _query: GetGameStatisticsQuery
   ): Promise<Result<GameStatisticsDto>> {
     // Placeholder implementation
     return Result.failure('Not implemented yet');
   }
 
-  async getGamesBySeason(
+  public async getGamesBySeason(
     _query: GetGamesBySeasonQuery
   ): Promise<Result<GameDto[]>> {
     return Result.failure('Not implemented yet');
   }
 
-  async getCurrentGames(
+  public async getCurrentGames(
     _query: GetCurrentGamesQuery
   ): Promise<Result<GameDto[]>> {
     return Result.failure('Not implemented yet');
   }
 
-  async getGameLineup(
+  public async getGameLineup(
     _query: GetGameLineupQuery
   ): Promise<Result<LineupDto | null>> {
     return Result.failure('Not implemented yet');
   }
 
-  async getInningDetails(_query: GetInningDetailsQuery): Promise<
+  public async getInningDetails(_query: GetInningDetailsQuery): Promise<
     Result<{
       atBats: AtBatDto[];
       score: InningScoreDto;

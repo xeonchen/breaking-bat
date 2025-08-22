@@ -18,8 +18,8 @@ import {
 import {
   SeasonDto,
   GameTypeDto,
-  CreateSeasonCommand as DataCreateSeasonCommand,
-  CreateGameTypeCommand as DataCreateGameTypeCommand,
+  CreateSeasonCommand,
+  CreateGameTypeCommand,
   UpdateSeasonCommand,
   UpdateGameTypeCommand,
   ArchiveSeasonCommand,
@@ -45,7 +45,7 @@ interface GamesState {
   loadTeams: () => Promise<void>;
   loadPlayersForTeam: (teamId: string) => Promise<unknown[]>; // Using DTOs
   createGame: (command: CreateGameCommand) => Promise<unknown>; // Using DTOs
-  updateGame: (game: unknown) => Promise<void>; // Using DTOs
+  updateGame: (game: GameDto) => Promise<void>; // Using DTOs
   saveLineup: (
     gameId: string,
     lineupId: string,
@@ -53,10 +53,10 @@ interface GamesState {
     defensivePositions: string[]
   ) => Promise<void>;
   deleteGame: (gameId: string) => Promise<void>;
-  createSeason: (command: DataCreateSeasonCommand) => Promise<SeasonDto>;
+  createSeason: (command: CreateSeasonCommand) => Promise<SeasonDto>;
   updateSeason: (season: SeasonDto) => Promise<void>;
   deleteSeason: (seasonId: string) => Promise<void>;
-  createGameType: (command: DataCreateGameTypeCommand) => Promise<GameTypeDto>;
+  createGameType: (command: CreateGameTypeCommand) => Promise<GameTypeDto>;
   updateGameType: (gameType: GameTypeDto) => Promise<void>;
   deleteGameType: (gameTypeId: string) => Promise<void>;
   selectGame: (game: GameDto) => void;
@@ -289,6 +289,9 @@ export const useGamesStore = create<GamesState>()(
             }
 
             const updatedGame = result.value;
+            if (!updatedGame) {
+              throw new Error('Updated game data not returned from service');
+            }
 
             // Update game in current list
             const currentGames = get().games;
@@ -506,7 +509,7 @@ export const useGamesStore = create<GamesState>()(
           }
         },
 
-        createSeason: async (command: DataCreateSeasonCommand) => {
+        createSeason: async (command: CreateSeasonCommand) => {
           set({ loading: true, error: null });
           try {
             console.log('🆕 Creating season:', command.name);
@@ -521,8 +524,8 @@ export const useGamesStore = create<GamesState>()(
               isActive: command.isActive,
             });
 
-            if (!result.isSuccess) {
-              throw new Error(result.error);
+            if (!result.isSuccess || !result.value) {
+              throw new Error(result.error || 'Failed to create season');
             }
 
             const savedSeason = result.value;
@@ -569,7 +572,10 @@ export const useGamesStore = create<GamesState>()(
             }
 
             // Refresh seasons list to get updated data
-            const seasonsResult = await dataApplicationService.getSeasons();
+            const seasonsResult = await dataApplicationService.getSeasons({
+              includeArchived: false,
+              isActive: true,
+            });
             if (!seasonsResult.isSuccess) {
               throw new Error(
                 seasonsResult.error || 'Failed to refresh seasons'
@@ -642,12 +648,14 @@ export const useGamesStore = create<GamesState>()(
 
             // Call application service to create game type
             const result = await dataApplicationService.createGameType(command);
-            if (!result.isSuccess) {
+            if (!result.isSuccess || !result.value) {
               throw new Error(result.error || 'Failed to create game type');
             }
 
             // Refresh game types list
-            const gameTypesResult = await dataApplicationService.getGameTypes();
+            const gameTypesResult = await dataApplicationService.getGameTypes({
+              includeInactive: false,
+            });
             if (!gameTypesResult.isSuccess) {
               throw new Error(
                 gameTypesResult.error || 'Failed to refresh game types'
@@ -696,7 +704,9 @@ export const useGamesStore = create<GamesState>()(
             }
 
             // Refresh game types list to get updated data
-            const gameTypesResult = await dataApplicationService.getGameTypes();
+            const gameTypesResult = await dataApplicationService.getGameTypes({
+              includeInactive: false,
+            });
             if (!gameTypesResult.isSuccess) {
               throw new Error(
                 gameTypesResult.error || 'Failed to refresh game types'

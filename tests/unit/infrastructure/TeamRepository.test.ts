@@ -1,4 +1,4 @@
-import { Team, TeamRepository } from '@/domain';
+import { Team, ITeamRepository } from '@/domain';
 import { IndexedDBTeamRepository } from '@/infrastructure/repositories/IndexedDBTeamRepository';
 import {
   clearTestDatabase,
@@ -6,7 +6,7 @@ import {
 } from '../../test-helpers/database';
 
 describe('TeamRepository', () => {
-  let repository: TeamRepository;
+  let repository: ITeamRepository;
   let testTeam: Team;
 
   beforeEach(async () => {

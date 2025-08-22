@@ -9,7 +9,9 @@ import {
   ITeamApplicationService,
   UpdateGameCommand,
 } from '@/application/services/interfaces';
-import { GameDTO, TeamDTO } from '../types/presentation-entities';
+import { GameDto } from '@/application/services/interfaces/IGameApplicationService';
+import { TeamDto } from '@/application/services/interfaces/ITeamApplicationService';
+import { GameDTO } from '../types/presentation-entities';
 import {
   PresentationPosition,
   PresentationBattingResult,
@@ -17,6 +19,58 @@ import {
   PresentationBattingHelper,
 } from '../types/presentation-values';
 import { DomainAdapter } from '@/infrastructure/adapters/DomainAdapter';
+
+// Helper function to convert GameDto to GameDTO (temporary until proper mapping is implemented)
+function convertGameDtoToDTO(dto: GameDto): GameDTO {
+  const gameDTO = {
+    id: dto.id,
+    name: dto.name,
+    opponent: dto.opponent,
+    date: dto.date,
+    seasonId: dto.seasonId || '',
+    homeTeamId: dto.teamId, // Assuming teamId is home team
+    awayTeamId: '', // TODO: Add proper away team ID
+    teamId: dto.teamId,
+    gameTypeId: dto.gameTypeId || '',
+    status:
+      dto.status === 'scheduled'
+        ? PresentationGameStatus.SETUP
+        : dto.status === 'in_progress'
+          ? PresentationGameStatus.IN_PROGRESS
+          : dto.status === 'completed'
+            ? PresentationGameStatus.COMPLETED
+            : PresentationGameStatus.SUSPENDED,
+    currentInning: dto.currentInning || 1,
+    isTopInning: dto.isTopInning || true,
+    homeScore: dto.score?.homeScore || 0,
+    awayScore: dto.score?.awayScore || 0,
+    lineupId: undefined,
+    currentBatterId: undefined,
+    currentBaserunners: {
+      first: null,
+      second: null,
+      third: null,
+    },
+    totalInnings: 9, // Default
+    finalScore: undefined,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    // Add missing computed methods
+    isHomeGame() {
+      return dto.isHomeGame || false;
+    },
+    isAwayGame() {
+      return !dto.isHomeGame;
+    },
+    getVenueText() {
+      const location = dto.location || 'Unknown Location';
+      const homeAway = dto.isHomeGame ? 'vs' : '@';
+      return `${homeAway} ${location}`;
+    },
+  };
+
+  return gameDTO as GameDTO;
+}
 
 interface CurrentBatter {
   playerId: string;
@@ -52,7 +106,7 @@ interface AtBatResult {
 interface GameState {
   // State
   currentGame: GameDTO | null;
-  teams: TeamDTO[];
+  teams: TeamDto[];
   lineup: CurrentBatter[];
   currentBatter: CurrentBatter | null;
   currentInning: number;
@@ -198,9 +252,9 @@ export const useGameStore = create<GameState>()(
             if (!result.isSuccess) {
               throw new Error(result.error || 'Failed to fetch current game');
             }
-            const games = result.value;
+            const games = result.value || [];
             const currentGame =
-              games.length > 0 ? DomainAdapter.gameToDTO(games[0]) : null;
+              games.length > 0 ? convertGameDtoToDTO(games[0]) : null;
             set({ currentGame, loading: false });
           } catch {
             set({
@@ -225,7 +279,7 @@ export const useGameStore = create<GameState>()(
             if (!game) {
               throw new Error(`Game not found: ${gameId}`);
             }
-            const gameDTO = DomainAdapter.gameToDTO(game);
+            const gameDTO = convertGameDtoToDTO(game);
             set({ currentGame: gameDTO, loading: false });
           } catch (error) {
             set({
@@ -245,15 +299,17 @@ export const useGameStore = create<GameState>()(
               name: gameDTO.name,
               opponent: gameDTO.opponent,
               date: gameDTO.date,
-              location: gameDTO.location,
-              isHomeGame: gameDTO.isHomeGame,
+              location: 'Unknown Location', // TODO: Add location to GameDTO
+              isHomeGame: gameDTO.homeTeamId === gameDTO.teamId,
             };
             const result =
               await gameApplicationService.updateGame(updateCommand);
             if (!result.isSuccess) {
               throw new Error(result.error || 'Failed to update game');
             }
-            const updatedGameDTO = DomainAdapter.gameToDTO(result.value);
+            const updatedGameDTO = result.value
+              ? convertGameDtoToDTO(result.value)
+              : null;
             set({ currentGame: updatedGameDTO, loading: false });
           } catch (error) {
             const message =
@@ -634,8 +690,7 @@ export const useGameStore = create<GameState>()(
             if (!result.isSuccess) {
               throw new Error(result.error || 'Failed to load teams');
             }
-            const teams = result.value || [];
-            const teamDTOs = teams.map((team) => DomainAdapter.teamToDTO(team));
+            const teamDTOs = result.value || [];
             set({ teams: teamDTOs });
           } catch (error) {
             const message =
@@ -754,7 +809,7 @@ export const useGameStore = create<GameState>()(
                     playerName: currentBatter.playerName,
                     jerseyNumber: '',
                     position: PresentationPosition.EXTRA_PLAYER,
-                    battingOrder: currentBatter.battingOrder,
+                    battingOrder: 0, // Default value since not available from domain
                   },
                 });
               }

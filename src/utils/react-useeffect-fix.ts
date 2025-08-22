@@ -40,9 +40,14 @@ export function applyUseEffectFix() {
         console.error('📋 Object keys:', Object.keys(result));
         console.error('📍 Source location:', sourceLine?.trim());
 
-        if ('cleanup' in result && typeof result.cleanup === 'function') {
+        // Type assertion to handle the case where result is an object
+        const objectResult = result as Record<string, unknown>;
+        if (
+          'cleanup' in objectResult &&
+          typeof objectResult.cleanup === 'function'
+        ) {
           console.warn('⚠️ Fixed: Extracting cleanup function from object');
-          return result.cleanup;
+          return objectResult.cleanup as () => void;
         }
       }
 

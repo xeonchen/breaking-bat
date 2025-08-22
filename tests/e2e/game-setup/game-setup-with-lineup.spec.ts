@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
-  createTestTeamWithPlayers,
   createTestGame,
   setupTestLineup,
-  TestTeamData,
   TestGameData,
 } from '../helpers/test-data-setup';
 

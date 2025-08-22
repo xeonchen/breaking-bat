@@ -51,7 +51,7 @@ describe('Teams Store Integration Tests', () => {
 
     // Create a simple application service wrapper for integration testing
     const teamApplicationService = {
-      getTeams: async () => {
+      getTeams: async (query?: any) => {
         const teams = await teamRepository.findAll();
         return { isSuccess: true, value: teams };
       },
@@ -94,6 +94,17 @@ describe('Teams Store Integration Tests', () => {
       removePlayer: async (command: any) => {
         return await removePlayerUseCase.execute(command);
       },
+      // Missing interface methods (not used in this test but required for interface compliance)
+      archiveTeam: async () => ({ isSuccess: true, value: null }),
+      getTeamsBySeason: async () => ({ isSuccess: true, value: [] }),
+      searchTeams: async () => ({
+        isSuccess: true,
+        value: { teams: [], totalCount: 0, hasMore: false },
+      }),
+      getTeamRoster: async () => ({ isSuccess: true, value: null }),
+      getTeamStatistics: async () => ({ isSuccess: true, value: null }),
+      isTeamNameAvailable: async () => ({ isSuccess: true, value: true }),
+      isJerseyNumberAvailable: async () => ({ isSuccess: true, value: true }),
     };
 
     // Initialize the store with the application service
