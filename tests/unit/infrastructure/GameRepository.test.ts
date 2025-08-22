@@ -1,4 +1,4 @@
-import { Game, GameRepository, GameScore } from '@/domain';
+import { Game, GameRepository, GameScore, Scoreboard } from '@/domain';
 import { IndexedDBGameRepository } from '@/infrastructure/repositories/IndexedDBGameRepository';
 import {
   clearTestDatabase,
@@ -21,7 +21,11 @@ describe('GameRepository', () => {
       'season1',
       'regular',
       'home',
-      'team1'
+      'team1',
+      'setup', // status
+      null, // lineupId
+      [], // inningIds
+      null // scoreboard
     );
   });
 
@@ -63,12 +67,13 @@ describe('GameRepository', () => {
       };
 
       const startedGame = testGame.start('lineup1');
-      const completedGame = startedGame.complete(finalScore);
+      const finalScoreboard = Scoreboard.fromGameScore(finalScore);
+      const completedGame = startedGame.complete(finalScoreboard);
       const savedGame = await repository.save(completedGame);
 
       expect(savedGame.status).toBe('completed');
-      expect(savedGame.finalScore?.homeScore).toBe(7);
-      expect(savedGame.finalScore?.awayScore).toBe(4);
+      expect(savedGame.scoreboard?.homeScore).toBe(7);
+      expect(savedGame.scoreboard?.awayScore).toBe(4);
     });
   });
 
@@ -177,7 +182,10 @@ describe('GameRepository', () => {
         'regular',
         'home',
         'team1',
-        'in_progress'
+        'in_progress', // status
+        'lineup-1', // lineupId - required for in_progress games
+        [], // inningIds
+        null // scoreboard
       );
       const completedGame = new Game(
         'game2',
@@ -188,7 +196,10 @@ describe('GameRepository', () => {
         'regular',
         'home',
         'team1',
-        'completed'
+        'completed', // status
+        'lineup-1', // lineupId
+        [], // inningIds
+        new Scoreboard(5, 3) // scoreboard - required for completed games
       );
 
       await repository.save(testGame); // setup
@@ -264,7 +275,10 @@ describe('GameRepository', () => {
         'regular',
         'home',
         'team1',
-        'in_progress'
+        'in_progress', // status
+        'lineup-1', // lineupId - required for in_progress games
+        [], // inningIds
+        null // scoreboard
       );
       const suspendedGame = new Game(
         'game-suspended',
@@ -286,7 +300,10 @@ describe('GameRepository', () => {
         'regular',
         'home',
         'team1',
-        'completed'
+        'completed',
+        'lineup-2', // lineupId required for completed games
+        [], // inningIds
+        new Scoreboard(5, 3) // scoreboard required for completed games
       );
 
       await repository.save(testGame); // setup
@@ -357,9 +374,11 @@ describe('GameRepository', () => {
 
       const updatedGame = await repository.updateScore('game1', finalScore);
 
-      expect(updatedGame.finalScore?.homeScore).toBe(8);
-      expect(updatedGame.finalScore?.awayScore).toBe(5);
-      expect(updatedGame.finalScore?.inningScores).toHaveLength(2);
+      expect(updatedGame.scoreboard?.homeScore).toBe(8);
+      expect(updatedGame.scoreboard?.awayScore).toBe(5);
+      expect(updatedGame.scoreboard?.toGameScore().inningScores).toHaveLength(
+        2
+      );
     });
 
     it('should throw error when updating score of nonexistent game', async () => {
@@ -461,14 +480,10 @@ describe('GameRepository', () => {
         'completed',
         'lineup1',
         ['inning1', 'inning2'],
-        {
-          homeScore: 7,
-          awayScore: 4,
-          inningScores: [
-            { inning: 1, homeRuns: 3, awayRuns: 2 },
-            { inning: 2, homeRuns: 4, awayRuns: 2 },
-          ],
-        }
+        new Scoreboard(7, 4, [
+          { inning: 1, homeRuns: 3, awayRuns: 2 },
+          { inning: 2, homeRuns: 4, awayRuns: 2 },
+        ])
       );
 
       await repository.save(completedGame);

@@ -8,7 +8,7 @@
  * 3. Services have external dependencies
  */
 
-import { BaserunnerState, BattingResult } from '../values';
+import { BaserunnerState, BattingResult, InningScore } from '../values';
 import { Player, Game, AtBat } from '../entities';
 
 /**
@@ -124,8 +124,4 @@ export interface GameScore {
   inningScores: InningScore[];
 }
 
-export interface InningScore {
-  inning: number;
-  homeRuns: number;
-  awayRuns: number;
-}
+// InningScore is imported from values/Scoreboard

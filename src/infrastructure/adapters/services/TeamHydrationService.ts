@@ -80,9 +80,11 @@ export class TeamHydrationService {
     return {
       name: presentationPlayer.name,
       jerseyNumber: parseInt(presentationPlayer.jerseyNumber, 10),
-      positions: presentationPlayer.positions.map((pos) =>
-        Position.fromValue(PresentationValueConverter.toDomainPosition(pos))
-      ),
+      positions: presentationPlayer.positions
+        .filter((pos) => pos != null) // Filter out null/undefined positions
+        .map((pos) =>
+          Position.fromValue(PresentationValueConverter.toDomainPosition(pos))
+        ),
       isActive: presentationPlayer.isActive,
     };
   }

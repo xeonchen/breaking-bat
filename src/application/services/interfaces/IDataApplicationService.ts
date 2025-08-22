@@ -434,6 +434,11 @@ export interface IDataApplicationService {
   updateGameType(command: UpdateGameTypeCommand): Promise<Result<GameTypeDto>>;
 
   /**
+   * Deletes an existing game type
+   */
+  deleteGameType(gameTypeId: string): Promise<Result<void>>;
+
+  /**
    * Loads default sample data
    */
   loadDefaultData(

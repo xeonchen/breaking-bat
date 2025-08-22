@@ -195,7 +195,6 @@ describe('TeamsPage Component', () => {
       expect(mockCreateTeam).toHaveBeenCalledWith({
         name: 'Blue Jays',
         seasonIds: [],
-        playerIds: [],
       });
     });
 
@@ -531,10 +530,12 @@ describe('TeamsPage Component', () => {
       expect(mockGetTeams).toHaveBeenCalledTimes(1);
     });
 
-    it('should load player statistics for teams', () => {
+    it('should load player statistics for teams', async () => {
       renderWithChakra(<TeamsPage />);
 
-      expect(mockGetPlayerStats).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockGetPlayerStats).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('should handle large numbers of teams efficiently', () => {

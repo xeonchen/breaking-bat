@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { PositionMapper } from '@/presentation/mappers/PositionMapper';
 // Domain imports removed to fix Clean Architecture violations
 // Using DTOs from application layer instead
 import {
@@ -107,19 +108,24 @@ export const useTeamsStore = create<TeamsState>()(
           console.log('📋 Getting teams...');
           set({ loading: true, error: null });
           try {
-            // GetAllTeams query not yet implemented, using empty list for now
-            const teamDtos: unknown[] = []; // Using DTOs instead of domain entities
+            // Call application service to get teams (Clean Architecture compliance)
+            const result = await teamApplicationService.getTeams();
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to fetch teams');
+            }
+            const domainTeams = result.value;
             console.log(
-              `✅ Found ${teamDtos.length} teams from application layer:`,
-              teamDtos.map((t: unknown) => ({
-                id: (t as { id: string }).id,
-                name: (t as { name: string }).name,
+              `✅ Found ${domainTeams.length} teams from application layer:`,
+              domainTeams.map((t) => ({
+                id: t.id,
+                name: t.name,
               }))
             );
 
-            console.log('💧 Using DTOs from application layer...');
-            // Using DTOs from application layer instead of domain entities
-            const hydratedTeams = teamDtos; // TODO: Implement proper DTO hydration
+            console.log('💧 Hydrating teams...');
+            // Hydrate domain teams to presentation teams
+            const hydratedTeams =
+              await teamHydrationService.hydrateTeams(domainTeams);
             console.log(
               `✅ Hydrated ${hydratedTeams.length} teams:`,
               hydratedTeams.map((t: PresentationTeam) => ({
@@ -260,7 +266,7 @@ export const useTeamsStore = create<TeamsState>()(
               playerName: playerData.name,
               jerseyNumber: parseInt(playerData.jerseyNumber, 10),
               positions: playerData.positions.map((pos) =>
-                PresentationValueConverter.toDomainPosition(pos)
+                PositionMapper.presentationToDomainString(pos)
               ),
               isActive: playerData.isActive,
             };
@@ -309,14 +315,36 @@ export const useTeamsStore = create<TeamsState>()(
           playerId: string,
           playerData: PresentationPlayer
         ) => {
+          console.log('🔧 teamsStore.updatePlayer called:', {
+            playerId,
+            playerData,
+          });
           set({ loading: true, error: null });
           try {
+            const currentState = get();
+            const teamId = currentState.selectedTeam?.id;
+
+            console.log('🔧 Current selectedTeam:', {
+              selectedTeamId: teamId,
+              selectedTeamName: currentState.selectedTeam?.name,
+            });
+
+            if (!teamId) {
+              console.error('❌ No team selected for player update');
+              set({
+                loading: false,
+                error: 'No team selected for player update',
+              });
+              return;
+            }
+
             const updateCommand: UpdatePlayerInTeamCommand = {
+              teamId,
               playerId,
-              name: playerData.name,
+              playerName: playerData.name,
               jerseyNumber: parseInt(playerData.jerseyNumber, 10),
               positions: playerData.positions.map((pos) =>
-                PresentationValueConverter.toDomainPosition(pos)
+                PositionMapper.presentationToDomainString(pos)
               ),
               isActive: playerData.isActive,
             };
@@ -327,7 +355,6 @@ export const useTeamsStore = create<TeamsState>()(
               set({ loading: false, error: result.error });
               return;
             }
-
             // Refresh teams list to get updated data
             const teamsResult = await teamApplicationService.getTeams();
             if (!teamsResult.isSuccess) {
@@ -349,6 +376,12 @@ export const useTeamsStore = create<TeamsState>()(
                   (t: PresentationTeam) => t.id === currentSelectedTeam.id
                 ) || currentSelectedTeam;
             }
+
+            console.log('🔧 Setting updated store state:', {
+              teamsCount: hydratedTeams.length,
+              selectedTeamName: updatedSelectedTeam?.name,
+              selectedTeamPlayerCount: updatedSelectedTeam?.players?.length,
+            });
 
             set({
               teams: hydratedTeams,

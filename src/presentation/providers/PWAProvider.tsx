@@ -33,6 +33,8 @@ export function PWAProvider({ children }: PWAProviderProps) {
           console.log('SW registration failed: ', error);
         });
     }
+    // Explicit return undefined to ensure no Promise is returned
+    return;
   }, [toast]);
 
   return <>{children}</>;

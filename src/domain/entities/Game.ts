@@ -1,6 +1,6 @@
 import { BaseEntity } from './BaseEntity';
 import { HomeAway } from './Inning';
-import { Scoreboard } from '../values/Scoreboard';
+import { Scoreboard, InningScore } from '../values/Scoreboard';
 
 export type GameStatus = 'setup' | 'in_progress' | 'completed' | 'suspended';
 
@@ -8,12 +8,6 @@ export interface GameScore {
   homeScore: number;
   awayScore: number;
   inningScores: InningScore[];
-}
-
-export interface InningScore {
-  inning: number;
-  homeRuns: number;
-  awayRuns: number;
 }
 
 /**

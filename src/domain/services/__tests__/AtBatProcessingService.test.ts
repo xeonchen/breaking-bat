@@ -90,7 +90,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(result).toEqual({
-        finalBaserunnerUI: mockFinalBaserunners,
+        finalBaserunnerState: mockFinalBaserunners,
         runsScored: ['runner-3'],
         outsProduced: 0,
         nextBatterId: 'batter-2',
@@ -137,7 +137,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(result).toEqual({
-        finalBaserunnerUI: mockFinalBaserunners,
+        finalBaserunnerState: mockFinalBaserunners,
         runsScored: [],
         outsProduced: 1,
         nextBatterId: 'batter-2',
@@ -198,7 +198,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(result).toEqual({
-        finalBaserunnerUI: mockFinalBaserunners,
+        finalBaserunnerState: mockFinalBaserunners,
         runsScored: ['runner-2'], // runner-2 advanced home
         outsProduced: 0,
         nextBatterId: 'batter-2',
@@ -245,7 +245,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(processResult).toEqual({
-        finalBaserunnerUI: mockFinalBaserunners,
+        finalBaserunnerState: mockFinalBaserunners,
         runsScored: [],
         outsProduced: 0,
         nextBatterId: 'batter-2',
@@ -284,7 +284,7 @@ describe('AtBatProcessingService', () => {
       );
 
       expect(processResult).toEqual({
-        finalBaserunnerUI: mockFinalBaserunners,
+        finalBaserunnerState: mockFinalBaserunners,
         runsScored: [],
         outsProduced: 1,
         nextBatterId: 'batter-2',

@@ -319,6 +319,11 @@ export interface IGameApplicationService {
   updateGame(command: UpdateGameCommand): Promise<Result<GameDto>>;
 
   /**
+   * Deletes an existing game
+   */
+  deleteGame(gameId: string): Promise<Result<void>>;
+
+  /**
    * Sets up a lineup for a game
    */
   setupLineup(command: SetupLineupCommand): Promise<Result<LineupDto>>;

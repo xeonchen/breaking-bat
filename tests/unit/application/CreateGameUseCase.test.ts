@@ -286,7 +286,7 @@ describe('CreateGameUseCase', () => {
         expect(result.value.status).toBe('setup');
         expect(result.value.lineupId).toBeNull();
         expect(result.value.inningIds).toEqual([]);
-        expect(result.value.finalScore).toBeNull();
+        expect(result.value.scoreboard).toBeNull();
       }
     });
 

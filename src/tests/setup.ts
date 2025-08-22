@@ -38,3 +38,54 @@ global.ResizeObserver = class ResizeObserver {
   public unobserve(): void {}
   public disconnect(): void {}
 };
+
+// Mock HTMLElement focus property for JSDOM compatibility
+// This fixes the "Cannot set property focus" error in Chakra UI components
+Object.defineProperty(HTMLElement.prototype, 'focus', {
+  writable: true,
+  value: function () {
+    // Set this element as the active element for testing
+    Object.defineProperty(document, 'activeElement', {
+      writable: true,
+      value: this,
+    });
+  },
+});
+
+// Mock @zag-js/focus-visible to prevent focus-related errors in JSDOM
+jest.mock('@zag-js/focus-visible', () => ({
+  trackFocusVisible: () => ({
+    cleanup: () => {},
+  }),
+}));
+
+// Enhance HTMLElement focus functionality for better JSDOM compatibility
+Object.defineProperty(HTMLInputElement.prototype, 'focus', {
+  writable: true,
+  value: function () {
+    // Set this element as the active element for testing
+    Object.defineProperty(document, 'activeElement', {
+      writable: true,
+      value: this,
+    });
+    this.dispatchEvent(new Event('focus', { bubbles: true }));
+  },
+});
+
+Object.defineProperty(HTMLSelectElement.prototype, 'focus', {
+  writable: true,
+  value: function () {
+    // Set this element as the active element for testing
+    Object.defineProperty(document, 'activeElement', {
+      writable: true,
+      value: this,
+    });
+    this.dispatchEvent(new Event('focus', { bubbles: true }));
+  },
+});
+
+// Mock scrollTo for JSDOM
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: () => {},
+});

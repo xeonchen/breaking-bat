@@ -217,7 +217,9 @@ export class IndexedDBPlayerRepository implements IPlayerPersistencePort {
       record.name,
       record.jerseyNumber,
       record.teamId,
-      record.positions.map((p) => Position.fromValue(p)),
+      record.positions
+        .filter((p) => p != null && p !== '')
+        .map((p) => Position.fromValue(p)),
       record.isActive,
       record.statistics,
       record.createdAt,

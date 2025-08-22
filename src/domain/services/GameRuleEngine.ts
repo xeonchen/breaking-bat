@@ -27,7 +27,7 @@ export interface AtBatValidationData {
   afterState: BaserunnerState;
   battingResult: BattingResult;
   batterId: string;
-  runsScored: string[];
+  runsScored: readonly string[];
   rbis: number;
   outs: number;
 }
@@ -415,12 +415,14 @@ export class GameRuleEngine {
 
   // ========== Validation Helper Methods ==========
 
-  private validateNoRunnerPassing(_data: unknown): ValidationResult {
-    // Implementation for runner passing validation
+  private validateNoRunnerPassing(
+    _data: AtBatValidationData
+  ): ValidationResult {
+    // TODO: Implementation for runner passing validation
     return ValidationResult.valid();
   }
 
-  private validateRBIs(data: unknown): ValidationResult {
+  private validateRBIs(data: AtBatValidationData): ValidationResult {
     if (data.rbis > data.runsScored.length) {
       return ValidationResult.invalid(
         new RuleViolation(
@@ -429,7 +431,7 @@ export class GameRuleEngine {
           {
             before: data.beforeState,
             after: data.afterState,
-            hitType: (data as Record<string, unknown>).battingResult as unknown,
+            hitType: data.battingResult.value as HitType,
             rbis: data.rbis,
           }
         )
@@ -438,7 +440,7 @@ export class GameRuleEngine {
     return ValidationResult.valid();
   }
 
-  private validateMaxOuts(data: unknown): ValidationResult {
+  private validateMaxOuts(data: AtBatValidationData): ValidationResult {
     if (data.outs > 3) {
       return ValidationResult.invalid(
         new RuleViolation(
@@ -447,7 +449,7 @@ export class GameRuleEngine {
           {
             before: data.beforeState,
             after: data.afterState,
-            hitType: (data as Record<string, unknown>).battingResult as unknown,
+            hitType: data.battingResult.value as HitType,
             rbis: data.rbis,
             outs: data.outs,
           }
@@ -457,7 +459,7 @@ export class GameRuleEngine {
     return ValidationResult.valid();
   }
 
-  private validateBaseOccupancy(data: unknown): ValidationResult {
+  private validateBaseOccupancy(data: AtBatValidationData): ValidationResult {
     // Check for duplicate runners on different bases
     const runners = [
       data.afterState.firstBase,
@@ -474,7 +476,7 @@ export class GameRuleEngine {
           {
             before: data.beforeState,
             after: data.afterState,
-            hitType: (data as Record<string, unknown>).battingResult as unknown,
+            hitType: data.battingResult.value as HitType,
             rbis: data.rbis,
           }
         )

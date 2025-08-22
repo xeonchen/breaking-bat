@@ -34,7 +34,7 @@ export default function SettingsPage() {
       const result = await loadDefaultData();
       toast({
         title: 'Sample Data Loaded Successfully!',
-        description: result.message,
+        description: `Created ${result.summary.teamsCreated} teams, ${result.summary.playersCreated} players, ${result.summary.seasonsCreated} seasons, and ${result.summary.gameTypesCreated} game types.`,
         status: 'success',
         duration: 5000,
         isClosable: true,

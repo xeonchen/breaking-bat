@@ -180,16 +180,20 @@ export class IndexedDBTeamRepository implements ITeamPersistencePort {
     name: string;
     seasonIds: string[];
     playerIds: string[];
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: Date | string;
+    updatedAt: Date | string;
   }): Team {
     return new Team(
       record.id,
       record.name,
       record.seasonIds,
       record.playerIds,
-      record.createdAt,
-      record.updatedAt
+      record.createdAt instanceof Date
+        ? record.createdAt
+        : new Date(record.createdAt),
+      record.updatedAt instanceof Date
+        ? record.updatedAt
+        : new Date(record.updatedAt)
     );
   }
 }

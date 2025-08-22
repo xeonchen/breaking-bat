@@ -221,6 +221,29 @@ export class DataApplicationService implements IDataApplicationService {
     return Result.failure('Not implemented yet');
   }
 
+  public async deleteGameType(gameTypeId: string): Promise<Result<void>> {
+    try {
+      this.loggingPort.info('Deleting game type', { gameTypeId });
+
+      // Delete from persistence layer
+      await this.gameTypePersistencePort.delete(gameTypeId);
+
+      // Invalidate related caches
+      await this.cachePort.clear('gametypes:*');
+      await this.cachePort.clear(`gametype:${gameTypeId}:*`);
+
+      this.loggingPort.info('Game type deleted successfully', { gameTypeId });
+      return Result.success(undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.loggingPort.error('Failed to delete game type', {
+        gameTypeId,
+        error: message,
+      });
+      return Result.failure(message);
+    }
+  }
+
   public async loadDefaultData(
     command: LoadDefaultDataCommand
   ): Promise<Result<LoadDefaultDataResultDto>> {
@@ -407,10 +430,10 @@ export class DataApplicationService implements IDataApplicationService {
       // Sort
       if (query.sortBy) {
         filteredSeasons.sort((a, b) => {
-          const aValue = (a as unknown as Record<string, unknown>)[
+          const aValue = (a as unknown as Record<string, string | number>)[
             query.sortBy!
           ];
-          const bValue = (b as unknown as Record<string, unknown>)[
+          const bValue = (b as unknown as Record<string, string | number>)[
             query.sortBy!
           ];
           const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;

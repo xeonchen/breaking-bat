@@ -136,10 +136,13 @@ export default function GamePage() {
 
   // Load data on mount
   useEffect(() => {
-    loadGames();
-    loadSeasons();
-    loadGameTypes();
-    loadTeams();
+    const loadData = async () => {
+      await loadGames();
+      await loadSeasons();
+      await loadGameTypes();
+      await loadTeams();
+    };
+    loadData();
   }, [loadGames, loadSeasons, loadGameTypes, loadTeams]);
 
   // Apply smart defaults when data loads
@@ -831,7 +834,7 @@ export default function GamePage() {
               updatedAt: new Date(),
             }
           }
-          players={playersForLineup}
+          players={playersForLineup as any} // TODO: Refactor LineupSetupModal to use PresentationPlayer[] instead of Player[]
         />
       )}
     </Box>

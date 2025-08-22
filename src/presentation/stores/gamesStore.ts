@@ -112,11 +112,11 @@ export const useGamesStore = create<GamesState>()(
           set({ loading: true, error: null });
           try {
             console.log('📊 Loading games...');
-            // TODO: Add GetAllGamesQuery to IGameApplicationService
-            console.log(
-              '⚠️ GetAllGames query not yet implemented, using empty list for now'
-            );
-            const games: unknown[] = []; // Using DTOs instead of domain entities
+            const result = await gameApplicationService.getCurrentGames({});
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to fetch games');
+            }
+            const games = result.value || [];
             console.log(`✅ Loaded ${games.length} games`);
 
             // Apply current filters
@@ -157,7 +157,9 @@ export const useGamesStore = create<GamesState>()(
           try {
             console.log('📅 Loading seasons...');
             const seasonsResult = await dataApplicationService.getSeasons({});
-            const seasons = seasonsResult.isSuccess ? seasonsResult.value : [];
+            const seasons = seasonsResult.isSuccess
+              ? seasonsResult.value || []
+              : [];
             console.log(`✅ Loaded ${seasons.length} seasons`);
             set({ seasons });
           } catch (error) {
@@ -179,7 +181,7 @@ export const useGamesStore = create<GamesState>()(
               {}
             );
             const gameTypes = gameTypesResult.isSuccess
-              ? gameTypesResult.value
+              ? gameTypesResult.value || []
               : [];
             console.log(`✅ Loaded ${gameTypes.length} game types`);
             set({ gameTypes });
@@ -199,7 +201,7 @@ export const useGamesStore = create<GamesState>()(
           try {
             console.log('👥 Loading teams...');
             const teamsResult = await teamApplicationService.getTeams({});
-            const teams = teamsResult.isSuccess ? teamsResult.value : [];
+            const teams = teamsResult.isSuccess ? teamsResult.value || [] : [];
             console.log(`✅ Loaded ${teams.length} teams`);
             set({ teams });
           } catch (error) {
@@ -359,30 +361,31 @@ export const useGamesStore = create<GamesState>()(
           try {
             console.log('🗑️ Deleting game:', gameId);
 
-            // TODO: Use GameApplicationService when delete method is available
-            // For now, just remove from local state as placeholder
-            console.log(
-              '⚠️ Using placeholder implementation - delete game via application service not implemented yet'
-            );
+            // Call application service to delete game
+            const result = await gameApplicationService.deleteGame(gameId);
 
-            // Remove game from current list
+            if (!result.isSuccess) {
+              throw new Error(result.error);
+            }
+
+            // Remove game from current state if delete was successful
             const currentGames = get().games;
-            const filteredGames = currentGames.filter(
-              (g: GameDto) => g.id !== gameId
+            const updatedGames = currentGames.filter(
+              (game) => game.id !== gameId
             );
 
-            // Clear selection if deleted game was selected
+            // Clear selected game if it was the deleted one
             const selectedGame = get().selectedGame;
-            const updatedSelectedGame =
+            const newSelectedGame =
               selectedGame?.id === gameId ? null : selectedGame;
 
             set({
-              games: filteredGames,
-              selectedGame: updatedSelectedGame,
+              games: updatedGames,
+              selectedGame: newSelectedGame,
               loading: false,
             });
 
-            console.log('✅ Game deleted successfully (placeholder)');
+            console.log('✅ Game deleted successfully');
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -565,11 +568,14 @@ export const useGamesStore = create<GamesState>()(
               throw new Error(result.error || 'Failed to update season');
             }
 
-            // Update season in current list
-            const currentSeasons = get().seasons;
-            const updatedSeasons = currentSeasons.map((s: SeasonDto) =>
-              s.id === season.id ? result.value : s
-            );
+            // Refresh seasons list to get updated data
+            const seasonsResult = await dataApplicationService.getSeasons();
+            if (!seasonsResult.isSuccess) {
+              throw new Error(
+                seasonsResult.error || 'Failed to refresh seasons'
+              );
+            }
+            const updatedSeasons = seasonsResult.value || [];
 
             set({
               seasons: updatedSeasons,
@@ -634,26 +640,29 @@ export const useGamesStore = create<GamesState>()(
           try {
             console.log('🆕 Creating game type:', command.name);
 
-            // Create new game type entity
-            const gameTypeId = crypto.randomUUID();
-            const newGameType = new GameType(
-              gameTypeId,
-              command.name,
-              command.description || ''
-            );
+            // Call application service to create game type
+            const result = await dataApplicationService.createGameType(command);
+            if (!result.isSuccess) {
+              throw new Error(result.error || 'Failed to create game type');
+            }
 
-            // Save to repository
-            const savedGameType = await gameTypeRepository?.save(newGameType);
+            // Refresh game types list
+            const gameTypesResult = await dataApplicationService.getGameTypes();
+            if (!gameTypesResult.isSuccess) {
+              throw new Error(
+                gameTypesResult.error || 'Failed to refresh game types'
+              );
+            }
 
-            // Add new game type to current list
-            const currentGameTypes = get().gameTypes;
+            // Update game types list with the refreshed data
+            const currentGameTypes = gameTypesResult.value || [];
             set({
-              gameTypes: [savedGameType, ...currentGameTypes],
+              gameTypes: currentGameTypes,
               loading: false,
             });
 
-            console.log('✅ Game type created successfully:', savedGameType.id);
-            return savedGameType;
+            console.log('✅ Game type created successfully');
+            return result.value;
           } catch (error) {
             const message =
               error instanceof Error ? error.message : 'Unknown error';
@@ -686,11 +695,14 @@ export const useGamesStore = create<GamesState>()(
               throw new Error(result.error || 'Failed to update game type');
             }
 
-            // Update game type in current list
-            const currentGameTypes = get().gameTypes;
-            const updatedGameTypes = currentGameTypes.map((gt: GameTypeDto) =>
-              gt.id === gameType.id ? result.value : gt
-            );
+            // Refresh game types list to get updated data
+            const gameTypesResult = await dataApplicationService.getGameTypes();
+            if (!gameTypesResult.isSuccess) {
+              throw new Error(
+                gameTypesResult.error || 'Failed to refresh game types'
+              );
+            }
+            const updatedGameTypes = gameTypesResult.value || [];
 
             set({
               gameTypes: updatedGameTypes,
@@ -713,30 +725,23 @@ export const useGamesStore = create<GamesState>()(
           set({ loading: true, error: null });
           try {
             console.log('🗑️ Deleting game type:', gameTypeId);
-            // TODO: Add deleteGameType method to IDataApplicationService
-            // For now, use updateGameType to set isActive to false
-            const gameType = get().gameTypes.find((gt) => gt.id === gameTypeId);
-            if (gameType) {
-              const updateCommand: UpdateGameTypeCommand = {
-                gameTypeId,
-                isActive: false,
-              };
-              const result =
-                await dataApplicationService.updateGameType(updateCommand);
 
-              if (!result.isSuccess) {
-                throw new Error(result.error || 'Failed to delete game type');
-              }
+            // Call application service to delete game type
+            const result =
+              await dataApplicationService.deleteGameType(gameTypeId);
+
+            if (!result.isSuccess) {
+              throw new Error(result.error);
             }
 
-            // Remove game type from current list
+            // Remove game type from current state if delete was successful
             const currentGameTypes = get().gameTypes;
-            const filteredGameTypes = currentGameTypes.filter(
-              (gt: GameTypeDto) => gt.id !== gameTypeId
+            const updatedGameTypes = currentGameTypes.filter(
+              (gt) => gt.id !== gameTypeId
             );
 
             set({
-              gameTypes: filteredGameTypes,
+              gameTypes: updatedGameTypes,
               loading: false,
             });
 

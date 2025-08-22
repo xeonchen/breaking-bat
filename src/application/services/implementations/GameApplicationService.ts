@@ -17,6 +17,7 @@ import {
   GetGameLineupQuery,
   GetInningDetailsQuery,
   GetGameStatisticsQuery,
+  SubstitutePlayerCommand,
   GameDto,
   GameWithDetailsDto,
   LineupDto,
@@ -24,6 +25,7 @@ import {
   GameStatisticsDto,
   InningScoreDto,
   GameFlowEventDto,
+  SubstitutionDto,
 } from '../interfaces/IGameApplicationService';
 
 import { Result } from '@/application/common/Result';
@@ -130,10 +132,7 @@ export class GameApplicationService implements IGameApplicationService {
         location: command.location,
         seasonId: savedGame.seasonId || undefined,
         gameTypeId: savedGame.gameTypeId || undefined,
-        status:
-          savedGame.status === 'setup'
-            ? 'scheduled'
-            : (savedGame.status as string),
+        status: savedGame.status === 'setup' ? 'scheduled' : savedGame.status,
         isHomeGame: savedGame.homeAway === 'home',
         score: {
           homeScore: savedGame.scoreboard?.homeScore || 0,
@@ -173,6 +172,28 @@ export class GameApplicationService implements IGameApplicationService {
     return Result.failure('Not implemented yet');
   }
 
+  public async deleteGame(gameId: string): Promise<Result<void>> {
+    try {
+      this.loggingPort.info('Deleting game', { gameId });
+
+      // Delete from persistence layer
+      await this.gamePersistencePort.delete(gameId);
+
+      // Invalidate caches
+      await this.invalidateGameCaches(gameId);
+
+      this.loggingPort.info('Game deleted successfully', { gameId });
+      return Result.success(undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.loggingPort.error('Failed to delete game', {
+        gameId,
+        error: message,
+      });
+      return Result.failure(message);
+    }
+  }
+
   public async setupLineup(
     _command: SetupLineupCommand
   ): Promise<Result<LineupDto>> {
@@ -197,7 +218,9 @@ export class GameApplicationService implements IGameApplicationService {
     return Result.failure('Not implemented yet');
   }
 
-  public async substitutePlayer(_command: unknown): Promise<Result<unknown>> {
+  public async substitutePlayer(
+    _command: SubstitutePlayerCommand
+  ): Promise<Result<SubstitutionDto>> {
     return Result.failure('Not implemented yet');
   }
 

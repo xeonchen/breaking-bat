@@ -211,6 +211,11 @@ export class TeamApplicationService implements ITeamApplicationService {
         return Result.failure(`Team with ID '${command.teamId}' not found`);
       }
 
+      // Check roster size limit
+      if (team.playerIds.length >= 25) {
+        return Result.failure('Team roster is full (maximum 25 players)');
+      }
+
       // Validate jersey number availability
       const jerseyInUse = await this.playerPersistencePort.findByJerseyNumber(
         command.teamId,
@@ -288,15 +293,173 @@ export class TeamApplicationService implements ITeamApplicationService {
   }
 
   public async updatePlayer(
-    _command: UpdatePlayerInTeamCommand
+    command: UpdatePlayerInTeamCommand
   ): Promise<Result<TeamPlayerDto>> {
-    return Result.failure('Not implemented yet');
+    const correlationId = this.idGenerator.generateShortId();
+
+    try {
+      this.loggingPort.info('Updating player in team', {
+        playerId: command.playerId,
+        teamId: command.teamId,
+        correlationId,
+      });
+
+      // Verify team exists
+      const team = await this.teamPersistencePort.findById(command.teamId);
+      if (!team) {
+        return Result.failure(`Team with ID '${command.teamId}' not found`);
+      }
+
+      // Get existing player
+      const existingPlayer = await this.playerPersistencePort.findById(
+        command.playerId
+      );
+      if (!existingPlayer) {
+        return Result.failure(`Player with ID '${command.playerId}' not found`);
+      }
+
+      // Verify player belongs to team
+      if (existingPlayer.teamId !== command.teamId) {
+        return Result.failure(
+          `Player does not belong to team '${command.teamId}'`
+        );
+      }
+
+      // Check jersey number availability if changed
+      if (
+        command.jerseyNumber &&
+        command.jerseyNumber !== existingPlayer.jerseyNumber
+      ) {
+        const jerseyInUse = await this.playerPersistencePort.findByJerseyNumber(
+          command.teamId,
+          command.jerseyNumber
+        );
+        if (jerseyInUse && jerseyInUse.id !== command.playerId) {
+          return Result.failure(
+            `Jersey number ${command.jerseyNumber} is already taken on this team`
+          );
+        }
+      }
+
+      // Convert positions
+      const positions = command.positions
+        ? command.positions.map((pos) => Position.fromValue(pos))
+        : existingPlayer.positions;
+
+      // Update player
+      const updatedPlayer = {
+        ...existingPlayer,
+        name: command.playerName || existingPlayer.name,
+        jerseyNumber: command.jerseyNumber || existingPlayer.jerseyNumber,
+        positions,
+        isActive:
+          command.isActive !== undefined
+            ? command.isActive
+            : existingPlayer.isActive,
+        updatedAt: this.timeProvider.now(),
+      } as Player;
+
+      // Persist changes
+      const savedPlayer = await this.playerPersistencePort.save(updatedPlayer);
+
+      // Convert to DTO
+      const playerDto: TeamPlayerDto = {
+        id: savedPlayer.id,
+        name: savedPlayer.name,
+        jerseyNumber: savedPlayer.jerseyNumber,
+        positions: savedPlayer.positions.map((pos) => pos.value),
+        isActive: savedPlayer.isActive,
+      };
+
+      // Invalidate caches
+      await this.invalidateTeamCaches(command.teamId);
+
+      this.loggingPort.info('Player updated successfully', {
+        playerId: command.playerId,
+        teamId: command.teamId,
+        correlationId,
+      });
+
+      return Result.success(playerDto);
+    } catch (error) {
+      this.loggingPort.error('Failed to update player', error as Error, {
+        playerId: command.playerId,
+        teamId: command.teamId,
+        correlationId,
+      });
+      return Result.failure(
+        `Failed to update player: ${(error as Error).message}`
+      );
+    }
   }
 
   public async removePlayer(
-    _command: RemovePlayerFromTeamCommand
+    command: RemovePlayerFromTeamCommand
   ): Promise<Result<void>> {
-    return Result.failure('Not implemented yet');
+    const correlationId = this.idGenerator.generateShortId();
+
+    try {
+      this.loggingPort.info('Removing player from team', {
+        teamId: command.teamId,
+        playerId: command.playerId,
+        correlationId,
+      });
+
+      // Verify team exists
+      const team = await this.teamPersistencePort.findById(command.teamId);
+      if (!team) {
+        return Result.failure(`Team with ID '${command.teamId}' not found`);
+      }
+
+      // Get existing player
+      const existingPlayer = await this.playerPersistencePort.findById(
+        command.playerId
+      );
+      if (!existingPlayer) {
+        return Result.failure(`Player with ID ${command.playerId} not found`);
+      }
+
+      // Verify player belongs to team
+      if (existingPlayer.teamId !== command.teamId) {
+        return Result.failure(
+          `Player ${command.playerId} is not on team ${command.teamId}`
+        );
+      }
+
+      // Remove player from team's player list
+      const updatedTeam = new Team(
+        team.id,
+        team.name,
+        team.seasonIds,
+        team.playerIds.filter((id) => id !== command.playerId),
+        team.createdAt,
+        this.timeProvider.now()
+      );
+      await this.teamPersistencePort.save(updatedTeam);
+
+      // Remove player from persistence
+      await this.playerPersistencePort.delete(command.playerId);
+
+      // Invalidate caches
+      await this.invalidateTeamCaches(command.teamId);
+
+      this.loggingPort.info('Player removed successfully', {
+        teamId: command.teamId,
+        playerId: command.playerId,
+        correlationId,
+      });
+
+      return Result.success(undefined);
+    } catch (error) {
+      this.loggingPort.error('Failed to remove player', error as Error, {
+        teamId: command.teamId,
+        playerId: command.playerId,
+        correlationId,
+      });
+      return Result.failure(
+        `Failed to remove player: ${(error as Error).message}`
+      );
+    }
   }
 
   public async archiveTeam(
@@ -487,7 +650,13 @@ export class TeamApplicationService implements ITeamApplicationService {
   }
 
   async getTeams(_query?: any): Promise<Result<any[]>> {
-    return Result.failure('Not implemented yet');
+    try {
+      const teams = await this.teamPersistencePort.findAll();
+      return Result.success(teams);
+    } catch (error) {
+      this.loggingPort.error('Failed to get teams', error as Error);
+      return Result.failure(`Failed to get teams: ${(error as Error).message}`);
+    }
   }
 
   private async invalidateTeamCaches(teamId: string): Promise<void> {

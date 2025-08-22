@@ -29,8 +29,14 @@ const mockGame = new Game(
   'Test Game',
   'Test Opponent',
   new Date('2025-01-15'),
-  'test-team-id',
-  'home'
+  'season-1', // seasonId
+  'game-type-1', // gameTypeId
+  'home', // homeAway
+  'test-team-id', // teamId
+  'setup', // status
+  null, // lineupId
+  [], // inningIds
+  null // scoreboard
 );
 
 const mockTeam = new Team('test-team-id', 'Test Team', [], []);

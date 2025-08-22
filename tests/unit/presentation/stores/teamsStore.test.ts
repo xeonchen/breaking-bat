@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
 import { Team, Position } from '@/domain';
-import { Result } from '@/application/common/Result';
 import {
   useTeamsStore,
   initializeTeamsStore,
@@ -9,28 +8,42 @@ import {
   PresentationTeam,
   PresentationPlayer,
 } from '@/presentation/types/TeamWithPlayers';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
+import { TeamMapper } from '@/presentation/mappers/TeamMapper';
 import {
   resetZustandStore,
   getCleanTeamsStoreState,
 } from '../../../utils/storeTestUtils';
 
-// Mock dependencies
-const mockTeamRepository = {
-  findAll: jest.fn(),
-  save: jest.fn(),
-  delete: jest.fn(),
-  findById: jest.fn(),
+// Mock application services (Clean Architecture pattern)
+const mockTeamApplicationService = {
+  getTeams: jest.fn(),
+  createTeam: jest.fn(),
+  updateTeam: jest.fn(),
+  deleteTeam: jest.fn(),
+  getTeamById: jest.fn(),
   addPlayer: jest.fn(),
+  updatePlayer: jest.fn(),
   removePlayer: jest.fn(),
-};
-
-const mockPlayerRepository = {
-  save: jest.fn(),
-  delete: jest.fn(),
-  findById: jest.fn(),
+  // Additional methods to satisfy ITeamApplicationService interface
+  archiveTeam: jest.fn(),
+  getTeamsBySeason: jest.fn(),
+  searchTeams: jest.fn(),
+  getTeamRoster: jest.fn(),
+  getTeamStatistics: jest.fn(),
+  exportTeamData: jest.fn(),
+  importTeamData: jest.fn(),
+  isTeamNameAvailable: jest.fn(),
+  isJerseyNumberAvailable: jest.fn(),
 };
 
 const mockTeamHydrationService = {
+  playerRepository: {}, // Mock property to satisfy interface
+  hydrateTeam: jest.fn().mockImplementation(async (domainTeam: Team) => ({
+    id: domainTeam.id,
+    name: domainTeam.name,
+    players: [], // Default empty players array
+  })),
   hydrateTeams: jest.fn().mockImplementation(async (domainTeams: Team[]) => {
     return domainTeams.map((team) => ({
       id: team.id,
@@ -39,22 +52,8 @@ const mockTeamHydrationService = {
     }));
   }),
   convertPresentationPlayerToDomain: jest.fn(),
-};
-
-const mockCreateTeamUseCase = {
-  execute: jest.fn(),
-};
-
-const mockAddPlayerUseCase = {
-  execute: jest.fn(),
-};
-
-const mockUpdatePlayerUseCase = {
-  execute: jest.fn(),
-};
-
-const mockRemovePlayerUseCase = {
-  execute: jest.fn(),
+  // Mock private method that TypeScript is expecting (though this shouldn't be needed)
+  convertDomainPlayerToPresentation: jest.fn(),
 };
 
 // Initialize store with mocks before each test
@@ -64,27 +63,39 @@ beforeEach(() => {
   // Clear Zustand persistent storage and reset store state
   resetZustandStore(useTeamsStore, getCleanTeamsStoreState());
 
-  // Reset all mock implementations to avoid test contamination
-  mockTeamRepository.findAll.mockReset();
-  mockTeamRepository.save.mockReset();
-  mockTeamRepository.delete.mockReset();
-  mockTeamRepository.findById.mockReset();
-  mockTeamRepository.addPlayer.mockReset();
-  mockTeamRepository.removePlayer.mockReset();
+  // Reset application service mocks
+  mockTeamApplicationService.getTeams.mockReset();
+  mockTeamApplicationService.createTeam.mockReset();
+  mockTeamApplicationService.updateTeam.mockReset();
+  mockTeamApplicationService.deleteTeam.mockReset();
+  mockTeamApplicationService.getTeamById.mockReset();
+  mockTeamApplicationService.addPlayer.mockReset();
+  mockTeamApplicationService.updatePlayer.mockReset();
+  mockTeamApplicationService.removePlayer.mockReset();
+  mockTeamApplicationService.archiveTeam.mockReset();
+  mockTeamApplicationService.getTeamsBySeason.mockReset();
+  mockTeamApplicationService.searchTeams.mockReset();
+  mockTeamApplicationService.getTeamRoster.mockReset();
+  mockTeamApplicationService.getTeamStatistics.mockReset();
+  mockTeamApplicationService.exportTeamData.mockReset();
+  mockTeamApplicationService.importTeamData.mockReset();
+  mockTeamApplicationService.isTeamNameAvailable.mockReset();
+  mockTeamApplicationService.isJerseyNumberAvailable.mockReset();
 
-  mockPlayerRepository.save.mockReset();
-  mockPlayerRepository.delete.mockReset();
-  mockPlayerRepository.findById.mockReset();
-
+  mockTeamHydrationService.hydrateTeam.mockReset();
   mockTeamHydrationService.hydrateTeams.mockReset();
   mockTeamHydrationService.convertPresentationPlayerToDomain.mockReset();
-
-  mockCreateTeamUseCase.execute.mockReset();
-  mockAddPlayerUseCase.execute.mockReset();
-  mockUpdatePlayerUseCase.execute.mockReset();
-  mockRemovePlayerUseCase.execute.mockReset();
+  mockTeamHydrationService.convertDomainPlayerToPresentation.mockReset();
 
   // Restore default implementations
+  mockTeamHydrationService.hydrateTeam.mockImplementation(
+    async (domainTeam: Team) => ({
+      id: domainTeam.id,
+      name: domainTeam.name,
+      players: [], // Default empty players array
+    })
+  );
+
   mockTeamHydrationService.hydrateTeams.mockImplementation(
     async (domainTeams: Team[]) => {
       return domainTeams.map((team) => ({
@@ -96,13 +107,8 @@ beforeEach(() => {
   );
 
   initializeTeamsStore({
-    teamRepository: mockTeamRepository,
-    playerRepository: mockPlayerRepository,
-    teamHydrationService: mockTeamHydrationService,
-    createTeamUseCase: mockCreateTeamUseCase,
-    addPlayerUseCase: mockAddPlayerUseCase,
-    updatePlayerUseCase: mockUpdatePlayerUseCase,
-    removePlayerUseCase: mockRemovePlayerUseCase,
+    teamApplicationService: mockTeamApplicationService,
+    teamHydrationService: mockTeamHydrationService as any, // Type assertion to bypass complex mock typing
   });
 });
 
@@ -129,7 +135,10 @@ describe('TeamsStore', () => {
         { id: 'team-1', name: 'Yankees', players: [] },
         { id: 'team-2', name: 'Red Sox', players: [] },
       ];
-      mockTeamRepository.findAll.mockResolvedValue(mockDomainTeams);
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: mockDomainTeams,
+      });
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -143,11 +152,11 @@ describe('TeamsStore', () => {
     });
 
     it('should handle loading state correctly', async () => {
-      let resolvePromise: (value: Team[]) => void;
-      const promise = new Promise<Team[]>((resolve) => {
+      let resolvePromise: (value: any) => void;
+      const promise = new Promise<any>((resolve) => {
         resolvePromise = resolve;
       });
-      mockTeamRepository.findAll.mockReturnValue(promise);
+      mockTeamApplicationService.getTeams.mockReturnValue(promise);
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -159,7 +168,7 @@ describe('TeamsStore', () => {
 
       await act(async () => {
         if (resolvePromise) {
-          resolvePromise([]);
+          resolvePromise({ isSuccess: true, value: [] });
         }
       });
 
@@ -168,7 +177,7 @@ describe('TeamsStore', () => {
 
     it('should handle loading errors', async () => {
       const error = new Error('Failed to load teams');
-      mockTeamRepository.findAll.mockRejectedValue(error);
+      mockTeamApplicationService.getTeams.mockRejectedValue(error);
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -185,15 +194,20 @@ describe('TeamsStore', () => {
   describe('Team Creation', () => {
     it('should create team successfully', async () => {
       const newTeam = new Team('team-1', 'Blue Jays', [], []);
-      mockCreateTeamUseCase.execute.mockResolvedValue(Result.success(newTeam));
-      mockTeamRepository.findAll.mockResolvedValue([newTeam]);
+      mockTeamApplicationService.createTeam.mockResolvedValue({
+        isSuccess: true,
+        value: newTeam,
+      });
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [newTeam],
+      });
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([
         {
           id: 'team-1',
           name: 'Blue Jays',
           players: [],
           seasonIds: [],
-          playerIds: [],
         },
       ]);
 
@@ -203,14 +217,12 @@ describe('TeamsStore', () => {
         await result.current.createTeam({
           name: 'Blue Jays',
           seasonIds: [],
-          playerIds: [],
         });
       });
 
-      expect(mockCreateTeamUseCase.execute).toHaveBeenCalledWith({
+      expect(mockTeamApplicationService.createTeam).toHaveBeenCalledWith({
         name: 'Blue Jays',
         seasonIds: [],
-        playerIds: [],
       });
       expect(result.current.teams).toHaveLength(1);
       expect(result.current.teams[0].name).toBe('Blue Jays');
@@ -218,9 +230,10 @@ describe('TeamsStore', () => {
     });
 
     it('should handle team creation validation errors', async () => {
-      mockCreateTeamUseCase.execute.mockResolvedValue(
-        Result.failure('Team name is required')
-      );
+      mockTeamApplicationService.createTeam.mockResolvedValue({
+        isSuccess: false,
+        error: 'Team name is required',
+      });
 
       const { result } = renderHook(() => useTeamsStore());
 
@@ -228,7 +241,6 @@ describe('TeamsStore', () => {
         await result.current.createTeam({
           name: '',
           seasonIds: [],
-          playerIds: [],
         });
       });
 
@@ -239,7 +251,7 @@ describe('TeamsStore', () => {
     });
 
     it('should handle team creation errors', async () => {
-      mockCreateTeamUseCase.execute.mockRejectedValue(
+      mockTeamApplicationService.createTeam.mockRejectedValue(
         new Error('Database error')
       );
 
@@ -249,7 +261,6 @@ describe('TeamsStore', () => {
         await result.current.createTeam({
           name: 'Test Team',
           seasonIds: [],
-          playerIds: [],
         });
       });
 
@@ -267,9 +278,15 @@ describe('TeamsStore', () => {
       const existingTeam = new Team('team-1', 'Yankees', [], []);
       const updatedTeam = new Team('team-1', 'New Yankees', [], []);
 
-      // Mock save and findAll to return updated data after save
-      mockTeamRepository.save.mockResolvedValue(updatedTeam);
-      mockTeamRepository.findAll.mockResolvedValue([updatedTeam]);
+      // Mock application service to return updated data
+      mockTeamApplicationService.updateTeam.mockResolvedValue({
+        isSuccess: true,
+        value: updatedTeam,
+      });
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [updatedTeam],
+      });
       // Mock hydration service to return the updated team
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([
         {
@@ -277,7 +294,6 @@ describe('TeamsStore', () => {
           name: 'New Yankees',
           players: [],
           seasonIds: [],
-          playerIds: [],
         },
       ]);
 
@@ -285,7 +301,9 @@ describe('TeamsStore', () => {
 
       // Set initial state
       act(() => {
-        result.current.teams = [existingTeam];
+        result.current.teams = [
+          TeamMapper.domainToPresentationMinimal(existingTeam),
+        ];
       });
 
       await act(async () => {
@@ -293,16 +311,15 @@ describe('TeamsStore', () => {
           id: 'team-1',
           name: 'New Yankees',
           seasonIds: [],
-          playerIds: [],
         });
       });
 
-      expect(mockTeamRepository.save).toHaveBeenCalledWith(
+      expect(mockTeamApplicationService.updateTeam).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 'team-1',
+          teamId: 'team-1',
           name: 'New Yankees',
           seasonIds: [],
-          playerIds: [],
+          isActive: true,
         })
       );
       expect(result.current.teams[0].name).toBe('New Yankees');
@@ -311,12 +328,16 @@ describe('TeamsStore', () => {
 
     it('should handle team update errors', async () => {
       const existingTeam = new Team('team-1', 'Yankees', [], []);
-      mockTeamRepository.save.mockRejectedValue(new Error('Update failed'));
+      mockTeamApplicationService.updateTeam.mockRejectedValue(
+        new Error('Update failed')
+      );
 
       const { result } = renderHook(() => useTeamsStore());
 
       act(() => {
-        result.current.teams = [existingTeam];
+        result.current.teams = [
+          TeamMapper.domainToPresentationMinimal(existingTeam),
+        ];
       });
 
       await act(async () => {
@@ -324,7 +345,6 @@ describe('TeamsStore', () => {
           id: 'team-1',
           name: 'New Yankees',
           seasonIds: [],
-          playerIds: [],
         });
       });
 
@@ -338,31 +358,44 @@ describe('TeamsStore', () => {
       const team1 = new Team('team-1', 'Yankees', [], []);
       const team2 = new Team('team-2', 'Red Sox', [], []);
 
-      mockTeamRepository.delete.mockResolvedValue(undefined);
+      mockTeamApplicationService.updateTeam.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
 
       const { result } = renderHook(() => useTeamsStore());
 
       act(() => {
-        result.current.teams = [team1, team2];
+        result.current.teams = [
+          TeamMapper.domainToPresentationMinimal(team1),
+          TeamMapper.domainToPresentationMinimal(team2),
+        ];
       });
 
       await act(async () => {
         await result.current.deleteTeam('team-1');
       });
 
-      expect(mockTeamRepository.delete).toHaveBeenCalledWith('team-1');
+      expect(mockTeamApplicationService.updateTeam).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teamId: 'team-1',
+          isActive: false,
+        })
+      );
       expect(result.current.teams).toEqual([team2]);
       expect(result.current.error).toBeNull();
     });
 
     it('should handle team deletion errors', async () => {
       const team1 = new Team('team-1', 'Yankees', [], []);
-      mockTeamRepository.delete.mockRejectedValue(new Error('Delete failed'));
+      mockTeamApplicationService.updateTeam.mockRejectedValue(
+        new Error('Delete failed')
+      );
 
       const { result } = renderHook(() => useTeamsStore());
 
       act(() => {
-        result.current.teams = [team1];
+        result.current.teams = [TeamMapper.domainToPresentationMinimal(team1)];
       });
 
       await act(async () => {
@@ -384,8 +417,14 @@ describe('TeamsStore', () => {
         isActive: true,
       };
 
-      mockAddPlayerUseCase.execute.mockResolvedValue(Result.success(newPlayer));
-      mockTeamRepository.findAll.mockResolvedValue([]);
+      mockTeamApplicationService.addPlayer.mockResolvedValue({
+        isSuccess: true,
+        value: newPlayer,
+      });
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [],
+      });
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([
         {
           id: 'team-1',
@@ -402,16 +441,16 @@ describe('TeamsStore', () => {
         await result.current.addPlayer('team-1', {
           name: 'John Smith',
           jerseyNumber: '12',
-          positions: ['pitcher'], // This is presentation layer input (strings)
+          positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
           isActive: true,
         });
       });
 
-      expect(mockAddPlayerUseCase.execute).toHaveBeenCalledWith({
+      expect(mockTeamApplicationService.addPlayer).toHaveBeenCalledWith({
         teamId: 'team-1',
-        name: 'John Smith',
+        playerName: 'John Smith',
         jerseyNumber: 12,
-        positions: [Position.fromValue('pitcher')], // The implementation converts to domain objects
+        positions: ['pitcher'], // Store converts PresentationPosition enum to domain string
         isActive: true,
       });
       expect(result.current.teams).toHaveLength(1);
@@ -424,21 +463,36 @@ describe('TeamsStore', () => {
         id: 'player-1',
         name: 'John Smith',
         jerseyNumber: '12',
-        positions: ['pitcher'], // This is presentation layer input (strings)
+        positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
         isActive: true,
       };
       const updatedPlayer = { ...player, name: 'Johnny Smith' };
 
-      mockUpdatePlayerUseCase.execute.mockResolvedValue(
-        Result.success(updatedPlayer)
-      );
-      mockTeamRepository.findAll.mockResolvedValue([]);
-      mockTeamHydrationService.hydrateTeams.mockResolvedValue([]);
+      // Set up a team with the player
+      const teamWithPlayer = {
+        id: 'team-1',
+        name: 'Test Team',
+        players: [player],
+        playerCount: 1,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockTeamApplicationService.updatePlayer.mockResolvedValue({
+        isSuccess: true,
+        value: updatedPlayer,
+      });
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [teamWithPlayer],
+      });
+      mockTeamHydrationService.hydrateTeams.mockResolvedValue([teamWithPlayer]);
       mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue(
         {
           name: 'Johnny Smith',
           jerseyNumber: 12,
-          positions: ['pitcher'], // This is presentation layer input (strings)
+          positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
           isActive: true,
         }
       );
@@ -446,31 +500,39 @@ describe('TeamsStore', () => {
       const { result } = renderHook(() => useTeamsStore());
 
       await act(async () => {
+        // First load teams and select the team
+        await result.current.getTeams();
+        result.current.selectTeam(teamWithPlayer);
+        // Now update the player
         await result.current.updatePlayer('player-1', updatedPlayer);
       });
 
-      expect(mockUpdatePlayerUseCase.execute).toHaveBeenCalledWith({
+      expect(mockTeamApplicationService.updatePlayer).toHaveBeenCalledWith({
+        teamId: 'team-1',
         playerId: 'player-1',
-        name: 'Johnny Smith',
+        playerName: 'Johnny Smith',
         jerseyNumber: 12,
-        positions: [Position.fromValue('pitcher')], // The implementation converts to domain objects
+        positions: ['pitcher'], // Store converts enum to domain string
         isActive: true,
       });
       expect(result.current.error).toBeNull();
     });
 
     it('should remove player from team successfully', async () => {
-      mockRemovePlayerUseCase.execute.mockResolvedValue(
-        Result.success(undefined)
-      );
-      mockTeamRepository.findAll.mockResolvedValue([]);
+      mockTeamApplicationService.removePlayer.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [],
+      });
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([
         {
           id: 'team-1',
           name: 'Yankees',
           players: [],
           seasonIds: [],
-          playerIds: [],
         },
       ]);
 
@@ -480,7 +542,7 @@ describe('TeamsStore', () => {
         await result.current.removePlayer('team-1', 'player-1');
       });
 
-      expect(mockRemovePlayerUseCase.execute).toHaveBeenCalledWith({
+      expect(mockTeamApplicationService.removePlayer).toHaveBeenCalledWith({
         teamId: 'team-1',
         playerId: 'player-1',
       });
@@ -560,7 +622,10 @@ describe('TeamsStore', () => {
       expect(result.current.error).toBe('Previous error');
 
       // Successful operation should clear error
-      mockTeamRepository.findAll.mockResolvedValue([]);
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [],
+      });
 
       await act(async () => {
         await result.current.getTeams();
@@ -573,7 +638,9 @@ describe('TeamsStore', () => {
       const { result } = renderHook(() => useTeamsStore());
 
       // Test different error scenarios
-      mockTeamRepository.findAll.mockRejectedValue(new Error('Network error'));
+      mockTeamApplicationService.getTeams.mockRejectedValue(
+        new Error('Network error')
+      );
 
       await act(async () => {
         await result.current.getTeams();
@@ -591,18 +658,17 @@ describe('TeamsStore', () => {
         id: 'team-1',
         name: 'Yankees',
         players: [],
-        seasonIds: [],
-        playerIds: [],
       };
       const hydratedTeam2 = {
         id: 'team-2',
         name: 'Red Sox',
         players: [],
-        seasonIds: [],
-        playerIds: [],
       };
 
-      mockTeamRepository.findAll.mockResolvedValue([team1]);
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [team1],
+      });
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([hydratedTeam1]);
 
       const { result, rerender } = renderHook(() => useTeamsStore());
@@ -615,8 +681,14 @@ describe('TeamsStore', () => {
       expect(result.current.teams[0].name).toBe('Yankees');
 
       // Add another team
-      mockCreateTeamUseCase.execute.mockResolvedValue(Result.success(team2));
-      mockTeamRepository.findAll.mockResolvedValue([team1, team2]);
+      mockTeamApplicationService.createTeam.mockResolvedValue({
+        isSuccess: true,
+        value: team2,
+      });
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: [team1, team2],
+      });
       mockTeamHydrationService.hydrateTeams.mockResolvedValue([
         hydratedTeam1,
         hydratedTeam2,
@@ -626,7 +698,6 @@ describe('TeamsStore', () => {
         await result.current.createTeam({
           name: 'Red Sox',
           seasonIds: [],
-          playerIds: [],
         });
       });
 
@@ -649,7 +720,6 @@ describe('TeamsStore', () => {
         result.current.createTeam({
           name: 'Team A',
           seasonIds: [],
-          playerIds: [],
         }),
       ];
 
@@ -683,7 +753,7 @@ describe('TeamsStore', () => {
       id,
       name,
       jerseyNumber,
-      position: Position.fromValue('pitcher'), // Domain objects in hydrated team
+      positions: [Position.fromValue('pitcher')], // Domain objects in hydrated team
       isActive: true,
     });
 
@@ -700,10 +770,14 @@ describe('TeamsStore', () => {
         ]);
 
         // Mock successful use case execution
-        mockAddPlayerUseCase.execute.mockResolvedValue(
-          Result.success(newPlayer)
-        );
-        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamApplicationService.addPlayer.mockResolvedValue({
+          isSuccess: true,
+          value: newPlayer,
+        });
+        mockTeamApplicationService.getTeams.mockResolvedValue({
+          isSuccess: true,
+          value: [],
+        });
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
 
         const { result } = renderHook(() => useTeamsStore());
@@ -720,7 +794,7 @@ describe('TeamsStore', () => {
           await result.current.addPlayer('team-1', {
             name: 'Jane Smith',
             jerseyNumber: '12',
-            positions: ['pitcher'], // This is presentation layer input (strings)
+            positions: [PresentationPosition.PITCHER], // This is presentation layer input (enum)
             isActive: true,
           });
         });
@@ -739,10 +813,14 @@ describe('TeamsStore', () => {
           [newPlayer]
         );
 
-        mockAddPlayerUseCase.execute.mockResolvedValue(
-          Result.success(newPlayer)
-        );
-        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamApplicationService.addPlayer.mockResolvedValue({
+          isSuccess: true,
+          value: newPlayer,
+        });
+        mockTeamApplicationService.getTeams.mockResolvedValue({
+          isSuccess: true,
+          value: [],
+        });
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([
           selectedTeam,
           updatedOtherTeam,
@@ -758,7 +836,7 @@ describe('TeamsStore', () => {
           await result.current.addPlayer('team-2', {
             name: 'John Doe',
             jerseyNumber: '10',
-            position: Position.fromValue('pitcher'), // Domain objects in hydrated team
+            positions: [Position.fromValue('pitcher')], // Domain objects in hydrated team
             isActive: true,
           });
         });
@@ -780,10 +858,14 @@ describe('TeamsStore', () => {
           player2,
         ]);
 
-        mockRemovePlayerUseCase.execute.mockResolvedValue(
-          Result.success(undefined)
-        );
-        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamApplicationService.removePlayer.mockResolvedValue({
+          isSuccess: true,
+          value: undefined,
+        });
+        mockTeamApplicationService.getTeams.mockResolvedValue({
+          isSuccess: true,
+          value: [],
+        });
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
 
         const { result } = renderHook(() => useTeamsStore());
@@ -813,18 +895,22 @@ describe('TeamsStore', () => {
           updatedPlayer,
         ]);
 
-        mockUpdatePlayerUseCase.execute.mockResolvedValue(
-          Result.success(updatedPlayer)
-        );
+        mockTeamApplicationService.updatePlayer.mockResolvedValue({
+          isSuccess: true,
+          value: updatedPlayer,
+        });
         mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue(
           {
             name: 'Johnny Doe',
             jerseyNumber: 10,
-            position: Position.fromValue('pitcher'), // Domain objects in hydrated team
+            positions: [Position.fromValue('pitcher')], // Domain objects in hydrated team
             isActive: true,
           }
         );
-        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamApplicationService.getTeams.mockResolvedValue({
+          isSuccess: true,
+          value: [],
+        });
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([updatedTeam]);
 
         const { result } = renderHook(() => useTeamsStore());
@@ -859,13 +945,17 @@ describe('TeamsStore', () => {
           otherTeamPlayer,
         ]);
 
-        mockUpdatePlayerUseCase.execute.mockResolvedValue(
-          Result.success(otherTeamPlayer)
-        );
+        mockTeamApplicationService.updatePlayer.mockResolvedValue({
+          isSuccess: true,
+          value: otherTeamPlayer,
+        });
         mockTeamHydrationService.convertPresentationPlayerToDomain.mockReturnValue(
           {}
         );
-        mockTeamRepository.findAll.mockResolvedValue([]);
+        mockTeamApplicationService.getTeams.mockResolvedValue({
+          isSuccess: true,
+          value: [],
+        });
         mockTeamHydrationService.hydrateTeams.mockResolvedValue([
           selectedTeam,
           otherTeam,

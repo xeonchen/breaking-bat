@@ -1,103 +1,187 @@
-import { renderHook, act } from '@testing-library/react';
-import { Game, Season, GameType, Team } from '@/domain';
-import { Result } from '@/application/common/Result';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { act, renderHook } from '@testing-library/react';
 import {
   useGamesStore,
   initializeGamesStore,
 } from '@/presentation/stores/gamesStore';
-import {
-  resetZustandStore,
-  getCleanGamesStoreState,
-} from '../../../utils/storeTestUtils';
+import { GameStatus } from '@/application/services/interfaces';
+import { Game, GameType, Season } from '@/domain/entities';
+import { Scoreboard } from '@/domain/values';
+import type {
+  IGameApplicationService,
+  IDataApplicationService,
+  ITeamApplicationService,
+  GameDto,
+  SeasonDto,
+  GameTypeDto,
+  TeamDto,
+  CreateGameCommand,
+  LoadDefaultDataResultDto,
+  CreateSeasonCommand,
+  CreateGameTypeCommand,
+  UpdateSeasonCommand,
+  UpdateGameTypeCommand,
+  ArchiveSeasonCommand,
+} from '@/application/services/interfaces';
+import { Result } from '@/application/common/Result';
 
-// Mock dependencies
-const mockGameRepository = {
-  findAll: jest.fn(),
-  save: jest.fn(),
-  delete: jest.fn(),
-  findById: jest.fn(),
-  findCurrent: jest.fn(),
-  getLineup: jest.fn(),
+// Mock console methods to avoid cluttering test output
+const mockConsole = {
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
 };
 
-const mockSeasonRepository = {
-  findAll: jest.fn(),
-  save: jest.fn(),
-  delete: jest.fn(),
-  findById: jest.fn(),
+global.console = mockConsole as any;
+
+// Mock application services
+const mockGameApplicationService: IGameApplicationService = {
+  getCurrentGames: jest.fn(),
+  getGame: jest.fn(),
+  createGame: jest.fn(),
+  updateGame: jest.fn(),
+  deleteGame: jest.fn(),
+  setupLineup: jest.fn(),
+  startGame: jest.fn(),
+  completeGame: jest.fn(),
+  suspendGame: jest.fn(),
+  resumeGame: jest.fn(),
 };
 
-const mockGameTypeRepository = {
-  findAll: jest.fn(),
-  save: jest.fn(),
-  delete: jest.fn(),
-  findById: jest.fn(),
+const mockDataApplicationService: IDataApplicationService = {
+  getSeasons: jest.fn(),
+  getGameTypes: jest.fn(),
+  createSeason: jest.fn(),
+  updateSeason: jest.fn(),
+  archiveSeason: jest.fn(),
+  createGameType: jest.fn(),
+  updateGameType: jest.fn(),
+  deleteGameType: jest.fn(),
+  loadDefaultData: jest.fn(),
 };
 
-const mockTeamRepository = {
-  findAll: jest.fn(),
-  save: jest.fn(),
-  delete: jest.fn(),
-  findById: jest.fn(),
-  addPlayer: jest.fn(),
-  removePlayer: jest.fn(),
+const mockTeamApplicationService: ITeamApplicationService = {
+  getTeams: jest.fn(),
+  getTeam: jest.fn(),
+  createTeam: jest.fn(),
+  updateTeam: jest.fn(),
+  deleteTeam: jest.fn(),
+  addPlayerToTeam: jest.fn(),
+  removePlayerFromTeam: jest.fn(),
+  updatePlayerInTeam: jest.fn(),
 };
 
-const mockCreateGameUseCase = {
-  execute: jest.fn(),
+// Test data fixtures
+const mockGameDto: GameDto = {
+  id: 'game-1',
+  name: 'Test Game',
+  opponent: 'Test Opponent',
+  date: new Date('2025-08-17'),
+  location: 'Test Field',
+  isHomeGame: true,
+  teamId: 'team-1',
+  status: 'setup' as GameStatus,
+  seasonId: 'season-1',
+  gameTypeId: 'gametype-1',
+  lineupId: null,
+  inningIds: [],
+  finalScore: null,
+  createdAt: new Date('2025-08-16'),
+  updatedAt: new Date('2025-08-16'),
 };
 
-// Test data
+const mockSeasonDto: SeasonDto = {
+  id: 'season-1',
+  name: '2025 Season',
+  year: 2025,
+  startDate: new Date('2025-03-01'),
+  endDate: new Date('2025-10-31'),
+  description: 'Test season',
+  isActive: true,
+  createdAt: new Date('2025-01-01'),
+  updatedAt: new Date('2025-01-01'),
+};
+
+const mockGameTypeDto: GameTypeDto = {
+  id: 'gametype-1',
+  name: 'Regular Game',
+  description: 'Standard softball game',
+  defaultInnings: 7,
+  allowTies: false,
+  mercyRule: 10,
+  isActive: true,
+  createdAt: new Date('2025-01-01'),
+  updatedAt: new Date('2025-01-01'),
+};
+
+const mockTeamDto: TeamDto = {
+  id: 'team-1',
+  name: 'Test Team',
+  description: 'Test team description',
+  isActive: true,
+  playerIds: ['player-1', 'player-2'],
+  createdAt: new Date('2025-01-01'),
+  updatedAt: new Date('2025-01-01'),
+};
+
+// Create a mock Game entity for testing
 const mockGame = new Game(
   'game-1',
-  'Red Sox vs Yankees',
-  'Yankees',
-  new Date('2024-06-15'),
-  'season-1',
-  'type-1',
-  'home',
-  'team-1',
-  'active',
-  'lineup-1',
-  [],
-  { homeScore: 3, awayScore: 2 }
-);
-
-const mockSeason = new Season(
-  'season-1',
-  '2024 Season',
-  2024,
-  new Date('2024-03-01'),
-  new Date('2024-10-31')
+  'Test vs Opponent',
+  'opponent-1', // opponent
+  new Date('2025-01-15'), // date
+  'season-1', // seasonId
+  'gametype-1', // gameTypeId
+  'home', // homeAway
+  'team-1', // teamId (8th parameter)
+  'setup', // status
+  undefined, // lineupId
+  [], // inningIds
+  undefined, // finalScore
+  new Date('2025-01-01'),
+  new Date('2025-01-01')
 );
 
 const mockGameType = new GameType(
-  'type-1',
-  'Regular Season',
-  'Standard regular season game'
+  'gametype-1',
+  'Regular Game',
+  'Standard softball game',
+  7, // defaultInnings
+  false, // allowTies
+  10, // mercyRule
+  true, // isActive
+  new Date('2025-01-01'),
+  new Date('2025-01-01')
 );
 
-const mockTeam = new Team('team-1', 'Red Sox', [], []);
-
-// Initialize store with mocks before each test
-beforeEach(() => {
-  jest.clearAllMocks();
-
-  // Clear Zustand persistent storage and reset store state
-  resetZustandStore(useGamesStore, getCleanGamesStoreState());
-
-  initializeGamesStore({
-    gameRepository: mockGameRepository,
-    seasonRepository: mockSeasonRepository,
-    gameTypeRepository: mockGameTypeRepository,
-    teamRepository: mockTeamRepository,
-    createGameUseCase: mockCreateGameUseCase,
-  });
-});
-
 describe('GamesStore', () => {
-  describe('Initial State', () => {
-    it('should have correct initial state', () => {
+  beforeEach(() => {
+    // Reset all mocks
+    jest.clearAllMocks();
+
+    // Initialize store with mock dependencies
+    initializeGamesStore({
+      gameApplicationService: mockGameApplicationService,
+      dataApplicationService: mockDataApplicationService,
+      teamApplicationService: mockTeamApplicationService,
+    });
+
+    // Reset store state
+    useGamesStore.setState({
+      games: [],
+      seasons: [],
+      gameTypes: [],
+      teams: [],
+      selectedGame: null,
+      loading: false,
+      error: null,
+      searchQuery: '',
+      statusFilter: 'all',
+    });
+  });
+
+  describe('Store Initialization', () => {
+    it('should initialize with default state', () => {
       const { result } = renderHook(() => useGamesStore());
 
       expect(result.current.games).toEqual([]);
@@ -110,12 +194,30 @@ describe('GamesStore', () => {
       expect(result.current.searchQuery).toBe('');
       expect(result.current.statusFilter).toBe('all');
     });
+
+    it('should log initialization with dependencies', () => {
+      initializeGamesStore({
+        gameApplicationService: mockGameApplicationService,
+        dataApplicationService: mockDataApplicationService,
+        teamApplicationService: mockTeamApplicationService,
+      });
+
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        '🔧 Initializing GamesStore with dependencies:',
+        expect.any(Object)
+      );
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        '✅ GamesStore dependencies initialized successfully'
+      );
+    });
   });
 
-  describe('Games Loading', () => {
+  describe('loadGames', () => {
     it('should load games successfully', async () => {
-      const games = [mockGame];
-      mockGameRepository.findAll.mockResolvedValue(games);
+      const games = [mockGameDto];
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.success(games)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -126,10 +228,15 @@ describe('GamesStore', () => {
       expect(result.current.games).toEqual(games);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
+      expect(mockConsole.log).toHaveBeenCalledWith('📊 Loading games...');
+      expect(mockConsole.log).toHaveBeenCalledWith('✅ Loaded 1 games');
     });
 
-    it('should handle games loading errors', async () => {
-      mockGameRepository.findAll.mockRejectedValue(new Error('Database error'));
+    it('should handle load games failure', async () => {
+      const errorMessage = 'Database connection failed';
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.failure(errorMessage)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -139,7 +246,28 @@ describe('GamesStore', () => {
 
       expect(result.current.games).toEqual([]);
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe('Failed to load games: Database error');
+      expect(result.current.error).toBe(
+        `Failed to load games: ${errorMessage}`
+      );
+      expect(mockConsole.error).toHaveBeenCalledWith(
+        '❌ Failed to load games:',
+        errorMessage
+      );
+    });
+
+    it('should handle load games exception', async () => {
+      const error = new Error('Network error');
+      mockGameApplicationService.getCurrentGames.mockRejectedValue(error);
+
+      const { result } = renderHook(() => useGamesStore());
+
+      await act(async () => {
+        await result.current.loadGames();
+      });
+
+      expect(result.current.games).toEqual([]);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe('Failed to load games: Network error');
     });
 
     it('should apply search filter when loading games', async () => {
@@ -147,17 +275,23 @@ describe('GamesStore', () => {
         mockGame,
         new Game(
           'game-2',
-          'Cubs vs Cardinals',
-          'Cardinals',
+          'Cubs vs Yankees',
+          'Yankees',
           new Date(),
           'season-1',
           'type-1',
           'away',
           'team-1',
-          'completed'
+          'completed', // status
+          'lineup-1', // lineupId
+          [], // inningIds
+          new Scoreboard(4, 7) // scoreboard
         ),
       ];
-      mockGameRepository.findAll.mockResolvedValue(games);
+      mockGameApplicationService.getCurrentGames.mockResolvedValue({
+        isSuccess: true,
+        value: games,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -186,10 +320,16 @@ describe('GamesStore', () => {
           'type-1',
           'away',
           'team-1',
-          'completed'
+          'completed', // status
+          'lineup-1', // lineupId
+          [], // inningIds
+          new Scoreboard(2, 5) // scoreboard
         ),
       ];
-      mockGameRepository.findAll.mockResolvedValue(games);
+      mockGameApplicationService.getCurrentGames.mockResolvedValue({
+        isSuccess: true,
+        value: games,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -209,8 +349,11 @@ describe('GamesStore', () => {
 
   describe('Seasons Loading', () => {
     it('should load seasons successfully', async () => {
-      const seasons = [mockSeason];
-      mockSeasonRepository.findAll.mockResolvedValue(seasons);
+      const seasons = [mockSeasonDto];
+      mockDataApplicationService.getSeasons.mockResolvedValue({
+        isSuccess: true,
+        value: seasons,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -223,7 +366,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle seasons loading errors', async () => {
-      mockSeasonRepository.findAll.mockRejectedValue(
+      mockDataApplicationService.getSeasons.mockRejectedValue(
         new Error('Network error')
       );
 
@@ -243,7 +386,10 @@ describe('GamesStore', () => {
   describe('Game Types Loading', () => {
     it('should load game types successfully', async () => {
       const gameTypes = [mockGameType];
-      mockGameTypeRepository.findAll.mockResolvedValue(gameTypes);
+      mockDataApplicationService.getGameTypes.mockResolvedValue({
+        isSuccess: true,
+        value: gameTypes,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -256,7 +402,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle game types loading errors', async () => {
-      mockGameTypeRepository.findAll.mockRejectedValue(
+      mockDataApplicationService.getGameTypes.mockRejectedValue(
         new Error('Service error')
       );
 
@@ -275,8 +421,11 @@ describe('GamesStore', () => {
 
   describe('Teams Loading', () => {
     it('should load teams successfully', async () => {
-      const teams = [mockTeam];
-      mockTeamRepository.findAll.mockResolvedValue(teams);
+      const teams = [mockTeamDto];
+      mockTeamApplicationService.getTeams.mockResolvedValue({
+        isSuccess: true,
+        value: teams,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -289,7 +438,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle teams loading errors', async () => {
-      mockTeamRepository.findAll.mockRejectedValue(
+      mockTeamApplicationService.getTeams.mockRejectedValue(
         new Error('Connection error')
       );
 
@@ -318,7 +467,10 @@ describe('GamesStore', () => {
         homeAway: 'home' as const,
       };
 
-      mockCreateGameUseCase.execute.mockResolvedValue(Result.success(mockGame));
+      mockGameApplicationService.createGame.mockResolvedValue({
+        isSuccess: true,
+        value: mockGame,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -344,9 +496,10 @@ describe('GamesStore', () => {
         homeAway: 'home' as const,
       };
 
-      mockCreateGameUseCase.execute.mockResolvedValue(
-        Result.failure('Game name is required')
-      );
+      mockGameApplicationService.createGame.mockResolvedValue({
+        isSuccess: false,
+        error: 'Game name is required',
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -375,7 +528,7 @@ describe('GamesStore', () => {
         homeAway: 'home' as const,
       };
 
-      mockCreateGameUseCase.execute.mockRejectedValue(
+      mockGameApplicationService.createGame.mockRejectedValue(
         new Error('Database error')
       );
 
@@ -415,7 +568,10 @@ describe('GamesStore', () => {
         new Date()
       );
 
-      mockGameRepository.save.mockResolvedValue(updatedGame);
+      mockGameApplicationService.updateGame.mockResolvedValue({
+        isSuccess: true,
+        value: updatedGame,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -451,7 +607,10 @@ describe('GamesStore', () => {
         new Date()
       );
 
-      mockGameRepository.save.mockResolvedValue(updatedGame);
+      mockGameApplicationService.updateGame.mockResolvedValue({
+        isSuccess: true,
+        value: updatedGame,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -469,7 +628,9 @@ describe('GamesStore', () => {
     });
 
     it('should handle game update errors', async () => {
-      mockGameRepository.save.mockRejectedValue(new Error('Update failed'));
+      mockGameApplicationService.updateGame.mockRejectedValue(
+        new Error('Update failed')
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -484,7 +645,10 @@ describe('GamesStore', () => {
 
   describe('Game Deletion', () => {
     it('should delete game successfully', async () => {
-      mockGameRepository.delete.mockResolvedValue(undefined);
+      mockGameApplicationService.deleteGame.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -503,7 +667,10 @@ describe('GamesStore', () => {
     });
 
     it('should clear selection when deleting selected game', async () => {
-      mockGameRepository.delete.mockResolvedValue(undefined);
+      mockGameApplicationService.deleteGame.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -521,7 +688,9 @@ describe('GamesStore', () => {
     });
 
     it('should handle game deletion errors', async () => {
-      mockGameRepository.delete.mockRejectedValue(new Error('Delete failed'));
+      mockGameApplicationService.deleteGame.mockRejectedValue(
+        new Error('Delete failed')
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -568,14 +737,17 @@ describe('GamesStore', () => {
     const game1 = mockGame;
     const game2 = new Game(
       'game-2',
-      'Cubs vs Cardinals',
+      'Red Sox vs Cardinals',
       'Cardinals',
       new Date(),
       'season-1',
       'type-1',
       'away',
       'team-1',
-      'completed'
+      'completed', // status
+      'lineup-1', // lineupId
+      [], // inningIds
+      new Scoreboard(6, 8) // scoreboard - completed games need final score
     );
 
     beforeEach(() => {
@@ -609,7 +781,10 @@ describe('GamesStore', () => {
     });
 
     it('should clear search when query is empty', () => {
-      mockGameRepository.findAll.mockResolvedValue([game1, game2]);
+      mockGameApplicationService.getCurrentGames.mockResolvedValue({
+        isSuccess: true,
+        value: [game1, game2],
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -619,7 +794,7 @@ describe('GamesStore', () => {
 
       expect(result.current.searchQuery).toBe('');
       // Should trigger loadGames
-      expect(mockGameRepository.findAll).toHaveBeenCalled();
+      expect(mockGameApplicationService.getCurrentGames).toHaveBeenCalled();
     });
 
     it('should filter games by status', () => {
@@ -645,7 +820,10 @@ describe('GamesStore', () => {
     });
 
     it('should load all games when team filter is cleared', () => {
-      mockGameRepository.findAll.mockResolvedValue([game1, game2]);
+      mockGameApplicationService.getCurrentGames.mockResolvedValue({
+        isSuccess: true,
+        value: [game1, game2],
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -653,7 +831,7 @@ describe('GamesStore', () => {
         result.current.filterGamesByTeam('');
       });
 
-      expect(mockGameRepository.findAll).toHaveBeenCalled();
+      expect(mockGameApplicationService.getCurrentGames).toHaveBeenCalled();
     });
   });
 
@@ -666,7 +844,10 @@ describe('GamesStore', () => {
         endDate: new Date('2025-10-31'),
       };
 
-      mockSeasonRepository.save.mockResolvedValue(mockSeason);
+      mockDataApplicationService.createSeason.mockResolvedValue({
+        isSuccess: true,
+        value: mockSeasonDto,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -675,28 +856,36 @@ describe('GamesStore', () => {
         createdSeason = await result.current.createSeason(createCommand);
       });
 
-      expect(createdSeason).toEqual(mockSeason);
-      expect(result.current.seasons).toContain(mockSeason);
+      expect(createdSeason).toEqual(mockSeasonDto);
+      expect(result.current.seasons).toContain(mockSeasonDto);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
     it('should update season successfully', async () => {
       const updatedSeason = new Season(
-        mockSeason.id,
+        mockSeasonDto.id,
         'Updated Season',
-        mockSeason.year,
-        mockSeason.startDate,
-        mockSeason.endDate
+        mockSeasonDto.year,
+        mockSeasonDto.startDate,
+        mockSeasonDto.endDate
       );
 
-      mockSeasonRepository.save.mockResolvedValue(updatedSeason);
+      mockDataApplicationService.updateSeason.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
+
+      mockDataApplicationService.getSeasons.mockResolvedValue({
+        isSuccess: true,
+        value: [updatedSeason],
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
       // Set initial seasons
       act(() => {
-        result.current.seasons = [mockSeason];
+        result.current.seasons = [mockSeasonDto];
       });
 
       await act(async () => {
@@ -709,17 +898,20 @@ describe('GamesStore', () => {
     });
 
     it('should delete season successfully', async () => {
-      mockSeasonRepository.delete.mockResolvedValue(undefined);
+      mockDataApplicationService.archiveSeason.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
       // Set initial seasons
       act(() => {
-        result.current.seasons = [mockSeason];
+        result.current.seasons = [mockSeasonDto];
       });
 
       await act(async () => {
-        await result.current.deleteSeason(mockSeason.id);
+        await result.current.deleteSeason(mockSeasonDto.id);
       });
 
       expect(result.current.seasons).toEqual([]);
@@ -735,7 +927,15 @@ describe('GamesStore', () => {
         description: 'Playoff game',
       };
 
-      mockGameTypeRepository.save.mockResolvedValue(mockGameType);
+      mockDataApplicationService.createGameType.mockResolvedValue({
+        isSuccess: true,
+        value: mockGameType,
+      });
+
+      mockDataApplicationService.getGameTypes.mockResolvedValue({
+        isSuccess: true,
+        value: [mockGameType],
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -757,7 +957,15 @@ describe('GamesStore', () => {
         'Updated description'
       );
 
-      mockGameTypeRepository.save.mockResolvedValue(updatedGameType);
+      mockDataApplicationService.updateGameType.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
+
+      mockDataApplicationService.getGameTypes.mockResolvedValue({
+        isSuccess: true,
+        value: [updatedGameType],
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -776,7 +984,10 @@ describe('GamesStore', () => {
     });
 
     it('should delete game type successfully', async () => {
-      mockGameTypeRepository.delete.mockResolvedValue(undefined);
+      mockDataApplicationService.deleteGameType.mockResolvedValue({
+        isSuccess: true,
+        value: undefined,
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -835,7 +1046,7 @@ describe('GamesStore', () => {
   describe('Enhanced Error Handling and Edge Cases', () => {
     it('should handle createGame when use case returns null result', async () => {
       const result = { isSuccess: true, value: null }; // Null value scenario
-      mockCreateGameUseCase.execute.mockResolvedValue(result);
+      mockGameApplicationService.createGame.mockResolvedValue(result);
 
       const { result: hookResult } = renderHook(() => useGamesStore());
 
@@ -863,7 +1074,10 @@ describe('GamesStore', () => {
     });
 
     it('should handle filtering by status "all"', async () => {
-      mockGameRepository.findAll.mockResolvedValue([mockGame]);
+      mockGameApplicationService.getCurrentGames.mockResolvedValue({
+        isSuccess: true,
+        value: [mockGame],
+      });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -877,13 +1091,13 @@ describe('GamesStore', () => {
         result.current.filterGamesByStatus('all');
       });
 
-      expect(mockGameRepository.findAll).toHaveBeenCalled();
+      expect(mockGameApplicationService.getCurrentGames).toHaveBeenCalled();
       expect(result.current.statusFilter).toBe('all');
     });
 
     it('should handle non-Error exceptions in createSeason', async () => {
       // Mock a non-Error exception (string error)
-      mockSeasonRepository.save.mockRejectedValue('String error');
+      mockDataApplicationService.createSeason.mockRejectedValue('String error');
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -909,13 +1123,13 @@ describe('GamesStore', () => {
 
     it('should handle non-Error exceptions in updateSeason', async () => {
       // Mock a non-Error exception (number error)
-      mockSeasonRepository.save.mockRejectedValue(404);
+      mockDataApplicationService.updateSeason.mockRejectedValue(404);
 
       const { result } = renderHook(() => useGamesStore());
 
       await act(async () => {
         try {
-          await result.current.updateSeason(mockSeason);
+          await result.current.updateSeason(mockSeasonDto);
         } catch {
           // Expected to throw
         }
@@ -928,7 +1142,7 @@ describe('GamesStore', () => {
 
     it('should handle non-Error exceptions in deleteSeason', async () => {
       // Mock a non-Error exception (object error)
-      mockSeasonRepository.delete.mockRejectedValue({ code: 500 });
+      mockDataApplicationService.archiveSeason.mockRejectedValue({ code: 500 });
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -946,7 +1160,9 @@ describe('GamesStore', () => {
     });
 
     it('should handle non-Error exceptions in createGameType', async () => {
-      mockGameTypeRepository.save.mockRejectedValue('GameType save failed');
+      mockDataApplicationService.createGameType.mockRejectedValue(
+        'GameType save failed'
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -969,7 +1185,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle non-Error exceptions in updateGameType', async () => {
-      mockGameTypeRepository.save.mockRejectedValue(null);
+      mockDataApplicationService.updateGameType.mockRejectedValue(null);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -987,7 +1203,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle non-Error exceptions in deleteGameType', async () => {
-      mockGameTypeRepository.delete.mockRejectedValue(undefined);
+      mockDataApplicationService.deleteGameType.mockRejectedValue(undefined);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1005,7 +1221,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle non-Error exceptions in updateGame', async () => {
-      mockGameRepository.save.mockRejectedValue('Update failed');
+      mockGameApplicationService.updateGame.mockRejectedValue('Update failed');
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1021,7 +1237,7 @@ describe('GamesStore', () => {
     });
 
     it('should handle non-Error exceptions in deleteGame', async () => {
-      mockGameRepository.delete.mockRejectedValue(false);
+      mockGameApplicationService.deleteGame.mockRejectedValue(false);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1093,7 +1309,9 @@ describe('GamesStore', () => {
         'home',
         'team-1',
         'completed',
-        'lineup-1'
+        'lineup-1',
+        [], // inningIds
+        new Scoreboard(5, 3) // Completed game needs a final score
       );
       const game2 = new Game(
         'game-2',

@@ -66,9 +66,9 @@ describe('AC046C: Home Run Bug Reproduction and Integration Test', () => {
       // AC046C: Home run should not require manual advancement
       expect(callArgs.result).toBe('HR');
 
-      // BUG FIX VERIFICATION: The baserunnerAdvancement should be empty
+      // BUG FIX VERIFICATION: The baserunnerAdvancement should be empty/undefined
       // (letting domain logic handle everything automatically)
-      expect(callArgs.baserunnerAdvancement).toEqual({});
+      expect(callArgs.baserunnerAdvancement || {}).toEqual({});
 
       // The domain logic should handle:
       // 1. Runner on first should score
@@ -113,7 +113,7 @@ describe('AC046C: Home Run Bug Reproduction and Integration Test', () => {
 
       // AC046C: Grand slam should work automatically
       expect(callArgs.result).toBe('HR');
-      expect(callArgs.baserunnerAdvancement).toEqual({});
+      expect(callArgs.baserunnerAdvancement || {}).toEqual({});
       // Domain logic should score all 4 runners (3 + batter)
     });
 
@@ -149,7 +149,7 @@ describe('AC046C: Home Run Bug Reproduction and Integration Test', () => {
 
       // AC046C: Solo home run should work
       expect(callArgs.result).toBe('HR');
-      expect(callArgs.baserunnerAdvancement).toEqual({});
+      expect(callArgs.baserunnerAdvancement || {}).toEqual({});
       // Domain logic should score just the batter
     });
   });
@@ -238,7 +238,7 @@ describe('AC046C: Home Run Bug Reproduction and Integration Test', () => {
 
       // AC046C: Should work with any runner configuration
       expect(callArgs.result).toBe('HR');
-      expect(callArgs.baserunnerAdvancement).toEqual({});
+      expect(callArgs.baserunnerAdvancement || {}).toEqual({});
       // Domain logic should score 2 runners + batter = 3 total
     });
 

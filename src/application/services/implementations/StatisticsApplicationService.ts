@@ -8,9 +8,15 @@ import {
   GetTeamStatisticsQuery,
   GetSeasonStatisticsQuery,
   GetLeaderboardQuery,
+  GetPlayerComparisonQuery,
+  GetTrendsAnalysisQuery,
+  GetAdvancedAnalyticsQuery,
   PlayerStatisticsDto,
   TeamStatisticsDto,
   LeaderboardDto,
+  PlayerComparisonDto,
+  TrendsAnalysisDto,
+  AdvancedAnalyticsDto,
 } from '../interfaces/IStatisticsApplicationService';
 
 import { Result } from '@/application/common/Result';
@@ -296,9 +302,13 @@ export class StatisticsApplicationService
 
   // Note: getGameStatistics not defined in interface
 
-  public async getSeasonStatistics(
-    _query: GetSeasonStatisticsQuery
-  ): Promise<Result<unknown>> {
+  public async getSeasonStatistics(_query: GetSeasonStatisticsQuery): Promise<
+    Result<{
+      players: PlayerStatisticsDto[];
+      teams: TeamStatisticsDto[];
+      seasonSummary: unknown;
+    }>
+  > {
     return Result.failure('Not implemented yet');
   }
 
@@ -308,7 +318,9 @@ export class StatisticsApplicationService
     return Result.failure('Not implemented yet');
   }
 
-  public async getPlayerComparison(_query: unknown): Promise<Result<unknown>> {
+  public async getPlayerComparison(
+    _query: GetPlayerComparisonQuery
+  ): Promise<Result<PlayerComparisonDto>> {
     return Result.failure('Not implemented yet');
   }
 
@@ -321,11 +333,15 @@ export class StatisticsApplicationService
     return Result.failure('Not implemented yet');
   }
 
-  public async getTrendsAnalysis(_query: unknown): Promise<Result<unknown>> {
+  public async getTrendsAnalysis(
+    _query: GetTrendsAnalysisQuery
+  ): Promise<Result<TrendsAnalysisDto>> {
     return Result.failure('Not implemented yet');
   }
 
-  public async getAdvancedAnalytics(_query: unknown): Promise<Result<unknown>> {
+  public async getAdvancedAnalytics(
+    _query: GetAdvancedAnalyticsQuery
+  ): Promise<Result<AdvancedAnalyticsDto>> {
     return Result.failure('Not implemented yet');
   }
 
