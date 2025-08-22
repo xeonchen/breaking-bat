@@ -50,6 +50,15 @@ module.exports = {
           return;
         }
 
+        // Special exception: CompositionRoot and ApplicationBootstrap can import from presentation layer
+        // as they're responsible for wiring dependencies across all layers
+        if (
+          (isCompositionRoot(filePath) || isApplicationBootstrap(filePath)) &&
+          importPath.startsWith('@/presentation/')
+        ) {
+          return;
+        }
+
         // Check for architecture violations
         const violatingLayer = getViolatingLayer(importPath);
         if (violatingLayer) {
@@ -84,6 +93,22 @@ function isTestFile(filePath) {
     /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) ||
     filePath.includes('__tests__')
   );
+}
+
+/**
+ * Check if file is the CompositionRoot
+ */
+function isCompositionRoot(filePath) {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  return normalizedPath.includes('/CompositionRoot.ts');
+}
+
+/**
+ * Check if file is the ApplicationBootstrap
+ */
+function isApplicationBootstrap(filePath) {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  return normalizedPath.includes('/ApplicationBootstrap.ts');
 }
 
 /**

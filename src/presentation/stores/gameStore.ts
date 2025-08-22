@@ -18,7 +18,7 @@ import {
   PresentationGameStatus,
   PresentationBattingHelper,
 } from '../types/presentation-values';
-import { DomainAdapter } from '@/infrastructure/adapters/DomainAdapter';
+import { DomainAdapter } from '@/presentation/adapters/DomainAdapter';
 
 // Helper function to convert GameDto to GameDTO (temporary until proper mapping is implemented)
 function convertGameDtoToDTO(dto: GameDto): GameDTO {

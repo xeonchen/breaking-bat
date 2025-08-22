@@ -274,7 +274,14 @@ export class GameApplicationService implements IGameApplicationService {
         location: undefined, // Add location support
         seasonId: game.seasonId || undefined,
         gameTypeId: game.gameTypeId || undefined,
-        status: game.status === 'setup' ? 'scheduled' : (game.status as any), // Align domain and DTO enums
+        status:
+          game.status === 'setup'
+            ? 'scheduled'
+            : (game.status as
+                | 'scheduled'
+                | 'active'
+                | 'completed'
+                | 'canceled'), // Align domain and DTO enums
         isHomeGame: game.homeAway === 'home',
         score: {
           homeScore: game.scoreboard?.homeScore || 0,

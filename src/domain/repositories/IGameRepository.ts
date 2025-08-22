@@ -53,5 +53,8 @@ export interface IGameRepository {
   /**
    * Save lineup for a game
    */
-  saveLineup(gameId: string, lineupData: any): Promise<void>;
+  saveLineup(
+    gameId: string,
+    lineupData: Record<string, unknown>
+  ): Promise<void>;
 }

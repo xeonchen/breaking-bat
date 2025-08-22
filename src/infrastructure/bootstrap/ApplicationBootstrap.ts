@@ -85,7 +85,7 @@ export class ApplicationBootstrap {
    * This maintains backward compatibility while fixing architecture violations
    */
   private static async initializePresentationLayer(
-    container: any
+    container: ReturnType<CompositionRoot['compose']>
   ): Promise<void> {
     try {
       // Initialize stores with application services (not repositories)

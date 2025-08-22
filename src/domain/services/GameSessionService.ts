@@ -252,7 +252,11 @@ export class GameSessionService implements IGameSessionService {
   public convertBaserunnerStateToInterface(
     state: BaserunnerState,
     lineup: Array<{ playerId: string; playerName: string }>
-  ): any {
+  ): {
+    first: { playerId: string; playerName: string } | null;
+    second: { playerId: string; playerName: string } | null;
+    third: { playerId: string; playerName: string } | null;
+  } {
     const getPlayerInfo = (playerId: string | null) => {
       if (!playerId) return null;
       const player = lineup.find((p) => p.playerId === playerId);
@@ -271,7 +275,11 @@ export class GameSessionService implements IGameSessionService {
   /**
    * Convert interface BaserunnerState to domain class
    */
-  public convertBaserunnerStateToClass(state: any): BaserunnerState {
+  public convertBaserunnerStateToClass(state: {
+    first?: { playerId: string } | null;
+    second?: { playerId: string } | null;
+    third?: { playerId: string } | null;
+  }): BaserunnerState {
     return new BaserunnerState(
       state.first?.playerId || null,
       state.second?.playerId || null,
@@ -399,7 +407,10 @@ export class GameSessionService implements IGameSessionService {
 
     // Note: The test interface expects homeScore/awayScore but our interface doesn't have them
     // Adding basic score validation if they exist
-    const stateWithScores = state as any;
+    const stateWithScores = state as typeof state & {
+      homeScore?: number;
+      awayScore?: number;
+    };
     if (
       stateWithScores.homeScore !== undefined &&
       stateWithScores.homeScore < 0

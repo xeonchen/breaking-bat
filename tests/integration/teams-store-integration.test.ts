@@ -5,7 +5,7 @@ import { AddPlayerUseCase } from '@/application/use-cases/AddPlayerUseCase';
 import { UpdatePlayerUseCase } from '@/application/use-cases/UpdatePlayerUseCase';
 import { RemovePlayerUseCase } from '@/application/use-cases/RemovePlayerUseCase';
 import { CreateTeamUseCase } from '@/application/use-cases/CreateTeamUseCase';
-import { TeamHydrationService } from '@/infrastructure/adapters/services/TeamHydrationService';
+import { TeamHydrationService } from '@/presentation/adapters/TeamHydrationService';
 import {
   initializeTeamsStore,
   useTeamsStore,

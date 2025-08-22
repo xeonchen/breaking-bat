@@ -78,13 +78,13 @@ export interface ServiceValidationError {
   field: string;
   message: string;
   code: string;
-  value?: any;
+  value?: unknown;
 }
 
 export interface ServiceBusinessError {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   retryable: boolean;
 }
 

@@ -48,7 +48,7 @@ jest.mock('@/application/use-cases/UpdatePlayerUseCase');
 jest.mock('@/application/use-cases/RemovePlayerUseCase');
 jest.mock('@/application/use-cases/RecordAtBatUseCase');
 jest.mock('@/application/use-cases/SetupLineupUseCase');
-jest.mock('@/infrastructure/adapters/services/TeamHydrationService');
+jest.mock('@/presentation/adapters/TeamHydrationService');
 
 describe('CompositionRoot', () => {
   let compositionRoot: CompositionRoot;

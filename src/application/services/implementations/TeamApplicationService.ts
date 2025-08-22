@@ -649,7 +649,9 @@ export class TeamApplicationService implements ITeamApplicationService {
     }
   }
 
-  public async getTeams(_query?: any): Promise<Result<any[]>> {
+  public async getTeams(
+    _query?: Record<string, unknown>
+  ): Promise<Result<Team[]>> {
     try {
       const teams = await this.teamPersistencePort.findAll();
       return Result.success(teams);

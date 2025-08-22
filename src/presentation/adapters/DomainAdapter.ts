@@ -73,7 +73,9 @@ export class DomainAdapter {
       isActive: domainPlayer.isActive,
       teamId: domainPlayer.teamId,
       statistics: domainPlayer.statistics
-        ? this.playerStatisticsToDTO(domainPlayer.statistics as any)
+        ? this.playerStatisticsToDTO(
+            domainPlayer.statistics as Record<string, unknown>
+          )
         : undefined,
     };
   }

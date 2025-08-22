@@ -97,7 +97,7 @@ import { RecordAtBatUseCase } from '@/application/use-cases/RecordAtBatUseCase';
 import { SetupLineupUseCase } from '@/application/use-cases/SetupLineupUseCase';
 
 // Presentation services (used by stores)
-import { TeamHydrationService } from '@/infrastructure/adapters/services/TeamHydrationService';
+import { TeamHydrationService } from '@/presentation/adapters/TeamHydrationService';
 
 /**
  * Hexagonal Architecture Application Container
