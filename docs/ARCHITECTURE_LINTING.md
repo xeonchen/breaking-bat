@@ -23,20 +23,47 @@ Ensures that the Domain layer doesn't import from other layers (Application, Inf
 - External libraries (npm packages) are allowed
 - Internal domain imports are allowed
 
+### no-application-violations
+
+Ensures that the Application layer only imports from Domain layer and avoids framework-specific dependencies.
+
+**Configuration**: `error` level (blocks commits)
+
+**What it checks**:
+
+- Application files (`src/application/`) cannot import from:
+  - Infrastructure layer (`@/infrastructure` or `../infrastructure`)
+  - Presentation layer (`@/presentation` or `../presentation`)
+  - Framework-specific libraries (React, Vue, Express, etc.)
+
+**What is allowed**:
+
+- Domain layer imports (`@/domain/entities`, `@/domain/values`, etc.)
+- Application internal imports (`@/application/common`, etc.)
+- Utility libraries (uuid, lodash, zod, class-validator)
+- Node.js built-in modules (fs, path, crypto)
+
+**Exceptions**:
+
+- Test files (`*.test.ts`, `*.spec.ts`, `__tests__/`) are allowed by default
+- Utility libraries that don't violate Clean Architecture
+
 ## Usage
 
 ### Check architecture violations
 
 ```bash
-npm run lint:architecture        # Check all files
-npm run lint:architecture:domain # Check only domain layer
+npm run lint:architecture             # Check all files
+npm run lint:architecture:domain      # Check only domain layer
+npm run lint:architecture:application # Check only application layer
 ```
 
 ### Run tests for the rule
 
 ```bash
-npm run test:eslint-rules        # Run unit tests for the rule (direct Node.js execution)
-npm run test:architecture-rule   # Run comprehensive integration tests with JSON parsing
+npm run test:eslint-rules                 # Run unit tests for both rules (direct Node.js execution)
+npm run test:architecture-rule            # Run domain layer integration tests
+npm run test:application-architecture-rule # Run application layer integration tests
 ```
 
 **Note**: The unit tests use direct Node.js execution with ESLint's RuleTester. While not the typical Jest approach, this is intentional for this minimal implementation to avoid Jest configuration complexity.
@@ -46,6 +73,8 @@ npm run test:architecture-rule   # Run comprehensive integration tests with JSON
 Architecture violations are automatically checked on commit via `husky` + `lint-staged` (runs with regular ESLint).
 
 ## Example Violations
+
+### Domain Layer Violations
 
 ```typescript
 // ❌ Domain importing from Application layer
@@ -63,31 +92,71 @@ import { Player } from '../entities/Player';
 import { uuid } from 'uuid'; // External library
 ```
 
+### Application Layer Violations
+
+```typescript
+// ❌ Application importing from Infrastructure layer
+import { IndexedDBRepository } from '@/infrastructure/repositories';
+
+// ❌ Application importing from Presentation layer
+import { TeamComponent } from '@/presentation/components';
+
+// ❌ Application importing framework-specific code
+import React from 'react';
+import express from 'express';
+import { Button } from '@mui/material';
+
+// ✅ Valid application imports
+import { Team } from '@/domain/entities/Team';
+import { Result } from '@/application/common/Result';
+import { uuid } from 'uuid'; // Utility library
+import fs from 'fs'; // Node.js built-in
+```
+
 ## Configuration
 
-The rule can be configured in `eslint.config.js`:
+Both rules can be configured in `eslint.config.js`:
 
 ```javascript
+// Domain layer rule configuration
 'clean-architecture/no-domain-violations': ['error', {
+  allowTestFiles: false  // Also check test files for violations
+}]
+
+// Application layer rule configuration
+'clean-architecture/no-application-violations': ['error', {
   allowTestFiles: false  // Also check test files for violations
 }]
 ```
 
 ## Implementation Details
 
+### Domain Layer Rule
+
 - **Rule file**: `tools/eslint-rules/no-domain-violations.cjs`
 - **Unit tests**: `tools/eslint-rules/__tests__/no-domain-violations.test.cjs`
 - **Integration tests**: `scripts/test-architecture-rule.cjs`
+
+### Application Layer Rule
+
+- **Rule file**: `tools/eslint-rules/no-application-violations.cjs`
+- **Unit tests**: `tools/eslint-rules/__tests__/no-application-violations.test.cjs`
+- **Integration tests**: `scripts/test-application-architecture-rule.cjs`
+
+### Common Properties
+
 - **Rule type**: Error (blocks builds and commits)
 - **Detection method**: Precise path-based analysis with false positive prevention
+- **Framework detection**: Pattern matching for common web frameworks
 - **Performance**: ~50-100ms for full codebase
 
 ## Future Enhancements
 
-This minimal implementation focuses on Domain layer violations. Future versions could add:
+Current implementation covers Domain and Application layers. Future versions could add:
 
-1. Application layer violation detection
-2. Infrastructure layer violation detection
-3. Presentation layer violation detection
-4. Port vs implementation distinction
-5. Dependency graph visualization
+1. Infrastructure layer violation detection
+2. Presentation layer violation detection
+3. Port vs implementation distinction
+4. Dependency graph visualization
+5. Custom framework pattern configuration
+6. Architectural dependency metrics and reporting

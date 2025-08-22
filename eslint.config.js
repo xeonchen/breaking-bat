@@ -7,6 +7,7 @@ import microsoftSdl from '@microsoft/eslint-plugin-sdl';
 import noUnsanitized from 'eslint-plugin-no-unsanitized';
 import tseslint from 'typescript-eslint';
 import noDomainViolations from './tools/eslint-rules/no-domain-violations.cjs';
+import noApplicationViolations from './tools/eslint-rules/no-application-violations.cjs';
 
 export default tseslint.config(
   { ignores: ['coverage', 'dist', 'docs/**'] },
@@ -26,6 +27,7 @@ export default tseslint.config(
       'clean-architecture': {
         rules: {
           'no-domain-violations': noDomainViolations,
+          'no-application-violations': noApplicationViolations,
         },
       },
     },
@@ -75,8 +77,9 @@ export default tseslint.config(
       'security/detect-unsafe-regex': 'error',
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
-      // Clean Architecture - Domain layer violations
+      // Clean Architecture violations
       'clean-architecture/no-domain-violations': 'error',
+      'clean-architecture/no-application-violations': 'error',
     },
   },
   // Relaxed rules for test files
