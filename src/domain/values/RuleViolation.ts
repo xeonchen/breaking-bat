@@ -12,6 +12,7 @@ export enum ViolationType {
   INVALID_HIT_TYPE = 'invalid_hit_type',
   EXCESSIVE_OUTS = 'excessive_outs',
   RUNNER_ORDER_VIOLATION = 'runner_order_violation',
+  RUNNER_PASSING_VIOLATION = 'runner_passing_violation',
 }
 
 /**
@@ -27,6 +28,7 @@ export class RuleViolation {
       hitType: HitType;
       rbis: number;
       outs?: number;
+      [key: string]: any; // Allow additional validation-specific properties
     },
     public readonly suggestedCorrections?: readonly ValidOutcome[]
   ) {}

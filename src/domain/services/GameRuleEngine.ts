@@ -297,6 +297,33 @@ export class GameRuleEngine {
       enabled: true,
       validate: (data) => this.validateBaseOccupancy(data),
     });
+
+    this.registerRule({
+      id: 'base-advancement',
+      name: 'Base Advancement Rule',
+      description: 'Runners must advance logically based on hit type',
+      category: 'critical',
+      enabled: true,
+      validate: (data) => this.validateBaseAdvancement(data),
+    });
+
+    this.registerRule({
+      id: 'hit-type-validation',
+      name: 'Hit Type Validation Rule',
+      description: 'Hit type must be valid and consistent with outcome',
+      category: 'critical',
+      enabled: true,
+      validate: (data) => this.validateHitType(data),
+    });
+
+    this.registerRule({
+      id: 'runner-order',
+      name: 'Runner Order Rule',
+      description: 'Runners must maintain proper base order',
+      category: 'critical',
+      enabled: true,
+      validate: (data) => this.validateRunnerOrder(data),
+    });
   }
 
   /**
@@ -415,11 +442,76 @@ export class GameRuleEngine {
 
   // ========== Validation Helper Methods ==========
 
-  private validateNoRunnerPassing(
-    _data: AtBatValidationData
-  ): ValidationResult {
-    // TODO: Implementation for runner passing validation
+  private validateNoRunnerPassing(data: AtBatValidationData): ValidationResult {
+    // Get before and after positions of all runners
+    const beforePositions = this.getRunnerPositions(data.beforeState);
+    const afterPositions = this.getRunnerPositions(data.afterState);
+
+    // Check each runner that was on base before to ensure they didn't pass anyone
+    for (const [runnerId, beforeBase] of beforePositions.entries()) {
+      const afterBase = afterPositions.get(runnerId);
+
+      // Skip if runner scored (no longer on bases)
+      if (!afterBase) continue;
+
+      // Check if this runner passed any other runner
+      for (const [
+        otherRunnerId,
+        otherBeforeBase,
+      ] of beforePositions.entries()) {
+        if (runnerId === otherRunnerId) continue;
+
+        const otherAfterBase = afterPositions.get(otherRunnerId);
+
+        // Skip if other runner scored
+        if (!otherAfterBase) continue;
+
+        // Violation: Runner passed another runner
+        // This happens when:
+        // - Runner A was behind Runner B before (A's base < B's base)
+        // - Runner A is ahead of Runner B after (A's base > B's base)
+        if (beforeBase < otherBeforeBase && afterBase > otherAfterBase) {
+          return ValidationResult.invalid(
+            new RuleViolation(
+              ViolationType.RUNNER_PASSING_VIOLATION,
+              `Runner ${runnerId} cannot pass runner ${otherRunnerId}`,
+              {
+                before: data.beforeState,
+                after: data.afterState,
+                hitType: data.battingResult.value as HitType,
+                rbis: data.rbis,
+                passingRunner: runnerId,
+                passedRunner: otherRunnerId,
+                beforePositions: Array.from(beforePositions.entries()),
+                afterPositions: Array.from(afterPositions.entries()),
+              }
+            )
+          );
+        }
+      }
+    }
+
     return ValidationResult.valid();
+  }
+
+  /**
+   * Helper method to extract runner positions from baserunner state
+   * Returns a Map of runnerId -> base number (1=first, 2=second, 3=third)
+   */
+  private getRunnerPositions(state: BaserunnerState): Map<string, number> {
+    const positions = new Map<string, number>();
+
+    if (state.firstBase) {
+      positions.set(state.firstBase, 1);
+    }
+    if (state.secondBase) {
+      positions.set(state.secondBase, 2);
+    }
+    if (state.thirdBase) {
+      positions.set(state.thirdBase, 3);
+    }
+
+    return positions;
   }
 
   private validateRBIs(data: AtBatValidationData): ValidationResult {
@@ -482,6 +574,156 @@ export class GameRuleEngine {
         )
       );
     }
+    return ValidationResult.valid();
+  }
+
+  private validateBaseAdvancement(data: AtBatValidationData): ValidationResult {
+    const hitType = data.battingResult.value as HitType;
+
+    // Check if advancement is logical for the hit type
+    if (hitType === 'HR') {
+      // On home run, all runners should score (not be left on base)
+      if (
+        data.afterState.firstBase ||
+        data.afterState.secondBase ||
+        data.afterState.thirdBase
+      ) {
+        return ValidationResult.invalid(
+          new RuleViolation(
+            ViolationType.INVALID_BASE_ADVANCEMENT,
+            'On home run, all runners must score',
+            {
+              before: data.beforeState,
+              after: data.afterState,
+              hitType,
+              rbis: data.rbis,
+            }
+          )
+        );
+      }
+    }
+
+    // Check if runners advanced backwards (except for force outs)
+    const beforePositions = this.getRunnerPositions(data.beforeState);
+    const afterPositions = this.getRunnerPositions(data.afterState);
+
+    for (const [runnerId, beforeBase] of beforePositions.entries()) {
+      const afterBase = afterPositions.get(runnerId);
+
+      // Skip if runner scored
+      if (!afterBase) continue;
+
+      // Runners should not move backwards unless it's a special case
+      if (afterBase < beforeBase && hitType !== 'GO' && hitType !== 'AO') {
+        return ValidationResult.invalid(
+          new RuleViolation(
+            ViolationType.INVALID_BASE_ADVANCEMENT,
+            `Runner ${runnerId} cannot move backwards from base ${beforeBase} to base ${afterBase} on ${hitType}`,
+            {
+              before: data.beforeState,
+              after: data.afterState,
+              hitType,
+              rbis: data.rbis,
+            }
+          )
+        );
+      }
+    }
+
+    return ValidationResult.valid();
+  }
+
+  private validateHitType(data: AtBatValidationData): ValidationResult {
+    const hitType = data.battingResult.value;
+    const validHitTypes = [
+      '1B',
+      '2B',
+      '3B',
+      'HR',
+      'BB',
+      'IBB',
+      'SO',
+      'GO',
+      'AO',
+    ];
+
+    if (!validHitTypes.includes(hitType)) {
+      return ValidationResult.invalid(
+        new RuleViolation(
+          ViolationType.INVALID_HIT_TYPE,
+          `Invalid hit type: ${hitType}`,
+          {
+            before: data.beforeState,
+            after: data.afterState,
+            hitType: hitType as HitType,
+            rbis: data.rbis,
+          }
+        )
+      );
+    }
+
+    // Validate hit type consistency with outcome
+    if (hitType === 'SO' && data.outs === 0) {
+      return ValidationResult.invalid(
+        new RuleViolation(
+          ViolationType.INVALID_HIT_TYPE,
+          'Strikeout must result in at least one out',
+          {
+            before: data.beforeState,
+            after: data.afterState,
+            hitType: hitType as HitType,
+            rbis: data.rbis,
+            outs: data.outs,
+          }
+        )
+      );
+    }
+
+    return ValidationResult.valid();
+  }
+
+  private validateRunnerOrder(data: AtBatValidationData): ValidationResult {
+    // Check that runners maintain proper positional relationships
+    const beforeRunners = this.getRunnerPositions(data.beforeState);
+    const afterRunners = this.getRunnerPositions(data.afterState);
+
+    // Find runners who were on base before and still are on base after
+    for (const [runnerId, beforeBase] of beforeRunners.entries()) {
+      const afterBase = afterRunners.get(runnerId);
+
+      // Skip if runner scored
+      if (!afterBase) continue;
+
+      // Check for logical advancement order violations
+      for (const [otherRunnerId, otherBeforeBase] of beforeRunners.entries()) {
+        if (runnerId === otherRunnerId) continue;
+
+        const otherAfterBase = afterRunners.get(otherRunnerId);
+
+        // Skip if other runner scored
+        if (!otherAfterBase) continue;
+
+        // A runner who was ahead should not end up behind another runner
+        // unless there was a force out or very unusual circumstances
+        if (beforeBase > otherBeforeBase && afterBase < otherAfterBase) {
+          // This is a complex scenario that might be valid in some cases,
+          // but warrants validation
+          return ValidationResult.invalid(
+            new RuleViolation(
+              ViolationType.RUNNER_ORDER_VIOLATION,
+              `Runner order violation: ${runnerId} was ahead of ${otherRunnerId} but ended up behind`,
+              {
+                before: data.beforeState,
+                after: data.afterState,
+                hitType: data.battingResult.value as HitType,
+                rbis: data.rbis,
+              }
+            )
+          );
+        }
+      }
+    }
+
     return ValidationResult.valid();
   }
 
