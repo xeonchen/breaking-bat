@@ -6,6 +6,7 @@ import security from 'eslint-plugin-security';
 import microsoftSdl from '@microsoft/eslint-plugin-sdl';
 import noUnsanitized from 'eslint-plugin-no-unsanitized';
 import tseslint from 'typescript-eslint';
+import noDomainViolations from './tools/eslint-rules/no-domain-violations.cjs';
 
 export default tseslint.config(
   { ignores: ['coverage', 'dist', 'docs/**'] },
@@ -22,6 +23,11 @@ export default tseslint.config(
       security: security,
       '@microsoft/sdl': microsoftSdl,
       'no-unsanitized': noUnsanitized,
+      'clean-architecture': {
+        rules: {
+          'no-domain-violations': noDomainViolations,
+        },
+      },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -69,6 +75,8 @@ export default tseslint.config(
       'security/detect-unsafe-regex': 'error',
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
+      // Clean Architecture - Domain layer violations
+      'clean-architecture/no-domain-violations': 'error',
     },
   },
   // Relaxed rules for test files
