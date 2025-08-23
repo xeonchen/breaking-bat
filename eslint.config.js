@@ -6,6 +6,11 @@ import security from 'eslint-plugin-security';
 import microsoftSdl from '@microsoft/eslint-plugin-sdl';
 import noUnsanitized from 'eslint-plugin-no-unsanitized';
 import tseslint from 'typescript-eslint';
+import noDomainViolations from './tools/eslint-rules/no-domain-violations.cjs';
+import noApplicationViolations from './tools/eslint-rules/no-application-violations.cjs';
+import noInfrastructureViolations from './tools/eslint-rules/no-infrastructure-violations.cjs';
+import noPresentationViolations from './tools/eslint-rules/no-presentation-violations.cjs';
+import noImplementationInPorts from './tools/eslint-rules/no-implementation-in-ports.cjs';
 
 export default tseslint.config(
   { ignores: ['coverage', 'dist', 'docs/**'] },
@@ -22,6 +27,15 @@ export default tseslint.config(
       security: security,
       '@microsoft/sdl': microsoftSdl,
       'no-unsanitized': noUnsanitized,
+      'clean-architecture': {
+        rules: {
+          'no-domain-violations': noDomainViolations,
+          'no-application-violations': noApplicationViolations,
+          'no-infrastructure-violations': noInfrastructureViolations,
+          'no-presentation-violations': noPresentationViolations,
+          'no-implementation-in-ports': noImplementationInPorts,
+        },
+      },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -69,6 +83,12 @@ export default tseslint.config(
       'security/detect-unsafe-regex': 'error',
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
+      // Clean Architecture violations
+      'clean-architecture/no-domain-violations': 'error',
+      'clean-architecture/no-application-violations': 'error',
+      'clean-architecture/no-infrastructure-violations': 'error',
+      'clean-architecture/no-presentation-violations': 'error',
+      'clean-architecture/no-implementation-in-ports': 'error',
     },
   },
   // Relaxed rules for test files

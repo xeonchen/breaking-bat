@@ -2,9 +2,13 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 // Mock service worker
 const mockServiceWorker = {
-  register: jest.fn(),
-  unregister: jest.fn(),
-  getRegistration: jest.fn(),
+  register: jest.fn() as jest.MockedFunction<
+    (scriptURL: string) => Promise<ServiceWorkerRegistration>
+  >,
+  unregister: jest.fn() as jest.MockedFunction<() => Promise<boolean>>,
+  getRegistration: jest.fn() as jest.MockedFunction<
+    () => Promise<ServiceWorkerRegistration | undefined>
+  >,
   ready: Promise.resolve({
     installing: null,
     waiting: null,
@@ -12,7 +16,7 @@ const mockServiceWorker = {
       scriptURL: '/sw.js',
       state: 'activated',
     },
-  }),
+  } as ServiceWorkerRegistration),
 };
 
 // Mock navigator
@@ -37,11 +41,11 @@ describe('PWA Service Worker', () => {
       const mockRegistration = {
         installing: null,
         waiting: null,
-        active: { scriptURL: '/sw.js', state: 'activated' },
+        active: { scriptURL: '/sw.js', state: 'activated' } as ServiceWorker,
         scope: '/',
         update: jest.fn(),
         unregister: jest.fn(),
-      };
+      } as unknown as ServiceWorkerRegistration;
 
       mockServiceWorker.register.mockResolvedValue(mockRegistration);
 
@@ -78,8 +82,8 @@ describe('PWA Service Worker', () => {
     it('should check for existing registration', async () => {
       const mockRegistration = {
         scope: '/',
-        active: { scriptURL: '/sw.js', state: 'activated' },
-      };
+        active: { scriptURL: '/sw.js', state: 'activated' } as ServiceWorker,
+      } as unknown as ServiceWorkerRegistration;
 
       mockServiceWorker.getRegistration.mockResolvedValue(mockRegistration);
 
@@ -94,9 +98,15 @@ describe('PWA Service Worker', () => {
     it('should support beforeinstallprompt event', () => {
       const mockEvent = {
         preventDefault: jest.fn(),
-        prompt: jest.fn().mockResolvedValue({ outcome: 'accepted' }),
+        prompt: jest.fn() as jest.MockedFunction<
+          () => Promise<{ outcome: string }>
+        >,
         userChoice: Promise.resolve({ outcome: 'accepted', platform: 'web' }),
       };
+
+      (mockEvent.prompt as jest.MockedFunction<any>).mockResolvedValue({
+        outcome: 'accepted',
+      });
 
       // Simulate beforeinstallprompt event
       window.dispatchEvent(
@@ -111,9 +121,13 @@ describe('PWA Service Worker', () => {
     it('should handle app installation', async () => {
       const mockInstallPrompt = {
         preventDefault: jest.fn(),
-        prompt: jest.fn().mockResolvedValue(undefined),
+        prompt: jest.fn() as jest.MockedFunction<() => Promise<void>>,
         userChoice: Promise.resolve({ outcome: 'accepted', platform: 'web' }),
       };
+
+      (mockInstallPrompt.prompt as jest.MockedFunction<any>).mockResolvedValue(
+        undefined
+      );
 
       // Simulate user accepting install prompt
       await mockInstallPrompt.prompt();
@@ -166,24 +180,59 @@ describe('PWA Service Worker', () => {
 
   describe('Cache API', () => {
     it('should support Cache API', () => {
+      // Mock response for cache
+      const mockCacheResponse = {
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve('cached content'),
+        clone: jest.fn(),
+      } as unknown as Response;
+
       // Mock Cache API
       const mockCache = {
-        match: jest.fn(),
-        matchAll: jest.fn(),
-        add: jest.fn(),
-        addAll: jest.fn(),
-        put: jest.fn(),
-        delete: jest.fn(),
-        keys: jest.fn(),
-      };
+        match: jest.fn() as jest.MockedFunction<
+          (request: RequestInfo) => Promise<Response | undefined>
+        >,
+        matchAll: jest.fn() as jest.MockedFunction<() => Promise<Response[]>>,
+        add: jest.fn() as jest.MockedFunction<
+          (request: RequestInfo) => Promise<void>
+        >,
+        addAll: jest.fn() as jest.MockedFunction<
+          (requests: RequestInfo[]) => Promise<void>
+        >,
+        put: jest.fn() as jest.MockedFunction<
+          (request: RequestInfo, response: Response) => Promise<void>
+        >,
+        delete: jest.fn() as jest.MockedFunction<
+          (request: RequestInfo) => Promise<boolean>
+        >,
+        keys: jest.fn() as jest.MockedFunction<() => Promise<Request[]>>,
+      } as Cache;
+
+      // Configure cache.match to return the mock response
+      (mockCache.match as jest.MockedFunction<any>).mockResolvedValue(
+        mockCacheResponse
+      );
 
       const mockCaches = {
-        open: jest.fn().mockResolvedValue(mockCache),
-        match: jest.fn(),
-        has: jest.fn(),
-        delete: jest.fn(),
-        keys: jest.fn(),
-      };
+        open: jest.fn() as jest.MockedFunction<
+          (cacheName: string) => Promise<Cache>
+        >,
+        match: jest.fn() as jest.MockedFunction<
+          (request: RequestInfo) => Promise<Response | undefined>
+        >,
+        has: jest.fn() as jest.MockedFunction<
+          (cacheName: string) => Promise<boolean>
+        >,
+        delete: jest.fn() as jest.MockedFunction<
+          (cacheName: string) => Promise<boolean>
+        >,
+        keys: jest.fn() as jest.MockedFunction<() => Promise<string[]>>,
+      } as CacheStorage;
+
+      (mockCaches.open as jest.MockedFunction<any>).mockResolvedValue(
+        mockCache
+      );
 
       Object.defineProperty(window, 'caches', {
         value: mockCaches,
@@ -195,19 +244,38 @@ describe('PWA Service Worker', () => {
     });
 
     it('should cache resources', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve('cached content'),
+        clone: jest.fn(),
+      } as unknown as Response;
+
       const mockCache = {
-        addAll: jest.fn().mockResolvedValue(undefined),
-        match: jest.fn().mockResolvedValue({
-          ok: true,
-          status: 200,
-          text: () => Promise.resolve('cached content'),
-          clone: jest.fn(),
-        }),
+        addAll: jest.fn() as jest.MockedFunction<
+          (requests: RequestInfo[]) => Promise<void>
+        >,
+        match: jest.fn() as jest.MockedFunction<
+          (request: RequestInfo) => Promise<Response | undefined>
+        >,
       };
 
+      (mockCache.addAll as jest.MockedFunction<any>).mockResolvedValue(
+        undefined
+      );
+      (mockCache.match as jest.MockedFunction<any>).mockResolvedValue(
+        mockResponse
+      );
+
       const mockCaches = {
-        open: jest.fn().mockResolvedValue(mockCache),
-      };
+        open: jest.fn() as jest.MockedFunction<
+          (cacheName: string) => Promise<Cache>
+        >,
+      } as Partial<CacheStorage>;
+
+      (mockCaches.open as jest.MockedFunction<any>).mockResolvedValue(
+        mockCache
+      );
 
       Object.defineProperty(window, 'caches', {
         value: mockCaches,
@@ -233,7 +301,7 @@ describe('PWA Service Worker', () => {
       const response = await cache.match('/index.html');
       expect(cache.match).toHaveBeenCalledWith('/index.html');
       expect(response).toBeDefined();
-      expect(response.ok).toBe(true);
+      expect(response!.ok).toBe(true);
     });
   });
 

@@ -3,7 +3,7 @@ import {
   SetupLineupCommand,
   LineupPosition,
 } from '@/application/use-cases/SetupLineupUseCase';
-import { GameRepository, PlayerRepository, Position } from '@/domain';
+import { IGameRepository, IPlayerRepository, Position } from '@/domain';
 import {
   createTestDatabase,
   clearTestDatabase,
@@ -11,8 +11,8 @@ import {
 
 describe('SetupLineupUseCase', () => {
   let useCase: SetupLineupUseCase;
-  let mockGameRepository: jest.Mocked<GameRepository>;
-  let mockPlayerRepository: jest.Mocked<PlayerRepository>;
+  let mockGameRepository: jest.Mocked<IGameRepository>;
+  let mockPlayerRepository: jest.Mocked<IPlayerRepository>;
 
   // Helper function to create a valid 10-player lineup for slowpitch softball
   const createValidLineup = (): LineupPosition[] => [
@@ -42,12 +42,11 @@ describe('SetupLineupUseCase', () => {
       findAll: jest.fn(),
       findByTeamId: jest.fn(),
       findBySeasonId: jest.fn(),
-      findByDateRange: jest.fn(),
-      findByOpponent: jest.fn(),
       delete: jest.fn(),
-      updateStatus: jest.fn(),
-      getGameStatistics: jest.fn(),
-      searchByOpponent: jest.fn(),
+      findCurrent: jest.fn(),
+      findByStatus: jest.fn(),
+      getLineup: jest.fn(),
+      saveLineup: jest.fn(),
     };
 
     mockPlayerRepository = {
@@ -55,10 +54,15 @@ describe('SetupLineupUseCase', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       findByTeamId: jest.fn(),
+      findActiveByTeamId: jest.fn(),
       findByJerseyNumber: jest.fn(),
       delete: jest.fn(),
-      search: jest.fn(),
-      getPlayerStatistics: jest.fn(),
+      findByPosition: jest.fn(),
+      isJerseyNumberUnique: jest.fn(),
+      update: jest.fn(),
+      searchByName: jest.fn(),
+      isJerseyNumberAvailable: jest.fn(),
+      create: jest.fn(),
     };
 
     useCase = new SetupLineupUseCase(mockGameRepository, mockPlayerRepository);
@@ -86,7 +90,7 @@ describe('SetupLineupUseCase', () => {
       };
 
       mockGameRepository.findById.mockResolvedValue(mockGame as any);
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       // Mock players exist
       for (let i = 1; i <= 12; i++) {
@@ -648,7 +652,7 @@ describe('SetupLineupUseCase', () => {
       };
 
       mockGameRepository.findById.mockResolvedValue(mockGame as any);
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       // Mock players exist
       for (let i = 1; i <= 10; i++) {

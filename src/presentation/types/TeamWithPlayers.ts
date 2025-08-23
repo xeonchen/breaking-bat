@@ -1,4 +1,4 @@
-import { Position } from '@/domain/values';
+import { PresentationPosition } from './presentation-values';
 
 /**
  * Presentation layer Player interface (matches what TeamManagement expects)
@@ -7,7 +7,7 @@ export interface PresentationPlayer {
   id: string;
   name: string;
   jerseyNumber: string; // String for form compatibility
-  positions: Position[];
+  positions: PresentationPosition[];
   isActive: boolean;
 }
 

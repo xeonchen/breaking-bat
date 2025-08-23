@@ -1,27 +1,14 @@
-import {
-  BattingResult,
-  BaserunnerState as BaserunnerStateClass,
-} from '@/domain';
-import { BaserunnerState } from '@/domain/types/BaserunnerState';
+import { BattingResult, BaserunnerState } from '@/domain';
+// Domain service should only work with domain types
 
 export interface AdvancementResult {
   finalBaserunners: BaserunnerState;
-  finalBaserunnersClass: BaserunnerStateClass;
   scoringRunners: string[];
   rbis: number;
 }
 
 export class BaserunnerAdvancementService {
-  /**
-   * Convert interface-style baserunner state to class instance
-   */
-  private toBaserunnerStateClass(state: BaserunnerState): BaserunnerStateClass {
-    return new BaserunnerStateClass(
-      state.first?.playerId || null,
-      state.second?.playerId || null,
-      state.third?.playerId || null
-    );
-  }
+  // Removed conversion method - domain service should only work with domain types
 
   /**
    * Calculate standard softball baserunner advancement based on batting result
@@ -31,177 +18,172 @@ export class BaserunnerAdvancementService {
     battingResult: BattingResult,
     batterId: string
   ): AdvancementResult {
-    const finalBaserunners: BaserunnerState = {
-      first: null,
-      second: null,
-      third: null,
-    };
     const scoringRunners: string[] = [];
     let rbis = 0;
-
-    // Get batter name for placement on bases
-    const batterName = `Batter ${batterId.slice(-1)}`;
+    let newFirst: string | null = null;
+    let newSecond: string | null = null;
+    let newThird: string | null = null;
 
     switch (battingResult.value) {
       case '1B': // Single
         // Batter to first base
-        finalBaserunners.first = { playerId: batterId, playerName: batterName };
+        newFirst = batterId;
 
         // Runner from 3rd scores
-        if (initialState.third) {
-          scoringRunners.push(initialState.third.playerId);
+        if (initialState.thirdBase) {
+          scoringRunners.push(initialState.thirdBase);
           rbis++;
         }
 
         // Runner from 2nd scores
-        if (initialState.second) {
-          scoringRunners.push(initialState.second.playerId);
+        if (initialState.secondBase) {
+          scoringRunners.push(initialState.secondBase);
           rbis++;
         }
 
         // Runner from 1st advances to 2nd
-        if (initialState.first) {
-          finalBaserunners.second = initialState.first;
+        if (initialState.firstBase) {
+          newSecond = initialState.firstBase;
         }
         break;
 
       case '2B': // Double
         // Batter to second base
-        finalBaserunners.second = {
-          playerId: batterId,
-          playerName: batterName,
-        };
+        newSecond = batterId;
 
         // All existing runners advance two bases (and score from 2nd/3rd)
-        if (initialState.first) {
-          scoringRunners.push(initialState.first.playerId);
+        if (initialState.firstBase) {
+          scoringRunners.push(initialState.firstBase);
           rbis++;
         }
-        if (initialState.second) {
-          scoringRunners.push(initialState.second.playerId);
+        if (initialState.secondBase) {
+          scoringRunners.push(initialState.secondBase);
           rbis++;
         }
-        if (initialState.third) {
-          scoringRunners.push(initialState.third.playerId);
+        if (initialState.thirdBase) {
+          scoringRunners.push(initialState.thirdBase);
           rbis++;
         }
         break;
 
       case '3B': // Triple
         // Batter to third base
-        finalBaserunners.third = { playerId: batterId, playerName: batterName };
+        newThird = batterId;
 
         // All existing runners score
-        if (initialState.first) {
-          scoringRunners.push(initialState.first.playerId);
+        if (initialState.firstBase) {
+          scoringRunners.push(initialState.firstBase);
           rbis++;
         }
-        if (initialState.second) {
-          scoringRunners.push(initialState.second.playerId);
+        if (initialState.secondBase) {
+          scoringRunners.push(initialState.secondBase);
           rbis++;
         }
-        if (initialState.third) {
-          scoringRunners.push(initialState.third.playerId);
+        if (initialState.thirdBase) {
+          scoringRunners.push(initialState.thirdBase);
           rbis++;
         }
         break;
 
       case 'HR': // Home Run
         // All runners score including batter
-        if (initialState.first) {
-          scoringRunners.push(initialState.first.playerId);
+        if (initialState.firstBase) {
+          scoringRunners.push(initialState.firstBase);
           rbis++;
         }
-        if (initialState.second) {
-          scoringRunners.push(initialState.second.playerId);
+        if (initialState.secondBase) {
+          scoringRunners.push(initialState.secondBase);
           rbis++;
         }
-        if (initialState.third) {
-          scoringRunners.push(initialState.third.playerId);
+        if (initialState.thirdBase) {
+          scoringRunners.push(initialState.thirdBase);
           rbis++;
         }
         // Batter scores
         scoringRunners.push(batterId);
         rbis++;
+        // Bases are cleared for home runs
         break;
 
       case 'BB':
       case 'IBB': // Walk/Intentional Walk
         // Batter to first base
-        finalBaserunners.first = { playerId: batterId, playerName: batterName };
+        newFirst = batterId;
 
         // Force advancement only
-        if (initialState.first) {
-          finalBaserunners.second = initialState.first;
+        if (initialState.firstBase) {
+          newSecond = initialState.firstBase;
 
           // If 2nd base occupied, force to 3rd
-          if (initialState.second) {
-            finalBaserunners.third = initialState.second;
+          if (initialState.secondBase) {
+            newThird = initialState.secondBase;
 
             // If 3rd base occupied (bases loaded), force home
-            if (initialState.third) {
-              scoringRunners.push(initialState.third.playerId);
+            if (initialState.thirdBase) {
+              scoringRunners.push(initialState.thirdBase);
               rbis++;
             }
           } else {
             // Keep runner from 3rd in place (not forced)
-            finalBaserunners.third = initialState.third;
+            newThird = initialState.thirdBase;
           }
         } else {
           // No forced advancement if 1st base was empty
-          finalBaserunners.second = initialState.second;
-          finalBaserunners.third = initialState.third;
+          newSecond = initialState.secondBase;
+          newThird = initialState.thirdBase;
         }
         break;
 
       case 'SF': // Sacrifice Fly
         // Batter is out, but runner from 3rd scores
-        if (initialState.third) {
-          scoringRunners.push(initialState.third.playerId);
+        if (initialState.thirdBase) {
+          scoringRunners.push(initialState.thirdBase);
           rbis++;
         }
         // Other runners may advance at scorekeeper's discretion (manual override)
-        finalBaserunners.first = initialState.first;
-        finalBaserunners.second = initialState.second;
+        newFirst = initialState.firstBase;
+        newSecond = initialState.secondBase;
+        // Third base is now empty after sacrifice fly
         break;
 
       case 'SO':
       case 'GO':
       case 'AO': // Outs (Strikeout, Ground Out, Air Out)
         // No advancement on outs (unless stealing/wild pitch - manual override)
-        finalBaserunners.first = initialState.first;
-        finalBaserunners.second = initialState.second;
-        finalBaserunners.third = initialState.third;
+        newFirst = initialState.firstBase;
+        newSecond = initialState.secondBase;
+        newThird = initialState.thirdBase;
         break;
 
       case 'E': // Error
         // Batter reaches base, advancement determined by scorekeeper
-        finalBaserunners.first = { playerId: batterId, playerName: batterName };
+        newFirst = batterId;
         // Keep existing runners in place by default (manual override available)
-        finalBaserunners.second = initialState.second;
-        finalBaserunners.third = initialState.third;
+        newSecond = initialState.secondBase;
+        newThird = initialState.thirdBase;
         // No RBIs awarded for errors
         break;
 
       case 'FC': // Fielder's Choice
         // Batter reaches first, advancement determined by play situation
-        finalBaserunners.first = { playerId: batterId, playerName: batterName };
+        newFirst = batterId;
         // Default to keeping other runners in place (manual override needed)
-        finalBaserunners.second = initialState.second;
-        finalBaserunners.third = initialState.third;
+        newSecond = initialState.secondBase;
+        newThird = initialState.thirdBase;
         break;
 
       default:
         // Unknown result, keep status quo
-        finalBaserunners.first = initialState.first;
-        finalBaserunners.second = initialState.second;
-        finalBaserunners.third = initialState.third;
+        newFirst = initialState.firstBase;
+        newSecond = initialState.secondBase;
+        newThird = initialState.thirdBase;
         break;
     }
 
+    const finalBaserunners = new BaserunnerState(newFirst, newSecond, newThird);
+
     return {
       finalBaserunners,
-      finalBaserunnersClass: this.toBaserunnerStateClass(finalBaserunners),
       scoringRunners,
       rbis,
     };
@@ -220,16 +202,13 @@ export class BaserunnerAdvancementService {
     this.validateManualOverrides(initialState, manualOverrides);
 
     // Apply manual overrides
-    const finalBaserunners: BaserunnerState = {
-      first: null,
-      second: null,
-      third: null,
-    };
     const scoringRunners: string[] = [];
     let rbis = 0;
+    let newFirst: string | null = null;
+    let newSecond: string | null = null;
+    let newThird: string | null = null;
 
     // Handle batter placement (always goes somewhere unless out)
-    const batterName = `Batter ${batterId.slice(-1)}`;
     if (
       battingResult.isHit() ||
       battingResult.value === 'BB' ||
@@ -244,29 +223,26 @@ export class BaserunnerAdvancementService {
         battingResult.value === 'E' ||
         battingResult.value === 'FC'
       ) {
-        finalBaserunners.first = { playerId: batterId, playerName: batterName };
+        newFirst = batterId;
       } else if (battingResult.value === '2B') {
-        finalBaserunners.second = {
-          playerId: batterId,
-          playerName: batterName,
-        };
+        newSecond = batterId;
       } else if (battingResult.value === '3B') {
-        finalBaserunners.third = { playerId: batterId, playerName: batterName };
+        newThird = batterId;
       }
       // Home runs score the batter, so no base placement needed
     }
 
     // Apply overrides for each existing runner
     const runners = [
-      { position: 'first', runner: initialState.first },
-      { position: 'second', runner: initialState.second },
-      { position: 'third', runner: initialState.third },
+      { position: 'first', runner: initialState.firstBase },
+      { position: 'second', runner: initialState.secondBase },
+      { position: 'third', runner: initialState.thirdBase },
     ];
 
-    for (const { runner } of runners) {
+    for (const { position, runner } of runners) {
       if (!runner) continue;
 
-      const override = manualOverrides[runner.playerId];
+      const override = manualOverrides[runner];
       if (!override) {
         // No override, use standard advancement
         continue;
@@ -275,22 +251,22 @@ export class BaserunnerAdvancementService {
       switch (override) {
         case 'stay':
           // Runner stays at current base
-          if (runner === initialState.first) {
-            finalBaserunners.first = runner;
-          } else if (runner === initialState.second) {
-            finalBaserunners.second = runner;
-          } else if (runner === initialState.third) {
-            finalBaserunners.third = runner;
+          if (position === 'first') {
+            newFirst = runner;
+          } else if (position === 'second') {
+            newSecond = runner;
+          } else if (position === 'third') {
+            newThird = runner;
           }
           break;
         case 'second':
-          finalBaserunners.second = runner;
+          newSecond = runner;
           break;
         case 'third':
-          finalBaserunners.third = runner;
+          newThird = runner;
           break;
         case 'home':
-          scoringRunners.push(runner.playerId);
+          scoringRunners.push(runner);
           // Only count RBI if not on error
           if (battingResult.value !== 'E') {
             rbis++;
@@ -302,15 +278,13 @@ export class BaserunnerAdvancementService {
       }
     }
 
-    // Add batter to scoring if home run
-    if (battingResult.value === 'HR') {
-      scoringRunners.push(batterId);
-      rbis++;
-    }
+    // Note: Batter scoring for HR is already handled in calculateStandardAdvancement
+    // This prevents duplicate scoring of the batter
+
+    const finalBaserunners = new BaserunnerState(newFirst, newSecond, newThird);
 
     return {
       finalBaserunners,
-      finalBaserunnersClass: this.toBaserunnerStateClass(finalBaserunners),
       scoringRunners,
       rbis,
     };
@@ -327,14 +301,14 @@ export class BaserunnerAdvancementService {
     // Map initial positions and overrides
     const runnerActions = new Map<number, string>(); // base -> action
 
-    if (initialState.first && manualOverrides[initialState.first.playerId]) {
-      runnerActions.set(1, manualOverrides[initialState.first.playerId]);
+    if (initialState.firstBase && manualOverrides[initialState.firstBase]) {
+      runnerActions.set(1, manualOverrides[initialState.firstBase]);
     }
-    if (initialState.second && manualOverrides[initialState.second.playerId]) {
-      runnerActions.set(2, manualOverrides[initialState.second.playerId]);
+    if (initialState.secondBase && manualOverrides[initialState.secondBase]) {
+      runnerActions.set(2, manualOverrides[initialState.secondBase]);
     }
-    if (initialState.third && manualOverrides[initialState.third.playerId]) {
-      runnerActions.set(3, manualOverrides[initialState.third.playerId]);
+    if (initialState.thirdBase && manualOverrides[initialState.thirdBase]) {
+      runnerActions.set(3, manualOverrides[initialState.thirdBase]);
     }
 
     // Check for illegal passing scenarios

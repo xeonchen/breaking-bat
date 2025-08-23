@@ -40,7 +40,7 @@ import {
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { TeamManagement } from '@/presentation/components/TeamManagement';
 import { useTeamsStore } from '@/presentation/stores/teamsStore';
-import { PresentationTeam } from '@/presentation/types/TeamWithPlayers';
+import { PresentationTeam } from '@/presentation/interfaces/IPresentationServices';
 
 export default function TeamsPage() {
   const {
@@ -100,8 +100,19 @@ export default function TeamsPage() {
 
   // Load data on mount
   useEffect(() => {
-    getTeams();
-    getPlayerStats();
+    // Create async wrapper to avoid returning Promise
+    const loadData = async () => {
+      await getTeams();
+      await getPlayerStats();
+    };
+
+    // Call async function but don't return it (returns undefined, not Promise)
+    loadData();
+
+    // Proper cleanup function (currently no cleanup needed)
+    return () => {
+      // Future: cancel pending operations if needed
+    };
   }, [getTeams, getPlayerStats]);
 
   // Filter and sort teams
@@ -153,7 +164,6 @@ export default function TeamsPage() {
       await createTeam({
         name: teamForm.name.trim(),
         seasonIds: [],
-        playerIds: [],
       });
       setTeamForm({ name: '' });
       onCreateClose();

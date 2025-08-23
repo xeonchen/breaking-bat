@@ -201,7 +201,9 @@ describe('LineupDisplay Component', () => {
           expect.objectContaining({
             battingOrder: 1,
             playerId: 'player1',
-            position: Position.catcher(),
+            position: expect.objectContaining({
+              value: 'catcher',
+            }),
           }),
         ])
       );

@@ -1,10 +1,12 @@
-import { Game, GameRepository } from '@/domain';
+import { Game } from '@/domain';
+import { IGamePersistencePort } from '@/application/ports/secondary/IPersistencePorts';
 import { GameStatus, GameScore } from '@/domain/entities/Game';
+import { Scoreboard } from '@/domain/values/Scoreboard';
 import { getDatabase } from '../database/connection';
 import { GameRecord } from '../database/types';
 import Dexie from 'dexie';
 
-export class IndexedDBGameRepository implements GameRepository {
+export class IndexedDBGameRepository implements IGamePersistencePort {
   private db: Dexie;
 
   constructor(database?: Dexie) {
@@ -39,7 +41,7 @@ export class IndexedDBGameRepository implements GameRepository {
       status: game.status,
       lineupId: game.lineupId,
       inningIds: game.inningIds,
-      finalScore: game.finalScore,
+      finalScore: game.scoreboard ? game.scoreboard.toGameScore() : null,
       createdAt: game.createdAt,
       updatedAt: game.updatedAt,
     };
@@ -93,20 +95,38 @@ export class IndexedDBGameRepository implements GameRepository {
 
   public async saveLineup(
     gameId: string,
-    lineupId: string,
-    playerIds: string[],
-    defensivePositions: string[]
+    lineupData: any,
+    ...rest: any[]
   ): Promise<void> {
-    const lineupRecord = {
-      id: lineupId,
-      gameId,
-      playerIds,
-      defensivePositions,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    // Handle both old signature (for backward compatibility) and new interface
+    if (typeof lineupData === 'string') {
+      // Old signature: saveLineup(gameId, lineupId, playerIds, defensivePositions)
+      const lineupId = lineupData as string;
+      const playerIds = rest[0] as string[];
+      const defensivePositions = rest[1] as string[];
 
-    await this.db.table('lineups').put(lineupRecord);
+      const lineupRecord = {
+        id: lineupId,
+        gameId,
+        playerIds,
+        defensivePositions,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      await this.db.table('lineups').put(lineupRecord);
+    } else {
+      // New signature: saveLineup(gameId, lineupData)
+      const { lineupId, playerIds, defensivePositions } = lineupData;
+      const lineupRecord = {
+        id: lineupId,
+        gameId,
+        playerIds,
+        defensivePositions,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      await this.db.table('lineups').put(lineupRecord);
+    }
   }
 
   public async findByTeamId(teamId: string): Promise<Game[]> {
@@ -185,6 +205,7 @@ export class IndexedDBGameRepository implements GameRepository {
     }
 
     // Create a new game instance with updated score
+    const scoreboard = Scoreboard.fromGameScore(score);
     const updatedGame = new Game(
       game.id,
       game.name,
@@ -197,7 +218,7 @@ export class IndexedDBGameRepository implements GameRepository {
       game.status,
       game.lineupId,
       game.inningIds,
-      score,
+      scoreboard,
       game.createdAt,
       new Date()
     );
@@ -233,7 +254,7 @@ export class IndexedDBGameRepository implements GameRepository {
       throw new Error(`Game with id ${gameId} not found`);
     }
 
-    const finalScore = game.finalScore;
+    const finalScore = game.scoreboard ? game.scoreboard.toGameScore() : null;
     if (!finalScore) {
       return {
         totalRuns: 0,
@@ -266,6 +287,10 @@ export class IndexedDBGameRepository implements GameRepository {
   }
 
   private recordToGame(record: GameRecord): Game {
+    const scoreboard = record.finalScore
+      ? Scoreboard.fromGameScore(record.finalScore)
+      : null;
+
     return new Game(
       record.id,
       record.name,
@@ -278,9 +303,15 @@ export class IndexedDBGameRepository implements GameRepository {
       record.status,
       record.lineupId,
       record.inningIds,
-      record.finalScore,
+      scoreboard,
       record.createdAt,
       record.updatedAt
     );
+  }
+
+  // Required by IRepository interface
+  public async exists(id: string): Promise<boolean> {
+    const record = await this.db.table('games').get(id);
+    return record !== undefined;
   }
 }

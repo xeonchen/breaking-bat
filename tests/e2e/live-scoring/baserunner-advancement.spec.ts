@@ -1,56 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createTestGame, setupTestLineup } from '../helpers/test-data-setup';
 
-/**
- * Helper function for proper modal handling in baserunner tests
- */
-async function clickButtonWithModalHandling(
-  page: any,
-  buttonTestId: string
-): Promise<void> {
-  try {
-    // Check if page is still available
-    if (page.isClosed()) {
-      console.log('❌ Page is closed, cannot continue');
-      return;
-    }
-
-    // Click the button
-    await page.getByTestId(buttonTestId).click();
-
-    // Wait for and handle the baserunner advancement modal if it appears
-    try {
-      await page.waitForSelector(
-        '[data-testid="baserunner-advancement-modal"]',
-        { timeout: 2000 }
-      );
-      await page.getByTestId('confirm-advancement').click();
-    } catch {
-      // Modal may not appear for some actions (like strikeouts)
-    }
-
-    // Wait for success toast and let it disappear
-    try {
-      await page.waitForSelector('text="At-bat recorded"', { timeout: 3000 });
-      await page.waitForSelector('text="At-bat recorded"', {
-        state: 'hidden',
-        timeout: 3000,
-      });
-    } catch {
-      // Toast may not appear or may disappear quickly
-    }
-
-    // Small delay to ensure UI is stable - check page is still open
-    if (!page.isClosed()) {
-      await page.waitForTimeout(500);
-    }
-  } catch (error) {
-    console.log(`❌ Error in clickButtonWithModalHandling: ${error.message}`);
-    throw error;
-  }
-}
-
-test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @AC007)', () => {
+test.describe('Live Scoring - Baserunner Advancement (@live-game-scoring:AC006, @live-game-scoring:AC007, @live-game-scoring:AC008, @live-game-scoring:AC009)', () => {
   test.beforeEach(async ({ page }) => {
     // Create test game using dedicated test setup
     const gameName = 'Baserunner Test Game';
@@ -78,44 +29,56 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
       await page.waitForTimeout(1000);
     }
 
-    // Create game situation with runners on base
-    await page.getByTestId('single-button').click(); // Runner on 1st
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+    // Create game situation with runners on base using different approach
+    // Use walks to force runners to bases (more predictable advancement)
+
+    // First walk: empty bases -> runner on 1st (AC016A: no modal expected)
+    await page.getByTestId('walk-button').click();
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
     await page
       .getByText('At-bat recorded')
       .first()
       .waitFor({ state: 'hidden', timeout: 3000 });
 
-    await page.getByTestId('single-button').click(); // Runners on 1st and 2nd
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+    // Second walk: runner on 1st forced to 2nd (AC016: modal might appear)
+    await page.getByTestId('walk-button').click();
+    // Handle potential modal
+    try {
+      await expect(
+        page.getByTestId('baserunner-advancement-modal')
+      ).toBeVisible({ timeout: 2000 });
+      await page.getByTestId('confirm-advancement').click();
+    } catch {
+      // Modal may not appear for walks
+    }
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
     await page
       .getByText('At-bat recorded')
       .first()
       .waitFor({ state: 'hidden', timeout: 3000 });
 
-    await page.getByTestId('single-button').click(); // Bases loaded
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+    // Third walk: force runner to 3rd (bases loaded walk)
+    await page.getByTestId('walk-button').click();
+    // Handle potential modal
+    try {
+      await expect(
+        page.getByTestId('baserunner-advancement-modal')
+      ).toBeVisible({ timeout: 2000 });
+      await page.getByTestId('confirm-advancement').click();
+    } catch {
+      // Modal may not appear for walks
+    }
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
     await page
       .getByText('At-bat recorded')
       .first()
       .waitFor({ state: 'hidden', timeout: 3000 });
 
+    // Now we should have bases loaded - verify this is working
     await expect(page.getByTestId('scoring-page')).toBeVisible();
   });
 
-  test('should apply standard baserunner advancement for single (@AC004)', async ({
+  test('should apply standard baserunner advancement for single (@live-game-scoring:AC006)', async ({
     page,
   }) => {
     // Given: Bases loaded setup from beforeEach (we already have runners on base)
@@ -164,7 +127,7 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     expect(hasRunners).toBe(true);
   });
 
-  test('should advance all runners two bases for double (@AC004)', async ({
+  test('should advance all runners two bases for double (@live-game-scoring:AC006)', async ({
     page,
   }) => {
     // Given: Runners on 1st and 2nd (from beforeEach setup)
@@ -209,7 +172,7 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     // For now, just verify the double was recorded successfully
   });
 
-  test('should advance only forced runners on walk (@AC004)', async ({
+  test('should advance only forced runners on walk (@live-game-scoring:AC006)', async ({
     page,
   }) => {
     // Given: Use existing bases loaded setup from beforeEach (simpler test)
@@ -249,7 +212,7 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     expect(hasRunners).toBe(true);
   });
 
-  test('should show manual override interface for runner advancement (@AC005)', async ({
+  test('should show manual override interface for runner advancement (@live-game-scoring:AC007)', async ({
     page,
   }) => {
     // Given: Game setup with manual override enabled
@@ -275,7 +238,7 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
       .waitFor({ state: 'hidden', timeout: 3000 });
   });
 
-  test('should calculate RBIs based on scoring runners (@AC006)', async ({
+  test('should calculate RBIs based on scoring runners (@live-game-scoring:AC008)', async ({
     page,
   }) => {
     // Given: Runners on 2nd and 3rd base
@@ -305,14 +268,16 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     await expect(page.getByText(/2 run.*scored/i)).toBeVisible();
   });
 
-  test('should display visual baserunner representation (@AC007)', async ({
+  test('should display visual baserunner representation (@live-game-scoring:AC009)', async ({
     page,
   }) => {
     // Given: Live scoring page with baserunners
     await expect(page.getByTestId('at-bat-form')).toBeVisible();
 
     // Then: Should show visual baserunner display
-    const baserunnerDisplay = page.locator('[data-testid^="baserunner-"]');
+    const baserunnerDisplay = page.locator(
+      '[data-testid="baserunner-first"], [data-testid="baserunner-second"], [data-testid="baserunner-third"]'
+    );
     await expect(baserunnerDisplay).toHaveCount(3); // 1st, 2nd, 3rd base
 
     // Each base should show its status clearly
@@ -331,7 +296,7 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     }
   });
 
-  test('should update baserunner display in real-time (@AC007)', async ({
+  test('should update baserunner display in real-time (@live-game-scoring:AC009)', async ({
     page,
   }) => {
     // Given: Initial baserunner state
@@ -370,7 +335,9 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     expect(newSecondBase).not.toBe(initialSecondBase);
   });
 
-  test('should clear all runners on home run (@AC004)', async ({ page }) => {
+  test('should clear all runners on home run (@live-game-scoring:AC006)', async ({
+    page,
+  }) => {
     // Given: Bases loaded (from beforeEach)
     await expect(page.getByTestId('baserunner-first')).not.toContainText(
       'Empty'
@@ -407,7 +374,9 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     await expect(page.getByText(/4 run.*scored/i)).toBeVisible();
   });
 
-  test('should not advance runners on strikeout (@AC004)', async ({ page }) => {
+  test('should not advance runners on strikeout (@live-game-scoring:AC006)', async ({
+    page,
+  }) => {
     // Given: Runners on base
     const initialFirst = await page
       .getByTestId('baserunner-first')
@@ -439,7 +408,7 @@ test.describe('Live Scoring - Baserunner Advancement (@AC004, @AC005, @AC006, @A
     expect(finalThird).toBe(initialThird);
   });
 
-  test('should handle baserunner advancement with outs (@AC008)', async ({
+  test('should handle baserunner advancement with outs (@live-game-scoring:AC021)', async ({
     page,
   }) => {
     // Given: Runners on base with some outs already

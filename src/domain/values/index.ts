@@ -4,3 +4,4 @@ export * from './BaserunnerState';
 export * from './HitType';
 export * from './ValidOutcome';
 export * from './RuleViolation';
+export * from './Scoreboard';

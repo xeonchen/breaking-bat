@@ -29,8 +29,14 @@ const mockGame = new Game(
   'Test Game',
   'Test Opponent',
   new Date('2025-01-15'),
-  'test-team-id',
-  'home'
+  'season-1', // seasonId
+  'game-type-1', // gameTypeId
+  'home', // homeAway
+  'test-team-id', // teamId
+  'setup', // status
+  null, // lineupId
+  [], // inningIds
+  null // scoreboard
 );
 
 const mockTeam = new Team('test-team-id', 'Test Team', [], []);
@@ -718,7 +724,7 @@ describe('LineupSetupModal - TDD Tests', () => {
         const positionSelect = screen.getByTestId(
           `batting-position-${battingOrder}-defensive-position`
         );
-        expect(positionSelect.value).not.toBe('');
+        expect((positionSelect as HTMLSelectElement).value).not.toBe('');
       });
     });
 
@@ -1105,7 +1111,7 @@ describe('LineupSetupModal - TDD Tests', () => {
           const positionSelect = screen.getByTestId(
             `batting-position-${i}-defensive-position`
           );
-          expect(positionSelect.value).not.toBe('');
+          expect((positionSelect as HTMLSelectElement).value).not.toBe('');
         }
       });
     });
@@ -1385,7 +1391,7 @@ describe('LineupSetupModal - TDD Tests', () => {
         });
 
         // Additionally verify the specific starting position count was saved
-        const call = mockOnSave.mock.calls[0][0];
+        const call = mockOnSave.mock.calls[0][0] as any;
         expect(call.startingPositionCount).toBe(11);
         // Note: battingOrder array only contains filled positions (10 players available),
         // but startingPositionCount (11) should still be correctly saved
@@ -1399,12 +1405,12 @@ describe('LineupSetupModal - TDD Tests', () => {
       // Create a large team with 12 players to ensure bench players exist
       const largeTeam = new Team('team1', 'Large Team', [], []);
       const largePlayers = Array.from({ length: 12 }, (_, i) => {
-        const positions = [new Position('pitcher', i === 0)]; // First player is pitcher
-        if (i > 0) positions.push(new Position('extra-player', false)); // Others can play EP
+        const positions = [new Position(i === 0 ? 'pitcher' : 'extra-player')]; // First player is pitcher
         return new Player(
           `player${i + 1}`,
           `Player ${i + 1}`,
           i + 1,
+          'team1',
           positions
         );
       });
@@ -1450,14 +1456,12 @@ describe('LineupSetupModal - TDD Tests', () => {
       // Create a large team with 12 players
       const largeTeam = new Team('team1', 'Large Team', [], []);
       const largePlayers = Array.from({ length: 12 }, (_, i) => {
-        const positions = [
-          new Position('pitcher', i === 0),
-          new Position('extra-player', false),
-        ];
+        const positions = [new Position(i === 0 ? 'pitcher' : 'extra-player')];
         return new Player(
           `player${i + 1}`,
           `Player ${i + 1}`,
           i + 1,
+          'team1',
           positions
         );
       });
@@ -1503,15 +1507,15 @@ describe('LineupSetupModal - TDD Tests', () => {
       // Create a large team with 12 players
       const largeTeam = new Team('team1', 'Large Team', [], []);
       const largePlayers = Array.from({ length: 12 }, (_, i) => {
-        const positions = [
-          new Position('pitcher', i === 0),
-          new Position('short-fielder', i === 10), // Player 11 can play short fielder
-          new Position('extra-player', false),
-        ];
+        const positions = [];
+        if (i === 0) positions.push(new Position('pitcher'));
+        if (i === 10) positions.push(new Position('short-fielder')); // Player 11 can play short fielder
+        positions.push(new Position('extra-player'));
         return new Player(
           `player${i + 1}`,
           `Player ${i + 1}`,
           i + 1,
+          'team1',
           positions
         );
       });
@@ -1580,11 +1584,12 @@ describe('LineupSetupModal - TDD Tests', () => {
       // Create a large team with 12 players
       const largeTeam = new Team('team1', 'Large Team', [], []);
       const largePlayers = Array.from({ length: 12 }, (_, i) => {
-        const positions = [new Position('extra-player', false)];
+        const positions = [new Position('extra-player')];
         return new Player(
           `player${i + 1}`,
           `Player ${i + 1}`,
           i + 1,
+          'team1',
           positions
         );
       });

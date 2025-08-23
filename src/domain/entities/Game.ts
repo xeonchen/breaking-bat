@@ -1,5 +1,6 @@
 import { BaseEntity } from './BaseEntity';
 import { HomeAway } from './Inning';
+import { Scoreboard, InningScore } from '../values/Scoreboard';
 
 export type GameStatus = 'setup' | 'in_progress' | 'completed' | 'suspended';
 
@@ -9,14 +10,10 @@ export interface GameScore {
   inningScores: InningScore[];
 }
 
-export interface InningScore {
-  inning: number;
-  homeRuns: number;
-  awayRuns: number;
-}
-
 /**
  * Game domain entity representing a softball game
+ * Immutable entity focused solely on game metadata and state transitions
+ * Live game state is managed by the GameSession aggregate
  */
 export class Game extends BaseEntity {
   public readonly name: string;
@@ -29,7 +26,7 @@ export class Game extends BaseEntity {
   public readonly status: GameStatus;
   public readonly lineupId: string | null;
   public readonly inningIds: string[];
-  public readonly finalScore: GameScore | null;
+  public readonly scoreboard: Scoreboard | null;
 
   constructor(
     id: string,
@@ -43,12 +40,13 @@ export class Game extends BaseEntity {
     status: GameStatus = 'setup',
     lineupId: string | null = null,
     inningIds: string[] = [],
-    finalScore: GameScore | null = null,
+    scoreboard: Scoreboard | null = null,
     createdAt?: Date,
     updatedAt?: Date
   ) {
     super(id, createdAt, updatedAt);
 
+    // Validation
     if (!name.trim()) {
       throw new Error('Game name cannot be empty');
     }
@@ -57,8 +55,17 @@ export class Game extends BaseEntity {
       throw new Error('Opponent name cannot be empty');
     }
 
-    if (date > new Date()) {
-      // Allow future games for scheduling
+    if (!teamId.trim()) {
+      throw new Error('Team ID cannot be empty');
+    }
+
+    // Business rule validations
+    if (status === 'in_progress' && !lineupId) {
+      throw new Error('In-progress games must have a lineup');
+    }
+
+    if (status === 'completed' && !scoreboard) {
+      throw new Error('Completed games must have a final score');
     }
 
     this.name = name.trim();
@@ -71,7 +78,7 @@ export class Game extends BaseEntity {
     this.status = status;
     this.lineupId = lineupId;
     this.inningIds = [...inningIds];
-    this.finalScore = finalScore;
+    this.scoreboard = scoreboard;
   }
 
   /**
@@ -82,12 +89,12 @@ export class Game extends BaseEntity {
       throw new Error('Game can only be started from setup status');
     }
 
-    // Initialize empty score when starting the game
-    const initialScore = this.finalScore || {
-      homeScore: 0,
-      awayScore: 0,
-      inningScores: [],
-    };
+    if (!lineupId.trim()) {
+      throw new Error('Lineup ID is required to start game');
+    }
+
+    // Initialize empty scoreboard when starting the game
+    const initialScoreboard = this.scoreboard || Scoreboard.empty();
 
     return new Game(
       this.id,
@@ -101,16 +108,16 @@ export class Game extends BaseEntity {
       'in_progress',
       lineupId,
       this.inningIds,
-      initialScore,
+      initialScoreboard,
       this.createdAt,
       new Date()
     );
   }
 
   /**
-   * Complete the game with final score
+   * Complete the game with final scoreboard
    */
-  public complete(finalScore: GameScore): Game {
+  public complete(finalScoreboard: Scoreboard): Game {
     if (this.status !== 'in_progress') {
       throw new Error('Game can only be completed from in_progress status');
     }
@@ -127,7 +134,7 @@ export class Game extends BaseEntity {
       'completed',
       this.lineupId,
       this.inningIds,
-      finalScore,
+      finalScoreboard,
       this.createdAt,
       new Date()
     );
@@ -153,7 +160,7 @@ export class Game extends BaseEntity {
       'suspended',
       this.lineupId,
       this.inningIds,
-      this.finalScore,
+      this.scoreboard,
       this.createdAt,
       new Date()
     );
@@ -179,7 +186,33 @@ export class Game extends BaseEntity {
       'in_progress',
       this.lineupId,
       this.inningIds,
-      this.finalScore,
+      this.scoreboard,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  /**
+   * Update the game scoreboard
+   */
+  public updateScoreboard(newScoreboard: Scoreboard): Game {
+    if (this.status !== 'in_progress') {
+      throw new Error('Can only update scoreboard for in-progress games');
+    }
+
+    return new Game(
+      this.id,
+      this.name,
+      this.opponent,
+      this.date,
+      this.seasonId,
+      this.gameTypeId,
+      this.homeAway,
+      this.teamId,
+      this.status,
+      this.lineupId,
+      this.inningIds,
+      newScoreboard,
       this.createdAt,
       new Date()
     );
@@ -191,6 +224,10 @@ export class Game extends BaseEntity {
   public addInning(inningId: string): Game {
     if (this.status !== 'in_progress') {
       throw new Error('Can only add innings to in-progress games');
+    }
+
+    if (!inningId.trim()) {
+      throw new Error('Inning ID cannot be empty');
     }
 
     return new Game(
@@ -205,11 +242,43 @@ export class Game extends BaseEntity {
       this.status,
       this.lineupId,
       [...this.inningIds, inningId],
-      this.finalScore,
+      this.scoreboard,
       this.createdAt,
       new Date()
     );
   }
+
+  /**
+   * Set the lineup for this game
+   */
+  public setLineup(lineupId: string): Game {
+    if (this.status !== 'setup') {
+      throw new Error('Lineup can only be set for games in setup status');
+    }
+
+    if (!lineupId.trim()) {
+      throw new Error('Lineup ID cannot be empty');
+    }
+
+    return new Game(
+      this.id,
+      this.name,
+      this.opponent,
+      this.date,
+      this.seasonId,
+      this.gameTypeId,
+      this.homeAway,
+      this.teamId,
+      this.status,
+      lineupId,
+      this.inningIds,
+      this.scoreboard,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  // ========== Query Methods ==========
 
   /**
    * Check if the game is finished
@@ -223,6 +292,20 @@ export class Game extends BaseEntity {
    */
   public isInProgress(): boolean {
     return this.status === 'in_progress';
+  }
+
+  /**
+   * Check if the game is completed
+   */
+  public isCompleted(): boolean {
+    return this.status === 'completed';
+  }
+
+  /**
+   * Check if the game is suspended
+   */
+  public isSuspended(): boolean {
+    return this.status === 'suspended';
   }
 
   /**
@@ -254,32 +337,6 @@ export class Game extends BaseEntity {
   }
 
   /**
-   * Set the lineup for this game
-   */
-  public setLineup(lineupId: string): Game {
-    if (this.status !== 'setup') {
-      throw new Error('Lineup can only be set for games in setup status');
-    }
-
-    return new Game(
-      this.id,
-      this.name,
-      this.opponent,
-      this.date,
-      this.seasonId,
-      this.gameTypeId,
-      this.homeAway,
-      this.teamId,
-      this.status,
-      lineupId,
-      this.inningIds,
-      this.finalScore,
-      this.createdAt,
-      new Date()
-    );
-  }
-
-  /**
    * Get display text for home/away
    */
   public getVenueText(): string {
@@ -293,8 +350,8 @@ export class Game extends BaseEntity {
     const venueText = this.getVenueText();
     const dateText = this.date.toLocaleDateString();
 
-    if (this.finalScore) {
-      const { homeScore, awayScore } = this.finalScore;
+    if (this.scoreboard) {
+      const { homeScore, awayScore } = this.scoreboard;
       const ourScore = this.homeAway === 'home' ? homeScore : awayScore;
       const theirScore = this.homeAway === 'home' ? awayScore : homeScore;
       const result =
@@ -306,179 +363,150 @@ export class Game extends BaseEntity {
     return `${venueText} ${this.opponent} (${dateText}) - ${this.status}`;
   }
 
-  // ========== Live Game State Management Methods (for testing) ==========
-  // These methods are needed for the RecordAtBatUseCase tests to pass
-  // In a real implementation, this game state would be managed by a service
+  /**
+   * Get current score display
+   */
+  public getScoreDisplay(): string {
+    return this.scoreboard ? this.scoreboard.getScoreDisplay() : '0-0';
+  }
 
-  private _currentInning: number = 1;
-  private _currentBatter: {
-    playerId: string;
-    playerName: string;
-    battingOrder: number;
-  } | null = null;
-  private _currentBaserunners: import('../types/BaserunnerState').BaserunnerState =
-    {
-      first: null,
-      second: null,
-      third: null,
+  /**
+   * Check if mercy rule applies
+   */
+  public isMercyRule(): boolean {
+    return this.scoreboard ? this.scoreboard.isMercyRule() : false;
+  }
+
+  /**
+   * Get the winning team
+   */
+  public getWinner(): 'home' | 'away' | 'tied' | null {
+    if (!this.scoreboard || !this.isFinished()) {
+      return null;
+    }
+    return this.scoreboard.getWinner();
+  }
+
+  /**
+   * Convert to legacy Game format for backward compatibility
+   */
+  public toLegacyFormat(): {
+    id: string;
+    name: string;
+    opponent: string;
+    date: Date;
+    seasonId: string | null;
+    gameTypeId: string | null;
+    homeAway: HomeAway;
+    teamId: string;
+    status: GameStatus;
+    lineupId: string | null;
+    inningIds: string[];
+    finalScore: {
+      homeScore: number;
+      awayScore: number;
+      inningScores: Array<{
+        inning: number;
+        homeRuns: number;
+        awayRuns: number;
+      }>;
+    } | null;
+    createdAt?: Date;
+    updatedAt?: Date;
+  } {
+    return {
+      id: this.id,
+      name: this.name,
+      opponent: this.opponent,
+      date: this.date,
+      seasonId: this.seasonId,
+      gameTypeId: this.gameTypeId,
+      homeAway: this.homeAway,
+      teamId: this.teamId,
+      status: this.status,
+      lineupId: this.lineupId,
+      inningIds: [...this.inningIds],
+      finalScore: this.scoreboard ? this.scoreboard.toGameScore() : null,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
     };
-  private _currentOuts: number = 0;
-  private _runs: number = 0;
-  private _mutableStatus: GameStatus | undefined;
-
-  // Initialize mutable status in constructor
-  private initializeMutableState(): void {
-    this._mutableStatus = (this as any).status;
   }
 
   /**
-   * Get current mutable status (for testing)
+   * Create from legacy Game format
    */
-  public get currentStatus(): GameStatus {
-    return this._mutableStatus || (this as any).status;
+  public static fromLegacy(legacyGame: {
+    id: string;
+    name: string;
+    opponent: string;
+    date: Date;
+    seasonId: string | null;
+    gameTypeId: string | null;
+    homeAway: HomeAway;
+    teamId: string;
+    status: GameStatus;
+    lineupId: string | null;
+    inningIds: string[];
+    finalScore: {
+      homeScore: number;
+      awayScore: number;
+      inningScores: Array<{
+        inning: number;
+        homeRuns: number;
+        awayRuns: number;
+      }>;
+    } | null;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }): Game {
+    const scoreboard = legacyGame.finalScore
+      ? Scoreboard.fromGameScore(legacyGame.finalScore)
+      : null;
+
+    return new Game(
+      legacyGame.id,
+      legacyGame.name,
+      legacyGame.opponent,
+      legacyGame.date,
+      legacyGame.seasonId,
+      legacyGame.gameTypeId,
+      legacyGame.homeAway,
+      legacyGame.teamId,
+      legacyGame.status,
+      legacyGame.lineupId,
+      legacyGame.inningIds,
+      scoreboard,
+      legacyGame.createdAt,
+      legacyGame.updatedAt
+    );
   }
 
-  /**
-   * Start the game (alias for start method, expected by tests)
-   */
-  public startGame(_lineupId: string): void {
-    if (!this._mutableStatus) {
-      this.initializeMutableState();
-    }
-    if (this.currentStatus !== 'setup') {
-      throw new Error('Game can only be started from setup status');
-    }
-    // Update status and initialize game state
-    this._mutableStatus = 'in_progress';
-    this._currentBatter = {
-      playerId: 'batter-1',
-      playerName: 'Batter 1',
-      battingOrder: 1,
-    };
-  }
+  // ========== Game Session Methods (for compatibility) ==========
 
   /**
-   * Complete the game (alias for complete method, expected by tests)
+   * Advance to next batter in lineup (for compatibility with gameStore)
    */
-  public completeGame(): void {
-    if (!this._mutableStatus) {
-      this.initializeMutableState();
-    }
-    if (this.currentStatus !== 'in_progress') {
-      throw new Error('Game can only be completed from in_progress status');
-    }
-    this._mutableStatus = 'completed';
-  }
-
-  /**
-   * Suspend the game (alias for suspend method, expected by tests)
-   */
-  public suspendGame(): void {
-    if (!this._mutableStatus) {
-      this.initializeMutableState();
-    }
-    if (this.currentStatus !== 'in_progress') {
-      throw new Error('Only in-progress games can be suspended');
-    }
-    this._mutableStatus = 'suspended';
-  }
-
-  /**
-   * Resume a suspended game (alias for resume method, expected by tests)
-   */
-  public resumeGame(): void {
-    if (!this._mutableStatus) {
-      this.initializeMutableState();
-    }
-    if (this.currentStatus !== 'suspended') {
-      throw new Error('Only suspended games can be resumed');
-    }
-    this._mutableStatus = 'in_progress';
-  }
-
-  /**
-   * Get current baserunner state
-   */
-  public getCurrentBaserunners(): import('../types/BaserunnerState').BaserunnerState {
-    return this._currentBaserunners;
-  }
-
-  /**
-   * Get current batter
-   */
-  public getCurrentBatter(): {
-    playerId: string;
-    playerName: string;
-    battingOrder: number;
-  } | null {
-    return this._currentBatter;
-  }
-
-  /**
-   * Get current inning number
-   */
-  public getCurrentInning(): number {
-    return this._currentInning;
-  }
-
-  /**
-   * Update baserunner positions
-   */
-  public updateBaserunners(
-    baserunners: import('../types/BaserunnerState').BaserunnerState
+  public advanceToNextBatter(
+    _lineup: Array<{ playerId: string; playerName: string }>
   ): void {
-    this._currentBaserunners = baserunners;
+    // This method exists for backward compatibility
+    // The actual game session logic should be handled by GameSession aggregate
+    // This is a temporary implementation during the transition
+    console.warn(
+      'advanceToNextBatter called on Game entity - this should be handled by GameSession'
+    );
   }
 
   /**
-   * Add runs to the current score
+   * Get current batter (for compatibility with gameStore)
    */
-  public addRuns(runs: number): void {
-    this._runs += runs;
-  }
-
-  /**
-   * Add outs to the current count and check for inning advancement
-   */
-  public addOuts(outs: number): boolean {
-    this._currentOuts += outs;
-    if (this._currentOuts >= 3) {
-      return true; // Advance inning
-    }
-    return false;
-  }
-
-  /**
-   * Advance to the next inning
-   */
-  public advanceInning(): void {
-    this._currentInning++;
-    this._currentOuts = 0;
-  }
-
-  /**
-   * Clear all baserunners
-   */
-  public clearBaserunners(): void {
-    this._currentBaserunners = {
-      first: null,
-      second: null,
-      third: null,
-    };
-  }
-
-  /**
-   * Advance to the next batter in the lineup
-   */
-  public advanceToNextBatter(): void {
-    if (this._currentBatter) {
-      const nextOrder = this._currentBatter.battingOrder + 1;
-      const finalOrder = nextOrder > 9 ? 1 : nextOrder; // Cycle back to 1 after 9
-      this._currentBatter = {
-        playerId: `batter-${finalOrder}`,
-        playerName: `Batter ${finalOrder}`,
-        battingOrder: finalOrder,
-      };
-    }
+  public getCurrentBatter(): { playerId: string; playerName: string } | null {
+    // This method exists for backward compatibility
+    // The actual game session logic should be handled by GameSession aggregate
+    // This is a temporary implementation during the transition
+    console.warn(
+      'getCurrentBatter called on Game entity - this should be handled by GameSession'
+    );
+    return null;
   }
 }

@@ -1,6 +1,13 @@
-export * from './TeamRepository';
-export * from './PlayerRepository';
-export * from './GameRepository';
-export * from './SeasonRepository';
-export * from './GameTypeRepository';
-export * from './AtBatRepository';
+/**
+ * Domain Repository Interfaces (Ports)
+ *
+ * These interfaces define the contracts for data access operations.
+ * Implementations belong in the infrastructure layer.
+ */
+
+export * from './IAtBatRepository';
+export * from './IGameRepository';
+export * from './IGameTypeRepository';
+export * from './IPlayerRepository';
+export * from './ISeasonRepository';
+export * from './ITeamRepository';

@@ -36,21 +36,11 @@ import {
   CloseIcon,
 } from '@chakra-ui/icons';
 import { useState, useMemo, useCallback } from 'react';
-import { Position } from '@/domain';
-
-interface Player {
-  id: string;
-  name: string;
-  jerseyNumber: string;
-  positions: Position[];
-  isActive: boolean;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  players: Player[];
-}
+import { PresentationPosition } from '@/presentation/types/presentation-values';
+import {
+  PresentationTeam,
+  PresentationPlayer,
+} from '@/presentation/interfaces/IPresentationServices';
 
 interface PlayerStats {
   avg: number;
@@ -60,12 +50,12 @@ interface PlayerStats {
 }
 
 interface TeamManagementProps {
-  team: Team;
+  team: PresentationTeam;
   playerStats: Record<string, PlayerStats>;
-  onPlayerAdd: (player: Omit<Player, 'id'>) => void;
-  onPlayerEdit: (playerId: string, player: Player) => void;
+  onPlayerAdd: (player: Omit<PresentationPlayer, 'id'>) => void;
+  onPlayerEdit: (playerId: string, player: PresentationPlayer) => void;
   onPlayerRemove: (playerId: string) => void;
-  onTeamEdit: (team: Team) => void;
+  onTeamEdit: (team: PresentationTeam) => void;
   isEditable?: boolean;
   isMobile?: boolean;
   showStats?: boolean;
@@ -171,7 +161,7 @@ export function TeamManagement({
         player.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesPosition =
         positionFilter === 'all' ||
-        player.positions.some((p) => p.value === positionFilter);
+        player.positions.some((p) => p === positionFilter);
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'active' && player.isActive) ||
@@ -255,8 +245,8 @@ export function TeamManagement({
         name: playerForm.name,
         jerseyNumber: playerForm.jerseyNumber,
         positions: playerForm.position
-          ? [Position.fromValue(playerForm.position)]
-          : [Position.extraPlayer()],
+          ? [playerForm.position as PresentationPosition]
+          : [PresentationPosition.EXTRA_PLAYER],
         isActive: playerForm.isActive,
       };
 
@@ -282,8 +272,8 @@ export function TeamManagement({
         name: playerForm.name,
         jerseyNumber: playerForm.jerseyNumber,
         positions: playerForm.position
-          ? [Position.fromValue(playerForm.position)]
-          : [Position.extraPlayer()],
+          ? [playerForm.position as PresentationPosition]
+          : [PresentationPosition.EXTRA_PLAYER],
         isActive: playerForm.isActive,
       };
 
@@ -337,12 +327,12 @@ export function TeamManagement({
   );
 
   const openEditModal = useCallback(
-    (player: Player) => {
+    (player: PresentationPlayer) => {
       setEditingPlayerId(player.id);
       setPlayerForm({
         name: player.name,
         jerseyNumber: player.jerseyNumber,
-        position: player.positions[0]?.value || 'extra-player', // Use first position for form
+        position: player.positions[0] || 'extra-player', // Use first position for form
         isActive: player.isActive,
       });
       onPlayerEditOpen();
@@ -800,7 +790,7 @@ export function TeamManagement({
 }
 
 interface PlayerCardProps {
-  player: Player;
+  player: PresentationPlayer;
   stats?: PlayerStats;
   showStats: boolean;
   isEditable: boolean;
@@ -868,8 +858,8 @@ function PlayerCard({
               <Text fontWeight="bold">{player.name}</Text>
               <Text color="gray.500">#{player.jerseyNumber}</Text>
               {player.positions.map((pos) => (
-                <Badge key={pos.value} mr={1}>
-                  {POSITION_ABBREVIATIONS[pos.value]}
+                <Badge key={pos} mr={1}>
+                  {POSITION_ABBREVIATIONS[pos]}
                 </Badge>
               ))}
               {!player.isActive && (

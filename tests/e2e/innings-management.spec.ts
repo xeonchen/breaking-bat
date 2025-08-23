@@ -165,9 +165,7 @@ test.describe('Innings Management - Home/Away Status Integration (@live-game-sco
     const currentBatter = page.getByTestId('current-batter');
     await expect(currentBatter).toBeVisible();
 
-    // Record current state
-    const initialInning = await inningInfo.textContent();
-    const initialBatter = await currentBatter.textContent();
+    // Record current state for potential future validation
 
     // When: Interface is active (our turn to bat)
     const atBatForm = page.getByTestId('at-bat-form');

@@ -1,18 +1,14 @@
-import { AtBat } from '../entities/AtBat';
+import { AtBat } from '@/domain/entities/AtBat';
 
 /**
  * Repository interface for AtBat entities
+ * Defines the contract for at-bat data persistence
  */
 export interface IAtBatRepository {
   /**
-   * Save an at-bat record
+   * Save an at-bat record (create or update)
    */
-  save(atBat: AtBat): Promise<void>;
-
-  /**
-   * Find at-bats by game ID
-   */
-  findByGameId(gameId: string): Promise<AtBat[]>;
+  save(atBat: AtBat): Promise<AtBat>;
 
   /**
    * Find an at-bat by ID
@@ -20,9 +16,9 @@ export interface IAtBatRepository {
   findById(id: string): Promise<AtBat | null>;
 
   /**
-   * Delete an at-bat record
+   * Find at-bats by game ID
    */
-  delete(id: string): Promise<void>;
+  findByGameId(gameId: string): Promise<AtBat[]>;
 
   /**
    * Find at-bats by batter ID
@@ -32,5 +28,32 @@ export interface IAtBatRepository {
   /**
    * Find at-bats for a specific inning
    */
-  findByInning(gameId: string, inning: number): Promise<AtBat[]>;
+  findByInning(
+    gameId: string,
+    inning: number,
+    isTopInning?: boolean
+  ): Promise<AtBat[]>;
+
+  /**
+   * Find at-bats by result type
+   */
+  findByResult(gameId: string, resultType: string): Promise<AtBat[]>;
+
+  /**
+   * Delete an at-bat record
+   */
+  delete(id: string): Promise<void>;
+
+  /**
+   * Get at-bat statistics for a player in a game
+   */
+  getPlayerStats(
+    gameId: string,
+    playerId: string
+  ): Promise<{
+    atBats: number;
+    hits: number;
+    runs: number;
+    rbis: number;
+  }>;
 }

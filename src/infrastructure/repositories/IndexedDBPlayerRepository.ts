@@ -1,10 +1,11 @@
-import { Player, PlayerRepository, PlayerStatistics } from '@/domain';
+import { Player, PlayerStatistics } from '@/domain';
+import { IPlayerPersistencePort } from '@/application/ports/secondary/IPersistencePorts';
 import { Position } from '@/domain/values';
 import { getDatabase } from '../database/connection';
 import { PlayerRecord } from '../database/types';
 import Dexie from 'dexie';
 
-export class IndexedDBPlayerRepository implements PlayerRepository {
+export class IndexedDBPlayerRepository implements IPlayerPersistencePort {
   private db: Dexie;
 
   constructor(database?: Dexie) {
@@ -136,19 +137,38 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
     return excludePlayerId ? existingPlayer.id === excludePlayerId : false;
   }
 
-  public async searchByName(query: string, teamId?: string): Promise<Player[]> {
+  public async findByPosition(position: string): Promise<Player[]> {
+    const records = await this.db
+      .table('players')
+      .filter((record: PlayerRecord) => record.positions.includes(position))
+      .toArray();
+
+    return records.map((record: PlayerRecord) => this.recordToPlayer(record));
+  }
+
+  public async searchByName(query: string): Promise<Player[]> {
     const lowerQuery = query.toLowerCase();
 
     const records = await this.db
       .table('players')
-      .filter((record: PlayerRecord) => {
-        const nameMatches = record.name.toLowerCase().includes(lowerQuery);
-        const teamMatches = !teamId || record.teamId === teamId;
-        return nameMatches && teamMatches;
-      })
+      .filter((record: PlayerRecord) =>
+        record.name.toLowerCase().includes(lowerQuery)
+      )
       .toArray();
 
     return records.map((record: PlayerRecord) => this.recordToPlayer(record));
+  }
+
+  public async isJerseyNumberAvailable(
+    teamId: string,
+    jerseyNumber: number,
+    excludePlayerId?: string
+  ): Promise<boolean> {
+    return await this.isJerseyNumberUnique(
+      teamId,
+      jerseyNumber,
+      excludePlayerId
+    );
   }
 
   public async getPlayersWithStatistics(
@@ -197,7 +217,9 @@ export class IndexedDBPlayerRepository implements PlayerRepository {
       record.name,
       record.jerseyNumber,
       record.teamId,
-      record.positions.map((p) => Position.fromValue(p)),
+      record.positions
+        .filter((p) => p != null && p !== '')
+        .map((p) => Position.fromValue(p)),
       record.isActive,
       record.statistics,
       record.createdAt,

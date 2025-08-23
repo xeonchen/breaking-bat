@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import ScoringPage from '@/presentation/pages/ScoringPage';
-import { Game, Team, Position } from '@/domain';
+import { Game, Team, Position, Player, Scoreboard } from '@/domain';
 import theme from '@/presentation/theme';
 
 // Mock React Router
@@ -26,33 +26,38 @@ const mockGetTeams = jest.fn();
 const mockGetLineup = jest.fn();
 
 // Mock game data
+const mockPlayers = [
+  new Player(
+    'player-1',
+    'John Smith',
+    12,
+    'team-1',
+    [Position.pitcher()],
+    true
+  ),
+  new Player(
+    'player-2',
+    'Mike Johnson',
+    23,
+    'team-1',
+    [Position.catcher()],
+    true
+  ),
+  new Player(
+    'player-3',
+    'Tom Wilson',
+    34,
+    'team-1',
+    [Position.firstBase()],
+    true
+  ),
+];
+
 const mockTeam = new Team(
   'team-1',
   'Yankees',
   [],
-  [
-    {
-      id: 'player-1',
-      name: 'John Smith',
-      jerseyNumber: '12',
-      position: Position.pitcher(),
-      isActive: true,
-    },
-    {
-      id: 'player-2',
-      name: 'Mike Johnson',
-      jerseyNumber: '23',
-      position: Position.catcher(),
-      isActive: true,
-    },
-    {
-      id: 'player-3',
-      name: 'Tom Wilson',
-      jerseyNumber: '34',
-      position: Position.firstBase(),
-      isActive: true,
-    },
-  ]
+  mockPlayers.map((p) => p.id)
 );
 
 const mockGame = new Game(
@@ -67,19 +72,15 @@ const mockGame = new Game(
   'in_progress',
   'lineup-1',
   [],
-  {
-    homeScore: 6,
-    awayScore: 3,
-    inningScores: [
-      { inning: 1, homeRuns: 1, awayRuns: 0 },
-      { inning: 2, homeRuns: 0, awayRuns: 2 },
-      { inning: 3, homeRuns: 2, awayRuns: 0 },
-      { inning: 4, homeRuns: 1, awayRuns: 1 },
-      { inning: 5, homeRuns: 0, awayRuns: 0 },
-      { inning: 6, homeRuns: 1, awayRuns: 0 },
-      { inning: 7, homeRuns: 0, awayRuns: 0 },
-    ],
-  }
+  new Scoreboard(5, 3, [
+    { inning: 1, homeRuns: 1, awayRuns: 0 },
+    { inning: 2, homeRuns: 0, awayRuns: 2 },
+    { inning: 3, homeRuns: 2, awayRuns: 0 },
+    { inning: 4, homeRuns: 1, awayRuns: 1 },
+    { inning: 5, homeRuns: 0, awayRuns: 0 },
+    { inning: 6, homeRuns: 1, awayRuns: 0 },
+    { inning: 7, homeRuns: 0, awayRuns: 0 },
+  ])
 );
 
 const mockLineup = [
@@ -106,10 +107,63 @@ const mockLineup = [
   },
 ];
 
+// Create DTO versions for mock store state
+const mockGameDTO = {
+  id: 'game-1',
+  name: 'Season Opener',
+  opponent: 'Red Sox',
+  date: new Date('2024-04-15'),
+  seasonId: 'season-1',
+  homeTeamId: 'team-1',
+  awayTeamId: 'Red Sox',
+  teamId: 'team-1',
+  gameTypeId: 'regular',
+  status: 'In Progress',
+  currentInning: 7,
+  isTopInning: false,
+  homeScore: 6,
+  awayScore: 3,
+  lineupId: 'lineup-1',
+  currentBatterId: undefined,
+  currentBaserunners: {
+    first: null,
+    second: null,
+    third: null,
+  },
+  totalInnings: 7,
+  finalScore: {
+    homeScore: 6,
+    awayScore: 3,
+    inningScores: [
+      { inning: 1, homeRuns: 1, awayRuns: 0 },
+      { inning: 2, homeRuns: 0, awayRuns: 2 },
+      { inning: 3, homeRuns: 2, awayRuns: 0 },
+      { inning: 4, homeRuns: 1, awayRuns: 1 },
+      { inning: 5, homeRuns: 0, awayRuns: 0 },
+      { inning: 6, homeRuns: 1, awayRuns: 0 },
+      { inning: 7, homeRuns: 0, awayRuns: 0 },
+    ],
+  },
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  // Helper method implementations
+  isAwayGame: () => false, // This is a home game (vs Red Sox)
+  isHomeGame: () => true,
+  getVenueText: () => 'vs',
+};
+
+const mockTeamDTO = {
+  id: 'team-1',
+  name: 'Yankees',
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 // Mock store state that can be overridden in tests
 const mockGameStoreState = {
-  currentGame: mockGame,
-  teams: [mockTeam],
+  currentGame: mockGameDTO,
+  teams: [mockTeamDTO],
   lineup: mockLineup,
   currentBatter: mockLineup[0],
   currentInning: 7,
@@ -368,7 +422,7 @@ describe('ScoringPage Component', () => {
         expect(mockRecordAtBat).toHaveBeenCalledWith(
           expect.objectContaining({
             batterId: 'player-1',
-            result: expect.objectContaining({ value: '1B' }),
+            result: '1B',
             finalCount: { balls: 2, strikes: 1 },
           })
         );
@@ -414,7 +468,7 @@ describe('ScoringPage Component', () => {
         expect(mockRecordAtBat).toHaveBeenCalledWith(
           expect.objectContaining({
             batterId: expect.any(String),
-            result: expect.any(Object),
+            result: expect.any(String),
           })
         );
       });
@@ -541,19 +595,19 @@ describe('ScoringPage Component', () => {
       const originalLoading = mockGameStoreState.loading;
       const originalGame = mockGameStoreState.currentGame;
       mockGameStoreState.loading = true;
-      mockGameStoreState.currentGame = null;
+      mockGameStoreState.currentGame = null as any;
 
       renderWithChakra(<ScoringPage />);
 
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
 
       mockGameStoreState.loading = originalLoading;
-      mockGameStoreState.currentGame = originalGame;
+      (mockGameStoreState as any).currentGame = originalGame;
     });
 
     it('should display error message when game fails to load', () => {
       const originalError = mockGameStoreState.error;
-      mockGameStoreState.error = 'Failed to load game data';
+      mockGameStoreState.error = 'Failed to load game data' as any;
 
       renderWithChakra(<ScoringPage />);
 
@@ -567,7 +621,7 @@ describe('ScoringPage Component', () => {
     it('should allow retrying after error', async () => {
       const user = userEvent.setup();
       const originalError = mockGameStoreState.error;
-      mockGameStoreState.error = 'Failed to load game data';
+      mockGameStoreState.error = 'Failed to load game data' as any;
 
       renderWithChakra(<ScoringPage />);
 
@@ -684,19 +738,20 @@ describe('ScoringPage Component', () => {
     it('should support keyboard navigation', () => {
       renderWithChakra(<ScoringPage />);
 
-      const ballButton = screen.getByTestId('ball-button');
-      const strikeButton = screen.getByTestId('strike-button');
+      // AC046A: Pitch tracking is collapsed by default, so check main outcome buttons
       const singleButton = screen.getByTestId('single-button');
+      const doubleButton = screen.getByTestId('double-button');
+      const strikeoutButton = screen.getByTestId('strikeout-button');
 
-      // Check that buttons are focusable (tabIndex 0 is default for buttons)
-      expect(ballButton).toBeVisible();
-      expect(strikeButton).toBeVisible();
+      // Check that main buttons are visible and focusable (tabIndex 0 is default for buttons)
       expect(singleButton).toBeVisible();
+      expect(doubleButton).toBeVisible();
+      expect(strikeoutButton).toBeVisible();
 
       // Button elements are focusable by default - check that they're interactive
-      expect(ballButton).not.toBeDisabled();
-      expect(strikeButton).not.toBeDisabled();
       expect(singleButton).not.toBeDisabled();
+      expect(doubleButton).not.toBeDisabled();
+      expect(strikeoutButton).not.toBeDisabled();
     });
 
     it('should announce score changes to screen readers', async () => {
@@ -757,19 +812,19 @@ describe('ScoringPage Component', () => {
         mockGame.status,
         mockGame.lineupId,
         Array.from({ length: 15 }, (_, i) => `inning-${i + 1}`),
-        mockGame.finalScore,
+        mockGame.scoreboard,
         mockGame.createdAt,
         mockGame.updatedAt
       );
 
       const originalGame = mockGameStoreState.currentGame;
-      mockGameStoreState.currentGame = largeGameData;
+      (mockGameStoreState as any).currentGame = largeGameData;
 
       renderWithChakra(<ScoringPage />);
 
       expect(screen.getByTestId('scoring-page')).toBeInTheDocument();
 
-      mockGameStoreState.currentGame = originalGame;
+      (mockGameStoreState as any).currentGame = originalGame;
     });
 
     it('should memoize expensive calculations', () => {

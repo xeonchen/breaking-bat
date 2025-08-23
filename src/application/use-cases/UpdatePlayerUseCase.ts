@@ -1,4 +1,4 @@
-import { Player, PlayerRepository } from '@/domain';
+import { Player, IPlayerRepository } from '@/domain';
 import { Position } from '@/domain/values';
 import { Result } from '../common/Result';
 
@@ -11,7 +11,7 @@ export interface UpdatePlayerCommand {
 }
 
 export class UpdatePlayerUseCase {
-  constructor(private playerRepository: PlayerRepository) {}
+  constructor(private playerRepository: IPlayerRepository) {}
 
   public async execute(command: UpdatePlayerCommand): Promise<Result<Player>> {
     try {

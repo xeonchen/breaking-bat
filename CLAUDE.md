@@ -82,10 +82,10 @@ Access my personal dashboard
 
 ## Acceptance Criteria
 
-- **AC001**: Given a valid email and password, I should be redirected to the dashboard.
-- **AC002**: Given invalid credentials, an error message should be displayed.
-- **AC003**: The system must handle specific error cases like rate limiting or server errors.
-- **AC004**: The email input field must be validated for correct format before submission.
+- **login-basic:AC001**: Given a valid email and password, I should be redirected to the dashboard.
+- **login-basic:AC002**: Given invalid credentials, an error message should be displayed.
+- **login-basic:AC003**: The system must handle specific error cases like rate limiting or server errors.
+- **login-basic:AC004**: The email input field must be validated for correct format before submission.
 
 ## Definition of Done
 
@@ -119,16 +119,16 @@ actions:
     label: Login
     component_hint: "Button(variant='contained', size='large')"
 acceptance_criteria:
-  - id: AC001
+  - id: login-basic:AC001
     description: Successful login redirects to dashboard
     workflow: success_path
-  - id: AC002
+  - id: login-basic:AC002
     description: Invalid credentials show error message
     workflow: error_path
-  - id: AC003
+  - id: login-basic:AC003
     description: Handles specific error states like 401, 429, and validation failures
     workflow: error_path
-  - id: AC004
+  - id: login-basic:AC004
     description: Email validation before submission
     workflow: validation_path
 error_states:
@@ -154,7 +154,13 @@ defensive_actions:
   error_logging: 'structured-json'
 traceability:
   source_story_id: 'login-basic'
-  acceptance_criteria_covered: ['AC001', 'AC002', 'AC003', 'AC004']
+  acceptance_criteria_covered:
+    [
+      'login-basic:AC001',
+      'login-basic:AC002',
+      'login-basic:AC003',
+      'login-basic:AC004',
+    ]
   test_files:
     ['test_login_basic.py', 'login_basic.feature', 'login_basic.contract.spec']
 meta:
@@ -175,7 +181,7 @@ Feature: Login with Email and Password
   Background:
     Given I am on the login page
 
-  @AC001
+  @login-basic:AC001
   Scenario: Successful login with valid credentials
     When I enter a valid email "user@example.com"
     And I enter a valid password "SecurePass123"
@@ -183,7 +189,7 @@ Feature: Login with Email and Password
     Then I should be redirected to the "/dashboard" page
     And I should see my user profile information
 
-  @AC002
+  @login-basic:AC002
   Scenario: Failed login with invalid credentials
     When I enter an incorrect email "wrong@example.com"
     And I enter an incorrect password "wrongpass"
@@ -191,20 +197,20 @@ Feature: Login with Email and Password
     Then I should see an error message "Invalid credentials. Please try again."
     And I should remain on the login page
 
-  @AC003-rate-limit
+  @login-basic:AC003-rate-limit
   Scenario: Handle rate limiting during login
     Given I have exceeded the login attempt limit
     When I attempt to log in with valid credentials
     Then I should see an error message "Too many login attempts. Please wait 5 minutes."
     And the login form should be temporarily disabled
 
-  @AC003-server-error
+  @login-basic:AC003-server-error
   Scenario: Handle server error during login
     Given the login service will return a server error
     When I attempt to log in with valid credentials
     Then I should see a generic error message "An unexpected error occurred. Please contact support."
 
-  @AC004
+  @login-basic:AC004
   Scenario: Email format validation
     When I enter an invalid email format "notanemail"
     And I try to submit the form
@@ -320,6 +326,85 @@ tests/
   fixtures/
   helpers/
 ```
+
+### 4.2. Test Level Decision Framework
+
+**Critical Rule**: Choose the lowest-level test that can adequately verify the acceptance criteria.
+
+#### Test Level Decision Matrix
+
+| Acceptance Criteria Type        | Primary Test Level | Rationale                                             | Secondary Tests                     |
+| ------------------------------- | ------------------ | ----------------------------------------------------- | ----------------------------------- |
+| **Pure Business Logic**         | Unit               | Fast feedback, isolated testing                       | None usually needed                 |
+| **UI Component Behavior**       | Component          | Tests component in isolation with mocked dependencies | E2E for critical paths              |
+| **Component State Management**  | Component          | Tests React hooks, localStorage, user interactions    | Unit for complex logic              |
+| **Cross-Component Integration** | Integration        | Tests multiple components working together            | Component for individual pieces     |
+| **User Workflows**              | E2E                | Tests complete user journeys through real UI          | Component for sub-workflows         |
+| **API/Database Integration**    | Integration        | Tests data flow between layers                        | Unit for business logic             |
+| **Error Handling & Edge Cases** | Unit + Component   | Fast feedback for error scenarios                     | Integration for complex error flows |
+
+#### Specific Decision Guidelines
+
+**Use Component Tests When:**
+
+- Testing UI component props, state, and user interactions
+- Verifying form validation and input handling
+- Testing modal behavior, toggles, and UI state changes
+- Validating component rendering based on different data states
+- Testing accessibility features and responsive behavior
+
+**Use Unit Tests When:**
+
+- Testing pure functions and business logic
+- Testing utility functions and algorithms
+- Testing error handling in isolated functions
+- Testing data transformations and calculations
+- Testing validation rules and business rules
+
+**Use Integration Tests When:**
+
+- Testing component integration with external services
+- Testing data flow between multiple components
+- Testing API interactions and database operations
+- Testing complex state management across components
+- Testing error propagation between layers
+
+**Use E2E Tests When:**
+
+- Testing complete user workflows (login → action → result)
+- Testing critical business processes end-to-end
+- Testing cross-browser compatibility
+- Testing performance under realistic conditions
+- Validating final user experience
+
+#### AC046A-C Example Application
+
+For the three new requirements, here's the recommended test strategy:
+
+**AC046A (Pitch tracking defaults to collapsed):**
+
+- **Primary**: Component tests - UI state and localStorage behavior
+- **Secondary**: E2E scenario - User experience verification
+
+**AC046B (Default baserunner advancement values):**
+
+- **Primary**: Component tests - Modal pre-population logic
+- **Secondary**: Unit tests - Business rule calculations
+- **Tertiary**: Integration tests - Data flow verification
+
+**AC046C (Home run clears baserunners immediately):**
+
+- **Primary**: Unit tests - Core business logic (clearing runners, scoring)
+- **Secondary**: Component tests - UI behavior (no modal appears)
+- **Tertiary**: Integration tests - End-to-end scoring flow
+
+#### Decision Process
+
+1. **Identify the core behavior** being tested in the acceptance criteria
+2. **Determine the minimal test scope** needed to verify that behavior
+3. **Choose the lowest-level test** that can provide adequate coverage
+4. **Add higher-level tests** only for critical user journeys
+5. **Avoid test duplication** across levels unless specifically needed for confidence
 
 ---
 
@@ -666,7 +751,7 @@ non_negotiables:
 
 ### 13.1 Consistency Rules (Tag & Heading Numbering)
 
-- **Gherkin Tag uniqueness**: Each `@ACxxx` maps to only one specific scenario. If the same AC has multiple sub-scenarios, use **sub-tags** like `@AC003-rate-limit`, `@AC003-server-error`.
+- **Gherkin Tag uniqueness**: Each `@story:ACxxx` maps to only one specific scenario. If the same AC has multiple sub-scenarios, use **sub-tags** like `@login-basic:AC003-rate-limit`, `@login-basic:AC003-server-error`.
 - **Heading numbering**: Subheadings must align with the parent heading; e.g., under `## 11`, use `### 11.1`, `### 11.2`.
 - **Naming stability**: Once published, interface, field, and error code names must not change arbitrarily; changes require a versioning strategy.
 

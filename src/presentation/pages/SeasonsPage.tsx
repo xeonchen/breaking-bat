@@ -28,13 +28,13 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
-import { Season } from '@/domain';
+import { SeasonDto } from '@/application/services/interfaces/IDataApplicationService';
 
 export default function SeasonsPage() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingSeason, setEditingSeason] = useState<Season | null>(null);
+  const [editingSeason, setEditingSeason] = useState<SeasonDto | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -57,7 +57,10 @@ export default function SeasonsPage() {
 
   // Load seasons on mount
   useEffect(() => {
-    loadSeasons();
+    const loadData = async () => {
+      await loadSeasons();
+    };
+    loadData();
   }, [loadSeasons]);
 
   const resetForm = () => {
@@ -77,7 +80,7 @@ export default function SeasonsPage() {
     onOpen();
   };
 
-  const handleEditSeason = (season: Season) => {
+  const handleEditSeason = (season: SeasonDto) => {
     setFormData({
       name: season.name,
       year: season.year,
@@ -111,16 +114,20 @@ export default function SeasonsPage() {
     try {
       if (isEditMode && editingSeason) {
         // Update existing season
-        const updatedSeason = new Season(
-          editingSeason.id,
-          formData.name,
-          formData.year,
-          new Date(formData.startDate),
-          new Date(formData.endDate),
-          editingSeason.teamIds,
-          editingSeason.createdAt,
-          new Date()
-        );
+        const updatedSeason: SeasonDto = {
+          id: editingSeason.id,
+          name: formData.name,
+          year: formData.year,
+          startDate: new Date(formData.startDate),
+          endDate: new Date(formData.endDate),
+          isActive: editingSeason.isActive,
+          isArchived: editingSeason.isArchived,
+          teamCount: editingSeason.teamCount,
+          gameCount: editingSeason.gameCount,
+          playerCount: editingSeason.playerCount,
+          createdAt: editingSeason.createdAt,
+          updatedAt: new Date(),
+        };
         await updateSeason(updatedSeason);
 
         toast({
@@ -170,10 +177,11 @@ export default function SeasonsPage() {
     }
   };
 
-  const getStatusBadge = (season: Season) => {
-    if (season.isActive()) {
+  const getStatusBadge = (season: SeasonDto) => {
+    const currentDate = new Date();
+    if (currentDate >= season.startDate && currentDate <= season.endDate) {
       return <Badge colorScheme="green">Active</Badge>;
-    } else if (season.hasEnded()) {
+    } else if (currentDate > season.endDate) {
       return <Badge colorScheme="gray">Ended</Badge>;
     } else {
       return <Badge colorScheme="blue">Upcoming</Badge>;
@@ -262,7 +270,13 @@ export default function SeasonsPage() {
                     </Text>
 
                     <Text fontSize="sm" color="gray.500">
-                      Duration: {season.getDurationInDays()} days
+                      Duration:{' '}
+                      {Math.ceil(
+                        (season.endDate.getTime() -
+                          season.startDate.getTime()) /
+                          (1000 * 3600 * 24)
+                      )}{' '}
+                      days
                     </Text>
 
                     <HStack spacing={2}>

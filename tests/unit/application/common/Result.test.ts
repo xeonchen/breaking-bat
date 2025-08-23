@@ -225,7 +225,9 @@ describe('Result', () => {
       // However, Result.map() treats undefined values as missing and returns failure
       const result = Result.success(undefined);
 
-      const mappedResult = result.map((x) => (x ? x.toString() : 'default'));
+      const mappedResult = result.map((x: any) =>
+        x ? x.toString() : 'default'
+      );
 
       expect(mappedResult.isSuccess).toBe(false);
       expect(mappedResult.error).toBe('Unknown error');
@@ -368,14 +370,14 @@ describe('Result', () => {
     it('should return null value for successful result with null', () => {
       const result = Result.success(null);
 
-      expect(result.getValueOrDefault('default')).toBe(null);
+      expect(result.getValueOrDefault('default' as any)).toBe(null);
     });
 
     it('should return default for successful result with undefined', () => {
       const result = Result.success(undefined);
 
       // Result treats undefined value as missing, so returns default
-      expect(result.getValueOrDefault('default')).toBe('default');
+      expect(result.getValueOrDefault('default' as any)).toBe('default');
     });
 
     it('should return default for failure result', () => {

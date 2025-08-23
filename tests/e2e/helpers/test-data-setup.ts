@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * Dedicated E2E Test Data Setup
@@ -190,7 +190,10 @@ export async function createTestPrerequisites(
     });
     console.log('✅ Sample data loaded successfully');
   } catch (error) {
-    console.log('⚠️ Sample data loading may have failed:', error.message);
+    console.log(
+      '⚠️ Sample data loading may have failed:',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   // Wait for data to fully propagate

@@ -20,22 +20,79 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { DragHandleIcon, DeleteIcon, RepeatIcon } from '@chakra-ui/icons';
-import { Position } from '@/domain';
+import { PresentationPosition } from '@/presentation/interfaces/IPresentationServices';
 import { useState, useEffect } from 'react';
+
+// TODO: This should be injected as a prop from a proper application service
+const createPresentationPosition = (value: string): PresentationPosition => {
+  const displayNames: Record<string, string> = {
+    pitcher: 'Pitcher (P)',
+    catcher: 'Catcher (C)',
+    'first-base': 'First Base (1B)',
+    'second-base': 'Second Base (2B)',
+    'third-base': 'Third Base (3B)',
+    shortstop: 'Shortstop (SS)',
+    'left-field': 'Left Field (LF)',
+    'center-field': 'Center Field (CF)',
+    'right-field': 'Right Field (RF)',
+    'short-fielder': 'Short Fielder (SF)',
+    'extra-player': 'Extra Player (EP)',
+  };
+
+  const abbreviations: Record<string, string> = {
+    pitcher: 'P',
+    catcher: 'C',
+    'first-base': '1B',
+    'second-base': '2B',
+    'third-base': '3B',
+    shortstop: 'SS',
+    'left-field': 'LF',
+    'center-field': 'CF',
+    'right-field': 'RF',
+    'short-fielder': 'SF',
+    'extra-player': 'EP',
+  };
+
+  return {
+    value,
+    getPositionNumber: () => {
+      const positionMap: Record<string, number> = {
+        pitcher: 1,
+        catcher: 2,
+        'first-base': 3,
+        'second-base': 4,
+        'third-base': 5,
+        shortstop: 6,
+        'left-field': 7,
+        'center-field': 8,
+        'right-field': 9,
+        'short-fielder': 10,
+        'extra-player': 11,
+      };
+      return positionMap[value] || 0;
+    },
+    isDefensivePosition: () => value !== 'extra-player',
+    getDisplayName: () => displayNames[value] || value,
+    getAbbreviation: () => abbreviations[value] || value,
+    getFullName: () => displayNames[value]?.split(' (')[0] || value,
+    equals: (other) => value === other.value,
+    toString: () => value,
+  };
+};
 
 interface LineupPlayer {
   battingOrder: number;
   playerId: string;
   playerName: string;
   jerseyNumber: string;
-  position: Position;
+  position: PresentationPosition;
 }
 
 interface SubstitutePlayer {
   playerId: string;
   playerName: string;
   jerseyNumber: string;
-  position: Position;
+  position: PresentationPosition;
 }
 
 interface PlayerStats {
@@ -144,7 +201,7 @@ export function LineupDisplay({
   ): void => {
     if (!onLineupChange) return;
 
-    const newPosition = Position.fromValue(newPositionValue);
+    const newPosition = createPresentationPosition(newPositionValue);
 
     // Check if position is already taken
     const existingPlayer = lineup.find(

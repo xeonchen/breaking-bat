@@ -1,6 +1,5 @@
 import { BaserunnerAdvancementService } from '@/domain/services/BaserunnerAdvancementService';
-import { BattingResult } from '@/domain';
-import { BaserunnerState } from '@/domain/types/BaserunnerState';
+import { BattingResult, BaserunnerState } from '@/domain';
 
 describe('BaserunnerAdvancementService', () => {
   let service: BaserunnerAdvancementService;
@@ -9,14 +8,14 @@ describe('BaserunnerAdvancementService', () => {
     service = new BaserunnerAdvancementService();
   });
 
-  describe('Standard Advancement Rules (@AC004)', () => {
+  describe('Standard Advancement Rules (@live-game-scoring:AC006)', () => {
     it('should advance runners correctly for a single', () => {
       // Given: runners on 1st and 3rd
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: null,
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        null, // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.single();
       const batterId = 'batter-1';
 
@@ -28,26 +27,20 @@ describe('BaserunnerAdvancementService', () => {
       );
 
       // Then: standard advancement should apply
-      expect(result.finalBaserunners.first).toEqual({
-        playerId: 'batter-1',
-        playerName: expect.any(String),
-      });
-      expect(result.finalBaserunners.second).toEqual({
-        playerId: 'player-a',
-        playerName: 'Player A',
-      });
-      expect(result.finalBaserunners.third).toBeNull();
+      expect(result.finalBaserunners.firstBase).toBe('batter-1');
+      expect(result.finalBaserunners.secondBase).toBe('player-a');
+      expect(result.finalBaserunners.thirdBase).toBeNull();
       expect(result.scoringRunners).toContain('player-c');
       expect(result.rbis).toBe(1);
     });
 
     it('should advance all runners two bases for a double', () => {
       // Given: runners on 1st and 2nd
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: { playerId: 'player-b', playerName: 'Player B' },
-        third: null,
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        'player-b', // secondBase
+        null // thirdBase
+      );
       const battingResult = BattingResult.double();
       const batterId = 'batter-1';
 
@@ -59,23 +52,20 @@ describe('BaserunnerAdvancementService', () => {
       );
 
       // Then: all runners should advance two bases
-      expect(result.finalBaserunners.first).toBeNull();
-      expect(result.finalBaserunners.second).toEqual({
-        playerId: 'batter-1',
-        playerName: expect.any(String),
-      });
-      expect(result.finalBaserunners.third).toBeNull();
+      expect(result.finalBaserunners.firstBase).toBeNull();
+      expect(result.finalBaserunners.secondBase).toBe('batter-1');
+      expect(result.finalBaserunners.thirdBase).toBeNull();
       expect(result.scoringRunners).toEqual(['player-a', 'player-b']);
       expect(result.rbis).toBe(2);
     });
 
     it('should advance only forced runners on a walk', () => {
       // Given: runners on 1st and 3rd
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: null,
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        null, // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.walk();
       const batterId = 'batter-1';
 
@@ -87,29 +77,20 @@ describe('BaserunnerAdvancementService', () => {
       );
 
       // Then: only forced runner should advance
-      expect(result.finalBaserunners.first).toEqual({
-        playerId: 'batter-1',
-        playerName: expect.any(String),
-      });
-      expect(result.finalBaserunners.second).toEqual({
-        playerId: 'player-a',
-        playerName: 'Player A',
-      });
-      expect(result.finalBaserunners.third).toEqual({
-        playerId: 'player-c',
-        playerName: 'Player C',
-      });
+      expect(result.finalBaserunners.firstBase).toBe('batter-1');
+      expect(result.finalBaserunners.secondBase).toBe('player-a');
+      expect(result.finalBaserunners.thirdBase).toBe('player-c');
       expect(result.scoringRunners).toEqual([]);
       expect(result.rbis).toBe(0);
     });
 
     it('should score all runners plus batter on home run', () => {
       // Given: runners on all bases
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: { playerId: 'player-b', playerName: 'Player B' },
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        'player-b', // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.homeRun();
       const batterId = 'batter-1';
 
@@ -121,9 +102,9 @@ describe('BaserunnerAdvancementService', () => {
       );
 
       // Then: all runners plus batter should score
-      expect(result.finalBaserunners.first).toBeNull();
-      expect(result.finalBaserunners.second).toBeNull();
-      expect(result.finalBaserunners.third).toBeNull();
+      expect(result.finalBaserunners.firstBase).toBeNull();
+      expect(result.finalBaserunners.secondBase).toBeNull();
+      expect(result.finalBaserunners.thirdBase).toBeNull();
       expect(result.scoringRunners).toEqual([
         'player-a',
         'player-b',
@@ -135,11 +116,11 @@ describe('BaserunnerAdvancementService', () => {
 
     it('should not advance runners on strikeout', () => {
       // Given: runners on all bases
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: { playerId: 'player-b', playerName: 'Player B' },
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        'player-b', // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.strikeout();
       const batterId = 'batter-1';
 
@@ -157,14 +138,14 @@ describe('BaserunnerAdvancementService', () => {
     });
   });
 
-  describe('Manual Override Capability (@AC005)', () => {
+  describe('Manual Override Capability (@live-game-scoring:AC007)', () => {
     it('should allow manual override of standard advancement', () => {
       // Given: standard advancement would score runner from 2nd on single
-      const initialState: BaserunnerState = {
-        first: null,
-        second: { playerId: 'player-b', playerName: 'Player B' },
-        third: null,
-      };
+      const initialState = new BaserunnerState(
+        null, // firstBase
+        'player-b', // secondBase
+        null // thirdBase
+      );
       const battingResult = BattingResult.single();
       const batterId = 'batter-1';
 
@@ -181,24 +162,18 @@ describe('BaserunnerAdvancementService', () => {
       );
 
       // Then: manual override should be applied
-      expect(result.finalBaserunners.first).toEqual({
-        playerId: 'batter-1',
-        playerName: expect.any(String),
-      });
-      expect(result.finalBaserunners.second).toEqual({
-        playerId: 'player-b',
-        playerName: 'Player B',
-      });
+      expect(result.finalBaserunners.firstBase).toBe('batter-1');
+      expect(result.finalBaserunners.secondBase).toBe('player-b');
       expect(result.scoringRunners).toEqual([]);
       expect(result.rbis).toBe(0);
     });
 
     it('should support all manual override options', () => {
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: { playerId: 'player-b', playerName: 'Player B' },
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        'player-b', // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.double();
       const batterId = 'batter-1';
 
@@ -217,26 +192,20 @@ describe('BaserunnerAdvancementService', () => {
       );
 
       // Then: each override should be respected
-      expect(result.finalBaserunners.second).toEqual({
-        playerId: 'batter-1',
-        playerName: expect.any(String),
-      });
-      expect(result.finalBaserunners.third).toEqual({
-        playerId: 'player-a',
-        playerName: 'Player A',
-      });
+      expect(result.finalBaserunners.secondBase).toBe('batter-1');
+      expect(result.finalBaserunners.thirdBase).toBe('player-a');
       expect(result.scoringRunners).toEqual(['player-c']);
       expect(result.rbis).toBe(1);
     });
   });
 
-  describe('RBI Calculation (@AC006)', () => {
+  describe('RBI Calculation (@live-game-scoring:AC008)', () => {
     it('should calculate RBIs based on scoring runners', () => {
-      const initialState: BaserunnerState = {
-        first: null,
-        second: { playerId: 'player-b', playerName: 'Player B' },
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        null, // firstBase
+        'player-b', // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.double();
       const batterId = 'batter-1';
 
@@ -253,11 +222,11 @@ describe('BaserunnerAdvancementService', () => {
     });
 
     it('should not count RBI for scoring on errors', () => {
-      const initialState: BaserunnerState = {
-        first: null,
-        second: null,
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        null, // firstBase
+        null, // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.error();
       const batterId = 'batter-1';
 
@@ -281,11 +250,11 @@ describe('BaserunnerAdvancementService', () => {
 
   describe('Validation Rules', () => {
     it('should validate that runners cannot pass each other', () => {
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: null,
-        third: { playerId: 'player-c', playerName: 'Player C' },
-      };
+      const initialState = new BaserunnerState(
+        'player-a', // firstBase
+        null, // secondBase
+        'player-c' // thirdBase
+      );
       const battingResult = BattingResult.single();
       const batterId = 'batter-1';
 
@@ -306,11 +275,7 @@ describe('BaserunnerAdvancementService', () => {
     });
 
     it('should validate RBI limits', () => {
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: null,
-        third: null,
-      };
+      const initialState = new BaserunnerState('player-a', null, null);
       const battingResult = BattingResult.single();
       const batterId = 'batter-1';
 

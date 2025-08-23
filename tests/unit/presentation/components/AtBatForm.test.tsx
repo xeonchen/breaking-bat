@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
-import { Position, BattingResult } from '@/domain';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
 // Mock current batter data
@@ -10,7 +10,7 @@ const mockCurrentBatter = {
   playerId: 'player1',
   playerName: 'John Smith',
   jerseyNumber: '12',
-  position: Position.pitcher(),
+  position: PresentationPosition.PITCHER,
   battingOrder: 3,
 };
 
@@ -92,7 +92,7 @@ describe('AtBatForm Component', () => {
         />
       );
 
-      expect(screen.getByTestId('pitch-tracking')).toBeInTheDocument();
+      expect(screen.getByTestId('pitch-tracking-section')).toBeInTheDocument();
       expect(screen.getByTestId('ball-button')).toBeInTheDocument();
       expect(screen.getByTestId('strike-button')).toBeInTheDocument();
       expect(screen.getByTestId('foul-button')).toBeInTheDocument();
@@ -215,7 +215,7 @@ describe('AtBatForm Component', () => {
       await waitFor(() => {
         expect(onAtBatComplete).toHaveBeenCalledWith(
           expect.objectContaining({
-            result: BattingResult.walk(),
+            result: 'BB',
             finalCount: { balls: 4, strikes: 1 },
           })
         );
@@ -241,7 +241,7 @@ describe('AtBatForm Component', () => {
       await waitFor(() => {
         expect(onAtBatComplete).toHaveBeenCalledWith(
           expect.objectContaining({
-            result: BattingResult.strikeout(),
+            result: 'SO',
             finalCount: { balls: 2, strikes: 3 },
           })
         );
@@ -268,7 +268,7 @@ describe('AtBatForm Component', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: BattingResult.single(),
+          result: '1B',
           finalCount: { balls: 1, strikes: 2 },
         })
       );
@@ -292,7 +292,7 @@ describe('AtBatForm Component', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: BattingResult.homeRun(),
+          result: 'HR',
           finalCount: { balls: 2, strikes: 1 },
         })
       );
@@ -392,7 +392,7 @@ describe('AtBatForm Component', () => {
 
       expect(onAtBatComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          result: BattingResult.single(),
+          result: '1B',
           baserunnerAdvancement: expect.objectContaining({
             first: 'third',
           }),
@@ -516,7 +516,7 @@ describe('AtBatForm Component', () => {
         />
       );
 
-      const pitchTracking = screen.getByTestId('pitch-tracking');
+      const pitchTracking = screen.getByTestId('pitch-tracking-section');
       expect(pitchTracking).toHaveClass('mobile-compact');
     });
   });

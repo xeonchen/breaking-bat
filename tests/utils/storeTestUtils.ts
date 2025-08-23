@@ -76,7 +76,7 @@ export const getCleanGamesStoreState = () => ({
 export const createMockStoreMethod = <
   T extends (...args: unknown[]) => unknown,
 >(): jest.MockedFunction<T> => {
-  return jest.fn() as jest.MockedFunction<T>;
+  return jest.fn() as unknown as jest.MockedFunction<T>;
 };
 
 /**

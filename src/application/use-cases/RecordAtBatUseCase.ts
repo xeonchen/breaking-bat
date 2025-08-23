@@ -1,6 +1,6 @@
 import {
-  AtBatRepository,
-  GameRepository,
+  IAtBatRepository,
+  IGameRepository,
   AtBat,
   BattingResult,
   BaserunnerState,
@@ -24,8 +24,8 @@ export interface RecordAtBatCommand {
 
 export class RecordAtBatUseCase {
   constructor(
-    private atBatRepository: AtBatRepository,
-    private gameRepository: GameRepository
+    private atBatRepository: IAtBatRepository,
+    private gameRepository: IGameRepository
   ) {}
 
   public async execute(command: RecordAtBatCommand): Promise<Result<AtBat>> {
@@ -40,6 +40,15 @@ export class RecordAtBatUseCase {
       const game = await this.gameRepository.findById(command.gameId);
       if (!game) {
         return Result.failure('Game not found');
+      }
+
+      // Validate game state - must be active to record at-bats
+      if (!game.isInProgress()) {
+        if (game.isCompleted()) {
+          throw new Error('Cannot record at-bat for completed game');
+        } else {
+          throw new Error('Cannot record at-bat for game not in progress');
+        }
       }
 
       // Create new at-bat
@@ -65,8 +74,8 @@ export class RecordAtBatUseCase {
         timestamp
       );
 
-      // Note: Game score is tracked through finalScore when game is completed
-      // For now, score tracking is handled at the inning/at-bat level
+      // Note: Batter advancement is handled by GameSession aggregate
+      // This placeholder exists for backward compatibility
 
       // Save at-bat and game
       const savedAtBat = await this.atBatRepository.save(atBat);

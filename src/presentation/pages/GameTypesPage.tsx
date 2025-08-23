@@ -28,13 +28,15 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useGamesStore } from '@/presentation/stores/gamesStore';
-import { GameType } from '@/domain';
+import { GameTypeDto } from '@/application/services/interfaces/IDataApplicationService';
 
 export default function GameTypesPage() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingGameType, setEditingGameType] = useState<GameType | null>(null);
+  const [editingGameType, setEditingGameType] = useState<GameTypeDto | null>(
+    null
+  );
 
   // Form state
   const [formData, setFormData] = useState({
@@ -55,7 +57,10 @@ export default function GameTypesPage() {
 
   // Load game types on mount
   useEffect(() => {
-    loadGameTypes();
+    const loadData = async () => {
+      await loadGameTypes();
+    };
+    loadData();
   }, [loadGameTypes]);
 
   const resetForm = () => {
@@ -73,10 +78,10 @@ export default function GameTypesPage() {
     onOpen();
   };
 
-  const handleEditGameType = (gameType: GameType) => {
+  const handleEditGameType = (gameType: GameTypeDto) => {
     setFormData({
       name: gameType.name,
-      description: gameType.description,
+      description: gameType.description || '',
     });
     setIsEditMode(true);
     setEditingGameType(gameType);
@@ -100,10 +105,12 @@ export default function GameTypesPage() {
     try {
       if (isEditMode && editingGameType) {
         // Update existing game type
-        const updatedGameType = editingGameType.update(
-          formData.name,
-          formData.description
-        );
+        const updatedGameType: GameTypeDto = {
+          ...editingGameType,
+          name: formData.name,
+          description: formData.description,
+          updatedAt: new Date(),
+        };
         await updateGameType(updatedGameType);
 
         toast({
@@ -220,7 +227,7 @@ export default function GameTypesPage() {
                       {gameType.name}
                     </Text>
 
-                    {gameType.hasDescription() && (
+                    {gameType.description && (
                       <Text fontSize="sm" color="gray.600">
                         {gameType.description}
                       </Text>

@@ -2,7 +2,7 @@ import {
   CreateGameUseCase,
   CreateGameCommand,
 } from '@/application/use-cases/CreateGameUseCase';
-import { GameRepository } from '@/domain';
+import type { IGameRepository } from '@/domain';
 import {
   createTestDatabase,
   clearTestDatabase,
@@ -10,7 +10,7 @@ import {
 
 describe('CreateGameUseCase', () => {
   let useCase: CreateGameUseCase;
-  let mockGameRepository: jest.Mocked<GameRepository>;
+  let mockGameRepository: jest.Mocked<IGameRepository>;
 
   beforeEach(async () => {
     await createTestDatabase();
@@ -22,13 +22,8 @@ describe('CreateGameUseCase', () => {
       findAll: jest.fn(),
       findByTeamId: jest.fn(),
       findBySeasonId: jest.fn(),
-      findByDateRange: jest.fn(),
-      findByOpponent: jest.fn(),
       delete: jest.fn(),
-      updateStatus: jest.fn(),
-      getGameStatistics: jest.fn(),
-      searchByOpponent: jest.fn(),
-    };
+    } as unknown as jest.Mocked<IGameRepository>;
 
     useCase = new CreateGameUseCase(mockGameRepository);
   });
@@ -52,7 +47,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'away',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -77,8 +72,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: new Date('2025-04-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -97,8 +90,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: '',
         date: new Date('2025-04-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -117,8 +108,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: new Date('2025-04-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -136,8 +125,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: new Date('2025-04-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -155,8 +142,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: '',
         opponent: 'Red Sox',
         date: new Date('2025-04-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -175,8 +160,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: pastDate,
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -197,12 +180,10 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: today,
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -224,7 +205,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -246,12 +227,10 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: new Date('2025-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result1 = await useCase.execute(command);
       const result2 = await useCase.execute({
@@ -277,7 +256,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -286,7 +265,7 @@ describe('CreateGameUseCase', () => {
         expect(result.value.status).toBe('setup');
         expect(result.value.lineupId).toBeNull();
         expect(result.value.inningIds).toEqual([]);
-        expect(result.value.finalScore).toBeNull();
+        expect(result.value.scoreboard).toBeNull();
       }
     });
 
@@ -320,8 +299,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'Red Sox',
         date: new Date('2025-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -339,8 +316,6 @@ describe('CreateGameUseCase', () => {
         gameTypeId: 'regular',
         opponent: 'A'.repeat(101), // Assuming 100 char limit
         date: new Date('2025-12-01'),
-        time: '14:00',
-        location: 'Fenway Park',
         homeAway: 'home',
       };
 
@@ -365,7 +340,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -387,7 +362,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'away',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -411,7 +386,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
       const afterTime = new Date();
@@ -446,7 +421,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -468,7 +443,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -490,7 +465,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -514,7 +489,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 
@@ -533,7 +508,7 @@ describe('CreateGameUseCase', () => {
         homeAway: 'home',
       };
 
-      mockGameRepository.save.mockImplementation(async (game) => game);
+      mockGameRepository.save.mockImplementation(async (game: any) => game);
 
       const result = await useCase.execute(command);
 

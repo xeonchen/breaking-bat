@@ -1,4 +1,4 @@
-import { Game, GameRepository, GameStatus, HomeAway } from '@/domain';
+import { Game, IGameRepository, GameStatus, HomeAway } from '@/domain';
 import { Result } from '../common/Result';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,7 +13,7 @@ export interface CreateGameCommand {
 }
 
 export class CreateGameUseCase {
-  constructor(private gameRepository: GameRepository) {}
+  constructor(private gameRepository: IGameRepository) {}
 
   public async execute(command: CreateGameCommand): Promise<Result<Game>> {
     try {

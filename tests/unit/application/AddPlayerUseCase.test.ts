@@ -2,16 +2,11 @@ import {
   AddPlayerUseCase,
   AddPlayerCommand,
 } from '@/application/use-cases/AddPlayerUseCase';
-import {
-  Player,
-  Team,
-  PlayerRepository,
-  TeamRepository,
-  Position,
-} from '@/domain';
+import { Player, Team, Position } from '@/domain';
+import type { IPlayerRepository, ITeamRepository } from '@/domain';
 
 // Mock the repositories
-class MockPlayerRepository implements PlayerRepository {
+class MockPlayerRepository implements IPlayerRepository {
   private players: Map<string, Player> = new Map();
 
   public async create(player: Player): Promise<Player> {
@@ -25,6 +20,12 @@ class MockPlayerRepository implements PlayerRepository {
 
   public async findByTeamId(teamId: string): Promise<Player[]> {
     return Array.from(this.players.values()).filter((p) => p.teamId === teamId);
+  }
+
+  public async findActiveByTeamId(teamId: string): Promise<Player[]> {
+    return Array.from(this.players.values()).filter(
+      (p) => p.teamId === teamId && p.isActive
+    );
   }
 
   public async update(player: Player): Promise<Player> {
@@ -45,9 +46,52 @@ class MockPlayerRepository implements PlayerRepository {
     );
     return !teamPlayers.some((p) => p.jerseyNumber === jerseyNumber);
   }
+
+  // Missing interface methods
+  public async save(player: Player): Promise<Player> {
+    this.players.set(player.id, player);
+    return player;
+  }
+
+  public async findAll(): Promise<Player[]> {
+    return Array.from(this.players.values());
+  }
+
+  public async findByPosition(position: string): Promise<Player[]> {
+    return Array.from(this.players.values()).filter((p) =>
+      p.positions.some((pos) => pos.value === position)
+    );
+  }
+
+  public async findByJerseyNumber(
+    teamId: string,
+    jerseyNumber: number
+  ): Promise<Player | null> {
+    const teamPlayers = Array.from(this.players.values()).filter(
+      (p) => p.teamId === teamId
+    );
+    return teamPlayers.find((p) => p.jerseyNumber === jerseyNumber) || null;
+  }
+
+  public async searchByName(query: string): Promise<Player[]> {
+    return Array.from(this.players.values()).filter((p) =>
+      p.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+
+  public async isJerseyNumberAvailable(
+    teamId: string,
+    jerseyNumber: number,
+    excludePlayerId?: string
+  ): Promise<boolean> {
+    const teamPlayers = Array.from(this.players.values()).filter(
+      (p) => p.teamId === teamId && p.id !== excludePlayerId
+    );
+    return !teamPlayers.some((p) => p.jerseyNumber === jerseyNumber);
+  }
 }
 
-class MockTeamRepository implements TeamRepository {
+class MockTeamRepository implements ITeamRepository {
   private teams: Map<string, Team> = new Map();
 
   public async save(team: Team): Promise<Team> {
@@ -76,6 +120,18 @@ class MockTeamRepository implements TeamRepository {
   public async delete(id: string): Promise<void> {
     this.teams.delete(id);
   }
+
+  public async findByOrganization(): Promise<Team[]> {
+    return [];
+  }
+
+  public async searchByName(): Promise<Team[]> {
+    return [];
+  }
+
+  public async isNameAvailable(): Promise<boolean> {
+    return true;
+  }
 }
 
 describe('AddPlayerUseCase', () => {
@@ -93,7 +149,7 @@ describe('AddPlayerUseCase', () => {
     );
 
     // Create a mock team
-    mockTeam = new Team('team-1', 'Test Team', 'TT');
+    mockTeam = new Team('team-1', 'Test Team', []);
     mockTeamRepository.save(mockTeam);
   });
 
@@ -103,7 +159,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -114,7 +170,7 @@ describe('AddPlayerUseCase', () => {
       expect(result.value!.name).toBe('John Doe');
       expect(result.value!.jerseyNumber).toBe(10);
       expect(result.value!.teamId).toBe('team-1');
-      expect(result.value!.positions).toEqual([Position.PITCHER]);
+      expect(result.value!.positions).toEqual([Position.pitcher()]);
       expect(result.value!.isActive).toBe(true);
     });
 
@@ -123,7 +179,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: '  John Doe  ',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -139,9 +195,9 @@ describe('AddPlayerUseCase', () => {
         name: 'Utility Player',
         jerseyNumber: 15,
         positions: [
-          Position.SHORTSTOP,
-          Position.SECOND_BASE,
-          Position.THIRD_BASE,
+          Position.shortstop(),
+          Position.secondBase(),
+          Position.thirdBase(),
         ],
         isActive: true,
       };
@@ -150,9 +206,9 @@ describe('AddPlayerUseCase', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value!.positions).toEqual([
-        Position.SHORTSTOP,
-        Position.SECOND_BASE,
-        Position.THIRD_BASE,
+        Position.shortstop(),
+        Position.secondBase(),
+        Position.thirdBase(),
       ]);
     });
 
@@ -161,7 +217,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'Inactive Player',
         jerseyNumber: 20,
-        positions: [Position.OUTFIELD],
+        positions: [Position.leftField()],
         isActive: false,
       };
 
@@ -178,7 +234,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: '',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -193,7 +249,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: '   ',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -208,7 +264,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'A'.repeat(101),
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -223,7 +279,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 10.5,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -238,7 +294,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: -1,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -253,7 +309,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 1000,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -268,7 +324,7 @@ describe('AddPlayerUseCase', () => {
         teamId: '',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -283,7 +339,7 @@ describe('AddPlayerUseCase', () => {
         teamId: '   ',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -330,7 +386,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'non-existent-team',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -342,7 +398,7 @@ describe('AddPlayerUseCase', () => {
 
     it('should fail when team roster is full', async () => {
       // Create a team with full roster (25 players is the limit)
-      let fullTeam = new Team('full-team', 'Full Team', 'FT');
+      let fullTeam = new Team('full-team', 'Full Team', []);
       // Simulate full roster by adding 25 players to the team
       for (let i = 0; i < 25; i++) {
         fullTeam = fullTeam.addPlayer(`player-${i}`);
@@ -353,7 +409,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'full-team',
         name: 'Overflow Player',
         jerseyNumber: 26,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -369,7 +425,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'First Player',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
       await addPlayerUseCase.execute(firstCommand);
@@ -379,7 +435,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'Second Player',
         jerseyNumber: 10,
-        positions: [Position.CATCHER],
+        positions: [Position.catcher()],
         isActive: true,
       };
 
@@ -393,7 +449,7 @@ describe('AddPlayerUseCase', () => {
 
     it('should allow same jersey number on different teams', async () => {
       // Create second team
-      const team2 = new Team('team-2', 'Second Team', 'ST');
+      const team2 = new Team('team-2', 'Second Team', []);
       await mockTeamRepository.save(team2);
 
       // Add player to first team
@@ -401,7 +457,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'First Player',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
       await addPlayerUseCase.execute(firstCommand);
@@ -411,7 +467,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-2',
         name: 'Second Player',
         jerseyNumber: 10,
-        positions: [Position.CATCHER],
+        positions: [Position.catcher()],
         isActive: true,
       };
 
@@ -433,7 +489,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -453,7 +509,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -473,7 +529,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -495,7 +551,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'John Doe',
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -512,7 +568,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'A'.repeat(100),
         jerseyNumber: 10,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -526,7 +582,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'Player Zero',
         jerseyNumber: 0,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 
@@ -541,7 +597,7 @@ describe('AddPlayerUseCase', () => {
         teamId: 'team-1',
         name: 'Player 999',
         jerseyNumber: 999,
-        positions: [Position.PITCHER],
+        positions: [Position.pitcher()],
         isActive: true,
       };
 

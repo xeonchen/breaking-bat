@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createTestGame, setupTestLineup } from '../helpers/test-data-setup';
 
-test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => {
+test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-game-scoring:AC002, @live-game-scoring:AC003)', () => {
   test.beforeEach(async ({ page }) => {
     // Set up console logging from the beginning
     page.on('console', (msg) => console.log('BROWSER CONSOLE:', msg.text()));
@@ -45,14 +45,17 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
       });
       console.log('✅ Scoring page loaded successfully');
     } catch (e) {
-      console.log('❌ Scoring page failed to load:', e.message);
+      console.log(
+        '❌ Scoring page failed to load:',
+        e instanceof Error ? e.message : String(e)
+      );
     }
 
     // Should navigate to live scoring page
     await expect(page.getByTestId('scoring-page')).toBeVisible();
   });
 
-  test('should record at-bat with functional business logic integration (@AC001)', async ({
+  test('should record at-bat with functional business logic integration (@live-game-scoring:AC001)', async ({
     page,
   }) => {
     // Given: Live scoring page with current batter displayed
@@ -71,11 +74,8 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     // When: Recording a double (should place batter on second base)
     await page.getByTestId('double-button').click();
 
-    // Handle baserunner advancement modal (expected for hits like doubles)
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+    // AC016A: Modal should NOT appear when no runners on base
+    // Double should be processed automatically
 
     // Then: At-bat should be recorded and persisted immediately
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
@@ -95,7 +95,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     await expect(page.getByTestId('baserunner-third')).toContainText('Empty');
   });
 
-  test('should persist at-bat data immediately to prevent data loss (@AC001)', async ({
+  test('should persist at-bat data immediately to prevent data loss (@live-game-scoring:AC001)', async ({
     page,
   }) => {
     // Given: Initial state with first batter
@@ -127,7 +127,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     ); // Should advance to next batter
   });
 
-  test('should automatically advance to next batter after each at-bat (@AC002)', async ({
+  test('should automatically advance to next batter after each at-bat (@live-game-scoring:AC002)', async ({
     page,
   }) => {
     // Given: First batter up
@@ -162,7 +162,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     );
   });
 
-  test('should provide touch-friendly batting result buttons (@AC003)', async ({
+  test('should provide touch-friendly batting result buttons (@live-game-scoring:AC003)', async ({
     page,
   }) => {
     // Given: Scoring page loaded
@@ -189,7 +189,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     }
   });
 
-  test('should show proper baserunner diagram with current state (@AC007)', async ({
+  test('should show proper baserunner diagram with current state (@live-game-scoring:AC009)', async ({
     page,
   }) => {
     // Given: Empty bases initially (check baserunner display section exists)
@@ -200,10 +200,9 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
 
     // When: Recording a single
     await page.getByTestId('single-button').click();
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+
+    // AC016A: Modal should NOT appear when no runners on base
+    // Single should be processed automatically
     await expect(page.getByText('At-bat recorded').first()).toBeVisible();
     await page
       .getByText('At-bat recorded')
@@ -218,7 +217,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     await expect(page.getByTestId('baserunner-third')).toContainText('Empty');
   });
 
-  test('should update in real-time without page refresh (@AC014)', async ({
+  test('should update in real-time without page refresh (@live-game-scoring:AC004)', async ({
     page,
   }) => {
     // Given: Initial state
@@ -228,10 +227,9 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
 
     // When: Recording an at-bat
     await page.getByTestId('single-button').click();
-    await expect(
-      page.getByTestId('baserunner-advancement-modal')
-    ).toBeVisible();
-    await page.getByTestId('confirm-advancement').click();
+
+    // AC016A: Modal should NOT appear when no runners on base
+    // Single should be processed automatically
 
     // Then: Interface should update immediately without refresh
     const updatedBatter = await page
@@ -245,7 +243,7 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     );
   });
 
-  test('should provide immediate visual feedback for all actions (@AC016)', async ({
+  test('should provide immediate visual feedback for all actions (@live-game-scoring:AC034)', async ({
     page,
   }) => {
     // Given: Scoring interface ready
@@ -254,15 +252,8 @@ test.describe('Live Scoring - At-Bat Recording (@AC001, @AC002, @AC003)', () => 
     // When: Clicking any scoring button
     await page.getByTestId('double-button').click();
 
-    // Then: Should immediately show modal (visual feedback)
-    await expect(page.getByTestId('baserunner-advancement-modal')).toBeVisible({
-      timeout: 1000,
-    });
-
-    // When: Confirming advancement
-    await page.getByTestId('confirm-advancement').click();
-
-    // Then: Should immediately show success toast (visual feedback)
+    // AC016A: With empty bases, modal should NOT appear
+    // Should immediately show success toast (visual feedback)
     await expect(page.getByText('At-bat recorded').first()).toBeVisible({
       timeout: 1000,
     });

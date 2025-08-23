@@ -33,6 +33,6 @@
       "@/contracts/*": ["docs/contracts/*"]
     }
   },
-  "include": ["src", "docs/contracts"],
+  "include": ["src", "docs/contracts", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

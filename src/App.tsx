@@ -2,7 +2,8 @@ import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { BrowserRouter } from 'react-router-dom';
 import theme from '@/presentation/theme';
 import { AppRoutes } from '@/presentation/routes';
-import { Providers } from '@/presentation/providers';
+import { ApplicationProvider } from '@/presentation/providers/ApplicationProvider';
+import { PWAProvider } from '@/presentation/providers/PWAProvider';
 
 function App() {
   return (
@@ -10,9 +11,11 @@ function App() {
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <ChakraProvider theme={theme}>
         <BrowserRouter>
-          <Providers>
-            <AppRoutes />
-          </Providers>
+          <ApplicationProvider>
+            <PWAProvider>
+              <AppRoutes />
+            </PWAProvider>
+          </ApplicationProvider>
         </BrowserRouter>
       </ChakraProvider>
     </>

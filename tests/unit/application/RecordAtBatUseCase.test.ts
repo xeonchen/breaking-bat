@@ -2,8 +2,11 @@ import {
   RecordAtBatUseCase,
   RecordAtBatCommand,
 } from '@/application/use-cases/RecordAtBatUseCase';
-import { AtBatRepository, GameRepository } from '@/domain';
+import { IAtBatRepository, IGameRepository } from '@/domain';
+import { Game } from '@/domain/entities/Game';
 import { BattingResult } from '@/domain/values/BattingResult';
+import { BaserunnerState } from '@/domain/values/BaserunnerState';
+import { Scoreboard } from '@/domain/values/Scoreboard';
 import {
   createTestDatabase,
   clearTestDatabase,
@@ -11,8 +14,8 @@ import {
 
 describe('RecordAtBatUseCase', () => {
   let useCase: RecordAtBatUseCase;
-  let mockAtBatRepository: jest.Mocked<AtBatRepository>;
-  let mockGameRepository: jest.Mocked<GameRepository>;
+  let mockAtBatRepository: jest.Mocked<IAtBatRepository>;
+  let mockGameRepository: jest.Mocked<IGameRepository>;
 
   beforeEach(async () => {
     await createTestDatabase();
@@ -21,26 +24,25 @@ describe('RecordAtBatUseCase', () => {
     mockAtBatRepository = {
       save: jest.fn(),
       findById: jest.fn(),
-      findAll: jest.fn(),
-      findByPlayerId: jest.fn(),
       findByGameId: jest.fn(),
       findByBatterId: jest.fn(),
+      findByInning: jest.fn(),
+      findByResult: jest.fn(),
       delete: jest.fn(),
-      getPlayerStatistics: jest.fn(),
+      getPlayerStats: jest.fn(),
     };
 
     mockGameRepository = {
-      save: jest.fn(),
       findById: jest.fn(),
+      findCurrent: jest.fn(),
+      save: jest.fn(),
       findAll: jest.fn(),
       findByTeamId: jest.fn(),
       findBySeasonId: jest.fn(),
-      findByDateRange: jest.fn(),
-      findByOpponent: jest.fn(),
+      findByStatus: jest.fn(),
       delete: jest.fn(),
-      updateStatus: jest.fn(),
-      getGameStatistics: jest.fn(),
-      searchByOpponent: jest.fn(),
+      getLineup: jest.fn(),
+      saveLineup: jest.fn(),
     };
 
     useCase = new RecordAtBatUseCase(mockAtBatRepository, mockGameRepository);
@@ -60,28 +62,28 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single to center field',
         rbi: 1,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: 'player2',
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState(null, null, 'player2'),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: ['player2'],
         runningErrors: [],
       };
 
-      const mockGame = {
-        id: 'game1',
-        ourScore: 0,
-        currentInning: 1,
-        isTopInning: true,
-      };
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
 
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -106,28 +108,28 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.homeRun(),
         description: 'Grand slam home run',
         rbi: 4,
-        baserunnersBefore: {
-          firstBase: 'player2',
-          secondBase: 'player3',
-          thirdBase: 'player4',
-        },
-        baserunnersAfter: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState('player2', 'player3', 'player4'),
+        baserunnersAfter: BaserunnerState.empty(),
         runsScored: ['player2', 'player3', 'player4', 'player1'],
         runningErrors: [],
       };
 
-      const mockGame = {
-        id: 'game1',
-        ourScore: 2,
-        currentInning: 3,
-        isTopInning: false,
-      };
+      const mockGame = new Game(
+        'game1',
+        'Test Game 2',
+        'Opponent Team 2',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
 
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -138,7 +140,7 @@ describe('RecordAtBatUseCase', () => {
       expect(result.value!.rbis).toBe(4);
       expect(result.value!.runsScored).toHaveLength(4);
       // Game score is not updated by RecordAtBatUseCase - handled at inning/game level
-      expect((mockGame as any).ourScore).toBe(2); // Score remains unchanged
+      // Note: Game entity doesn't track ourScore - that's handled at GameSession level
     });
 
     it('should record a strikeout with no RBIs', async () => {
@@ -150,28 +152,28 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.strikeout(),
         description: 'Swinging strikeout',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: 'player2',
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player2',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState('player2', null, null),
+        baserunnersAfter: new BaserunnerState('player2', null, null),
         runsScored: [],
         runningErrors: [],
       };
 
-      const mockGame = {
-        id: 'game1',
-        ourScore: 1,
-        currentInning: 2,
-        isTopInning: true,
-      };
+      const mockGame = new Game(
+        'game1',
+        'Test Game 3',
+        'Opponent Team 3',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
 
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -181,7 +183,7 @@ describe('RecordAtBatUseCase', () => {
       expect(result.value!.result).toEqual(BattingResult.strikeout());
       expect(result.value!.rbis).toBe(0);
       expect(result.value!.runsScored).toHaveLength(0);
-      expect((mockGame as any).ourScore).toBe(1); // No change
+      // Note: Game entity doesn't track ourScore - that's handled at GameSession level
     });
 
     it('should fail when game is not found', async () => {
@@ -193,16 +195,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
@@ -224,16 +218,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
@@ -253,16 +239,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
@@ -282,16 +260,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: -1,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
@@ -311,16 +281,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 2,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: 'player2',
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState(null, null, 'player2'),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: ['player2'],
         runningErrors: [], // Only 1 run but RBI is 2
       };
@@ -344,16 +306,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: longDescription,
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
@@ -373,22 +327,27 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: '',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
 
-      const mockGame = { id: 'game1', ourScore: 0 };
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -407,22 +366,27 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
 
-      const mockGame = { id: 'game1', ourScore: 0 };
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockRejectedValue(new Error('Database error'));
 
       const result = await useCase.execute(command);
@@ -440,22 +404,27 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
 
-      const mockGame = { id: 'game1', ourScore: 0 };
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -481,22 +450,27 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: [],
       };
 
-      const mockGame = { id: 'game1', ourScore: 0 };
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -523,22 +497,27 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.homeRun(),
         description: 'Home run',
         rbi: 2,
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: 'player2',
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState(null, 'player2', null),
+        baserunnersAfter: BaserunnerState.empty(),
         runsScored: ['player2', 'player1'],
         runningErrors: [],
       };
 
-      const mockGame = { id: 'game1', ourScore: 0 };
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -559,16 +538,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.strikeout(),
         description: 'Strikeout',
         rbi: 1, // Invalid - strikeouts can't have RBIs
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: BaserunnerState.empty(),
         runsScored: [],
         runningErrors: [],
       };
@@ -588,16 +559,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.groundOut(),
         description: 'Groundout',
         rbi: 1, // Invalid - groundouts can't have RBIs (unless sacrifice)
-        baserunnersBefore: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: BaserunnerState.empty(),
+        baserunnersAfter: BaserunnerState.empty(),
         runsScored: [],
         runningErrors: [],
       };
@@ -617,16 +580,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.homeRun(),
         description: 'Home run',
         rbi: 5, // Invalid - max 4 RBIs (bases loaded grand slam)
-        baserunnersBefore: {
-          firstBase: 'player2',
-          secondBase: 'player3',
-          thirdBase: 'player4',
-        },
-        baserunnersAfter: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState('player2', 'player3', 'player4'),
+        baserunnersAfter: BaserunnerState.empty(),
         runsScored: ['player2', 'player3', 'player4', 'player1', 'extra'],
         runningErrors: [],
       };
@@ -646,22 +601,27 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.single(),
         description: 'Single, runner thrown out at 3rd',
         rbi: 0,
-        baserunnersBefore: {
-          firstBase: 'player2',
-          secondBase: null,
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: 'player1',
-          secondBase: null,
-          thirdBase: null,
-        },
+        baserunnersBefore: new BaserunnerState('player2', null, null),
+        baserunnersAfter: new BaserunnerState('player1', null, null),
         runsScored: [],
         runningErrors: ['player2'], // Player2 made running error
       };
 
-      const mockGame = { id: 'game1', ourScore: 0 };
-      mockGameRepository.findById.mockResolvedValue(mockGame as any);
+      const mockGame = new Game(
+        'game1',
+        'Test Game',
+        'Opponent Team',
+        new Date(),
+        'season-1',
+        'regular',
+        'home',
+        'team-1',
+        'in_progress',
+        'lineup-1',
+        [],
+        Scoreboard.empty()
+      );
+      mockGameRepository.findById.mockResolvedValue(mockGame);
       mockAtBatRepository.save.mockImplementation(async (atBat) => atBat);
       mockGameRepository.save.mockImplementation(async (game) => game);
 
@@ -683,16 +643,8 @@ describe('RecordAtBatUseCase', () => {
         result: BattingResult.triple(),
         description: 'Triple',
         rbi: 2,
-        baserunnersBefore: {
-          firstBase: 'player2',
-          secondBase: 'player2', // Same player on multiple bases - invalid
-          thirdBase: null,
-        },
-        baserunnersAfter: {
-          firstBase: null,
-          secondBase: null,
-          thirdBase: 'player1',
-        },
+        baserunnersBefore: new BaserunnerState('player2', 'player2', null), // Same player on multiple bases - invalid
+        baserunnersAfter: new BaserunnerState(null, null, 'player1'),
         runsScored: ['player2', 'player2'], // Same player scoring twice
         runningErrors: [],
       };

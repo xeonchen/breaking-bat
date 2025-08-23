@@ -2,7 +2,7 @@ import {
   CreateTeamUseCase,
   CreateTeamCommand,
 } from '@/application/use-cases/CreateTeamUseCase';
-import { Team, TeamRepository } from '@/domain';
+import { Team, ITeamRepository } from '@/domain';
 import {
   createTestDatabase,
   clearTestDatabase,
@@ -10,7 +10,7 @@ import {
 
 describe('CreateTeamUseCase', () => {
   let useCase: CreateTeamUseCase;
-  let mockTeamRepository: jest.Mocked<TeamRepository>;
+  let mockTeamRepository: jest.Mocked<ITeamRepository>;
 
   beforeEach(async () => {
     await createTestDatabase();
@@ -23,12 +23,7 @@ describe('CreateTeamUseCase', () => {
       findBySeasonId: jest.fn(),
       findByName: jest.fn(),
       delete: jest.fn(),
-      addPlayer: jest.fn(),
-      removePlayer: jest.fn(),
-      addSeason: jest.fn(),
-      removeSeason: jest.fn(),
-      search: jest.fn(),
-    };
+    } as unknown as jest.Mocked<ITeamRepository>;
 
     useCase = new CreateTeamUseCase(mockTeamRepository);
   });

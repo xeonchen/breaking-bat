@@ -27,7 +27,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { Scoreboard } from '@/presentation/components/Scoreboard';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
 import { useGameStore } from '@/presentation/stores/gameStore';
-import { BattingResult } from '@/domain';
+import { PresentationBattingResult } from '@/presentation/types/presentation-values';
 
 export default function ScoringPage() {
   // Get gameId from URL params and location state
@@ -54,6 +54,7 @@ export default function ScoringPage() {
     getLineup,
     suspendGame,
     completeGame,
+    advanceInning,
     clearError,
   } = useGameStore();
 
@@ -154,7 +155,7 @@ export default function ScoringPage() {
   const handleAtBatComplete = useCallback(
     async (atBatResult: {
       batterId: string;
-      result: BattingResult;
+      result: PresentationBattingResult;
       finalCount: { balls: number; strikes: number };
       pitchSequence?: string[];
       baserunnerAdvancement?: Record<string, string>;
@@ -182,7 +183,7 @@ export default function ScoringPage() {
 
         toast({
           title: 'At-bat recorded',
-          description: `${atBatResult.result.value} recorded for ${currentBatter?.playerName}`,
+          description: `${atBatResult.result} recorded for ${currentBatter?.playerName}`,
           status: 'success',
           duration: 2000,
           isClosable: true,
@@ -218,7 +219,8 @@ export default function ScoringPage() {
         status: 'info',
         duration: 2000,
       });
-    } catch {
+    } catch (error) {
+      console.error('Failed to pause game:', error);
       toast({
         title: 'Error pausing game',
         status: 'error',
@@ -236,7 +238,8 @@ export default function ScoringPage() {
         status: 'success',
         duration: 2000,
       });
-    } catch {
+    } catch (error) {
+      console.error('Failed to end game:', error);
       toast({
         title: 'Error ending game',
         status: 'error',
@@ -449,15 +452,56 @@ export default function ScoringPage() {
           {!isOurTurnToBat() && (
             <Alert status="info" mb={4} data-testid="opponent-batting-alert">
               <AlertIcon />
-              <Box>
+              <Box flex="1">
                 <Text fontWeight="semibold">Opponent's Turn to Bat</Text>
-                <Text fontSize="sm">
+                <Text fontSize="sm" mb={3}>
                   Recording interface is disabled while {currentGame?.opponent}{' '}
                   is batting.
                   {currentGame?.isAwayGame()
                     ? ' Your team will bat in the top of the next inning.'
                     : ' Your team will bat in the bottom of this inning.'}
                 </Text>
+                <HStack spacing={3} wrap="wrap">
+                  <Button
+                    data-testid="skip-opponent-inning-button"
+                    size="sm"
+                    colorScheme="blue"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await advanceInning();
+                        toast({
+                          title: 'Inning advanced',
+                          description: "It's now your team's turn to bat",
+                          status: 'success',
+                          duration: 2000,
+                        });
+                      } catch (error) {
+                        console.error('Failed to advance inning:', error);
+                        toast({
+                          title: 'Error advancing inning',
+                          description: 'Please try again',
+                          status: 'error',
+                          duration: 3000,
+                        });
+                      }
+                    }}
+                  >
+                    Skip to Our Turn
+                  </Button>
+                  <Button
+                    data-testid="record-opponent-score-button"
+                    size="sm"
+                    colorScheme="gray"
+                    variant="outline"
+                    isDisabled={true}
+                    onClick={() => {
+                      // Disabled for now - will implement in future phase
+                    }}
+                  >
+                    Record Opponent Score (Coming Soon)
+                  </Button>
+                </HStack>
               </Box>
             </Alert>
           )}

@@ -1,9 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import {
-  createTestPrerequisites,
-  createTestGame,
-  setupTestLineup,
-} from '../helpers/test-data-setup';
+import { createTestGame, setupTestLineup } from '../helpers/test-data-setup';
 
 /**
  * Game State Transitions E2E Tests
@@ -90,19 +86,12 @@ test.describe('Game State Transitions', () => {
     }
   });
 
-  test('should identify required conditions for each transition', async ({
-    page,
-  }) => {
+  test('should identify required conditions for each transition', async () => {
     console.log('=== ANALYZING REQUIRED CONDITIONS FOR STATE TRANSITIONS ===');
 
-    // Test what conditions are required to start a game
-    await analyzeSetupToInProgressRequirements(page);
-
-    // Test what conditions allow suspending
-    await analyzeInProgressToSuspendedRequirements(page);
-
-    // Test what conditions allow completion
-    await analyzeInProgressToCompletedRequirements(page);
+    // TODO: Test what conditions are required to start a game
+    // TODO: Test what conditions allow suspending
+    // TODO: Test what conditions allow completion
   });
 
   test('should test state-specific UI elements', async ({ page }) => {
@@ -110,13 +99,12 @@ test.describe('Game State Transitions', () => {
 
     await createTestGameWithPrerequisites(page, 'UI Elements Game');
 
-    // Test UI elements for 'setup' state
-    await testSetupStateUI(page, 'UI Elements Game');
+    // TODO: Test UI elements for 'setup' state
 
     // If we can start the game, test in_progress UI
     const started = await attemptGameStart(page, 'UI Elements Game');
     if (started) {
-      await testInProgressStateUI(page, 'UI Elements Game');
+      // TODO: Test in_progress UI
     }
   });
 
@@ -547,39 +535,4 @@ async function diagnoseStartGameProblem(
   console.log(
     `Clicking game card - Modal opened: ${modalOpened}, Navigated: ${navigatedAway}`
   );
-}
-
-/**
- * Additional helper functions for comprehensive testing
- */
-async function analyzeSetupToInProgressRequirements(page: Page): Promise<void> {
-  console.log('Analyzing setup → in_progress requirements...');
-  // Implementation for analyzing what's needed to start a game
-}
-
-async function analyzeInProgressToSuspendedRequirements(
-  page: Page
-): Promise<void> {
-  console.log('Analyzing in_progress → suspended requirements...');
-  // Implementation for analyzing suspend conditions
-}
-
-async function analyzeInProgressToCompletedRequirements(
-  page: Page
-): Promise<void> {
-  console.log('Analyzing in_progress → completed requirements...');
-  // Implementation for analyzing completion conditions
-}
-
-async function testSetupStateUI(page: Page, gameName: string): Promise<void> {
-  console.log('Testing setup state UI elements...');
-  // Implementation for testing setup state specific UI
-}
-
-async function testInProgressStateUI(
-  page: Page,
-  gameName: string
-): Promise<void> {
-  console.log('Testing in_progress state UI elements...');
-  // Implementation for testing in_progress state specific UI
 }
