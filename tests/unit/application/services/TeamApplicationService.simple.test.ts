@@ -5,7 +5,7 @@ import {
   AddPlayerToTeamCommand,
   GetTeamByIdQuery,
 } from '@/application/services/interfaces/ITeamApplicationService';
-import { Result } from '@/application/common/Result';
+// Result removed - not used in test
 import { Team, Player } from '@/domain/entities';
 import { Position } from '@/domain/values';
 import {
@@ -43,7 +43,7 @@ describe('TeamApplicationService - Implemented Methods', () => {
       search: jest.fn(),
       delete: jest.fn(),
       update: jest.fn(),
-    } as jest.Mocked<ITeamPersistencePort>;
+    } as unknown as jest.Mocked<ITeamPersistencePort>;
 
     mockPlayerPersistencePort = {
       save: jest.fn(),
@@ -56,24 +56,25 @@ describe('TeamApplicationService - Implemented Methods', () => {
       isJerseyNumberUnique: jest.fn(),
       findByJerseyNumber: jest.fn(),
       search: jest.fn(),
-    } as jest.Mocked<IPlayerPersistencePort>;
+    } as unknown as jest.Mocked<IPlayerPersistencePort>;
 
     mockLoggingPort = {
       debug: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
-    } as jest.Mocked<ILoggingPort>;
+      fatal: jest.fn(),
+    } as unknown as jest.Mocked<ILoggingPort>;
 
     mockTimeProvider = {
       now: jest.fn().mockReturnValue(fixedDate),
       nowString: jest.fn().mockReturnValue(fixedDate.toISOString()),
-    } as jest.Mocked<ITimeProvider>;
+    } as unknown as jest.Mocked<ITimeProvider>;
 
     mockIdGenerator = {
       generateId: jest.fn().mockReturnValue(teamId),
       generateShortId: jest.fn().mockReturnValue(correlationId),
-    } as jest.Mocked<IIdGenerator>;
+    } as unknown as jest.Mocked<IIdGenerator>;
 
     mockCachePort = {
       get: jest.fn(),
@@ -81,7 +82,7 @@ describe('TeamApplicationService - Implemented Methods', () => {
       delete: jest.fn(),
       invalidate: jest.fn(),
       clear: jest.fn(),
-    } as jest.Mocked<ICachePort>;
+    } as unknown as jest.Mocked<ICachePort>;
 
     teamApplicationService = new TeamApplicationService(
       mockTeamPersistencePort,
@@ -138,7 +139,7 @@ describe('TeamApplicationService - Implemented Methods', () => {
 
   describe('getTeamById', () => {
     it('should return team with players', async () => {
-      const query: GetTeamByIdQuery = { teamId, includeRoster: true };
+      const query: GetTeamByIdQuery = { teamId };
       const team = new Team(teamId, 'Test Team', [], [playerId]);
       const players = [
         new Player(

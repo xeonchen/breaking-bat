@@ -159,7 +159,7 @@ describe('AC046C: Home Run Bug Reproduction and Integration Test', () => {
       const onAtBatComplete = jest.fn();
       const user = userEvent.setup();
 
-      const { rerender } = renderWithChakra(
+      renderWithChakra(
         <AtBatForm
           currentBatter={mockCurrentBatter}
           baserunners={{

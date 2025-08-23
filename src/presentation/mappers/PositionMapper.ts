@@ -30,6 +30,18 @@ export class PositionMapper {
     'right-field': PresentationPosition.RIGHT_FIELD,
     'short-fielder': PresentationPosition.SHORT_FIELDER,
     'extra-player': PresentationPosition.EXTRA_PLAYER,
+    // Add reverse mapping for presentation enum values
+    P: PresentationPosition.PITCHER,
+    C: PresentationPosition.CATCHER,
+    '1B': PresentationPosition.FIRST_BASE,
+    '2B': PresentationPosition.SECOND_BASE,
+    '3B': PresentationPosition.THIRD_BASE,
+    SS: PresentationPosition.SHORT_STOP,
+    LF: PresentationPosition.LEFT_FIELD,
+    CF: PresentationPosition.CENTER_FIELD,
+    RF: PresentationPosition.RIGHT_FIELD,
+    SF: PresentationPosition.SHORT_FIELDER,
+    EP: PresentationPosition.EXTRA_PLAYER,
   };
 
   /**
@@ -162,9 +174,11 @@ export class PositionMapper {
    * Check if a value is a valid PresentationPosition
    */
   public static isValidPresentationPosition(
-    position: any
+    position: unknown
   ): position is PresentationPosition {
-    return Object.values(PresentationPosition).includes(position);
+    return Object.values(PresentationPosition).includes(
+      position as PresentationPosition
+    );
   }
 
   /**

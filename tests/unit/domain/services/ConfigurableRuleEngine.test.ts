@@ -1,8 +1,5 @@
 import { ConfigurableRuleEngine } from '@/domain/services/ConfigurableRuleEngine';
-import {
-  ValidationRuleFactory,
-  AtBatValidationScenario,
-} from '@/domain/values/ValidationRule';
+import { ValidationRuleFactory } from '@/domain/values/ValidationRule';
 import {
   ValidationResult,
   RuleViolation,
@@ -143,7 +140,7 @@ describe('ConfigurableRuleEngine', () => {
   });
 
   describe('validation', () => {
-    const createTestScenario = (): AtBatValidationScenario => ({
+    const createTestScenario = () => ({
       beforeState: BaserunnerState.empty(),
       afterState: new BaserunnerState('batter', null, null),
       battingResult: BattingResult.single(),
@@ -182,7 +179,13 @@ describe('ConfigurableRuleEngine', () => {
             new RuleViolation(
               ViolationType.INVALID_BASE_ADVANCEMENT,
               'Test violation',
-              createTestScenario()
+              {
+                before: BaserunnerState.empty(),
+                after: new BaserunnerState('batter', null, null),
+                hitType: BattingResult.single().toHitType(),
+                rbis: 0,
+                outs: 0,
+              }
             )
           )
       );
@@ -222,7 +225,13 @@ describe('ConfigurableRuleEngine', () => {
             new RuleViolation(
               ViolationType.INVALID_BASE_ADVANCEMENT,
               'Test violation',
-              createTestScenario()
+              {
+                before: BaserunnerState.empty(),
+                after: new BaserunnerState('batter', null, null),
+                hitType: BattingResult.single().toHitType(),
+                rbis: 0,
+                outs: 0,
+              }
             )
           );
         }

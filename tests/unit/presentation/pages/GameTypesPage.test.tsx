@@ -29,7 +29,7 @@ describe('GameTypesPage Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useGamesStore as jest.Mock).mockReturnValue(mockStore);
+    (useGamesStore as unknown as jest.Mock).mockReturnValue(mockStore);
   });
 
   const renderGameTypesPage = () => {
@@ -69,7 +69,7 @@ describe('GameTypesPage Component', () => {
 
   describe('Loading State', () => {
     it('should show loading spinner when loading is true', () => {
-      (useGamesStore as jest.Mock).mockReturnValue({
+      (useGamesStore as unknown as jest.Mock).mockReturnValue({
         ...mockStore,
         loading: true,
       });
@@ -124,7 +124,7 @@ describe('GameTypesPage Component', () => {
     });
 
     it('should show empty state when no game types exist', () => {
-      (useGamesStore as jest.Mock).mockReturnValue({
+      (useGamesStore as unknown as jest.Mock).mockReturnValue({
         ...mockStore,
         gameTypes: [],
       });

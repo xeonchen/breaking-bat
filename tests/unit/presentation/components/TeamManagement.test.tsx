@@ -2,13 +2,14 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { TeamManagement } from '@/presentation/components/TeamManagement';
-import { PresentationPosition } from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
 // Mock team data - using kebab-case position strings to match component expectations
 const mockTeam = {
   id: 'team-1',
   name: 'Yankees',
+  seasonIds: ['season-1'],
+  isActive: true,
   players: [
     {
       id: 'player-1',

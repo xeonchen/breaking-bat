@@ -15,9 +15,6 @@ import { ViolationType } from '@/domain/values/RuleViolation';
 
 // Import all application services to test for "Not implemented yet" returns
 import { StatisticsApplicationService } from '@/application/services/implementations/StatisticsApplicationService';
-import { TeamApplicationService } from '@/application/services/implementations/TeamApplicationService';
-import { GameApplicationService } from '@/application/services/implementations/GameApplicationService';
-import { DataApplicationService } from '@/application/services/implementations/DataApplicationService';
 
 describe('Implementation Detection Tests', () => {
   let ruleEngine: GameRuleEngine;
@@ -161,10 +158,14 @@ describe('Implementation Detection Tests', () => {
         info: jest.fn(),
         warn: jest.fn(),
         error: jest.fn(),
+        fatal: jest.fn(),
       },
       cachePort: {
         get: jest.fn().mockResolvedValue(null),
         set: jest.fn().mockResolvedValue(undefined),
+        delete: jest.fn().mockResolvedValue(undefined),
+        clear: jest.fn().mockResolvedValue(undefined),
+        exists: jest.fn().mockResolvedValue(false),
       },
     };
 

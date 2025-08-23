@@ -42,6 +42,15 @@ export class RecordAtBatUseCase {
         return Result.failure('Game not found');
       }
 
+      // Validate game state - must be active to record at-bats
+      if (!game.isInProgress()) {
+        if (game.isCompleted()) {
+          throw new Error('Cannot record at-bat for completed game');
+        } else {
+          throw new Error('Cannot record at-bat for game not in progress');
+        }
+      }
+
       // Create new at-bat
       const atBatId = uuidv4();
       const timestamp = new Date();
@@ -65,9 +74,8 @@ export class RecordAtBatUseCase {
         timestamp
       );
 
-      // Note: Game state updates should be handled by domain services
-      // The baserunner state and score changes are captured in the AtBat entity
-      // and will be properly reflected through the domain layer
+      // Note: Batter advancement is handled by GameSession aggregate
+      // This placeholder exists for backward compatibility
 
       // Save at-bat and game
       const savedAtBat = await this.atBatRepository.save(atBat);

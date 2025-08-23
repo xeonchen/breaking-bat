@@ -235,6 +235,11 @@ export class PlayerPersistenceAdapter
     return await this.save(player);
   }
 
+  public async findActiveByTeamId(teamId: string): Promise<Player[]> {
+    const players = await this.findByTeamId(teamId);
+    return players.filter((player) => player.isActive);
+  }
+
   protected entityToRecord(player: Player): any {
     return {
       id: player.id,

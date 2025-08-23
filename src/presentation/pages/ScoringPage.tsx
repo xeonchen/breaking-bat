@@ -219,7 +219,8 @@ export default function ScoringPage() {
         status: 'info',
         duration: 2000,
       });
-    } catch {
+    } catch (error) {
+      console.error('Failed to pause game:', error);
       toast({
         title: 'Error pausing game',
         status: 'error',
@@ -237,7 +238,8 @@ export default function ScoringPage() {
         status: 'success',
         duration: 2000,
       });
-    } catch {
+    } catch (error) {
+      console.error('Failed to end game:', error);
       toast({
         title: 'Error ending game',
         status: 'error',
@@ -475,6 +477,7 @@ export default function ScoringPage() {
                           duration: 2000,
                         });
                       } catch (error) {
+                        console.error('Failed to advance inning:', error);
                         toast({
                           title: 'Error advancing inning',
                           description: 'Please try again',

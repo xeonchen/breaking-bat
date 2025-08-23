@@ -227,32 +227,30 @@ export class CompositionRoot {
     loggingPort.info('✅ Domain services initialized');
 
     // Step 4: Create Application Use Cases (with port injection)
-    const createTeamUseCase = new CreateTeamUseCase(teamPersistencePort as any);
-    const createGameUseCase = new CreateGameUseCase(gamePersistencePort as any);
+    const createTeamUseCase = new CreateTeamUseCase(teamPersistencePort);
+    const createGameUseCase = new CreateGameUseCase(gamePersistencePort);
     const loadDefaultDataUseCase = new LoadDefaultDataUseCase(
-      teamPersistencePort as any,
-      playerPersistencePort as any,
-      seasonPersistencePort as any,
-      gameTypePersistencePort as any
+      teamPersistencePort,
+      playerPersistencePort,
+      seasonPersistencePort,
+      gameTypePersistencePort
     );
     const addPlayerUseCase = new AddPlayerUseCase(
-      playerPersistencePort as any,
-      teamPersistencePort as any
+      playerPersistencePort,
+      teamPersistencePort
     );
-    const updatePlayerUseCase = new UpdatePlayerUseCase(
-      playerPersistencePort as any
-    );
+    const updatePlayerUseCase = new UpdatePlayerUseCase(playerPersistencePort);
     const removePlayerUseCase = new RemovePlayerUseCase(
-      playerPersistencePort as any,
-      teamPersistencePort as any
+      playerPersistencePort,
+      teamPersistencePort
     );
     const recordAtBatUseCase = new RecordAtBatUseCase(
-      atBatPersistencePort as any,
-      gamePersistencePort as any
+      atBatPersistencePort,
+      gamePersistencePort
     );
     const setupLineupUseCase = new SetupLineupUseCase(
-      gamePersistencePort as any,
-      playerPersistencePort as any
+      gamePersistencePort,
+      playerPersistencePort
     );
 
     loggingPort.info('✅ Application use cases initialized');
@@ -301,7 +299,7 @@ export class CompositionRoot {
 
     // Step 6: Create Primary Adapters (Presentation Services)
     const teamHydrationService = new TeamHydrationService(
-      playerPersistencePort as any
+      playerPersistencePort
     );
 
     // Step 7: Create Hexagonal Architecture Container
@@ -371,6 +369,9 @@ export class CompositionRoot {
       primaryAdapters: 1,
     });
 
+    if (!this._container) {
+      throw new Error('Container not initialized. Call compose() first.');
+    }
     return this._container;
   }
 

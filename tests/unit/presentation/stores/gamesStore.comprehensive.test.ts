@@ -17,7 +17,6 @@ import type {
   LoadDefaultDataResultDto,
   CreateSeasonCommand,
   CreateGameTypeCommand,
-  UpdateSeasonCommand,
   UpdateGameTypeCommand,
   ArchiveSeasonCommand,
 } from '@/application/services/interfaces';
@@ -36,57 +35,75 @@ Object.defineProperty(global, 'console', {
 });
 
 // Mock application services
-const mockGameApplicationService: IGameApplicationService = {
-  getCurrentGames: jest.fn(),
-  getGame: jest.fn(),
+const mockGameApplicationService = {
   createGame: jest.fn(),
   updateGame: jest.fn(),
   deleteGame: jest.fn(),
   setupLineup: jest.fn(),
   startGame: jest.fn(),
-  completeGame: jest.fn(),
-  suspendGame: jest.fn(),
-  resumeGame: jest.fn(),
-};
+  recordAtBat: jest.fn(),
+  endGame: jest.fn(),
+  addInning: jest.fn(),
+  substitutePlayer: jest.fn(),
+  getGameById: jest.fn(),
+  getGamesByTeam: jest.fn(),
+  getGamesBySeason: jest.fn(),
+  getCurrentGames: jest.fn(),
+  getGameLineup: jest.fn(),
+  getGameStatistics: jest.fn(),
+  getInningDetails: jest.fn(),
+  getAtBatHistory: jest.fn(),
+} as jest.Mocked<IGameApplicationService>;
 
-const mockDataApplicationService: IDataApplicationService = {
-  getSeasons: jest.fn(),
-  getGameTypes: jest.fn(),
+const mockDataApplicationService = {
   createSeason: jest.fn(),
   updateSeason: jest.fn(),
-  archiveSeason: jest.fn(),
   createGameType: jest.fn(),
   updateGameType: jest.fn(),
   deleteGameType: jest.fn(),
   loadDefaultData: jest.fn(),
-};
+  importData: jest.fn(),
+  exportData: jest.fn(),
+  archiveSeason: jest.fn(),
+  initializeOrganization: jest.fn(),
+  getSeasons: jest.fn(),
+  getSeasonById: jest.fn(),
+  getGameTypes: jest.fn(),
+  getGameTypeById: jest.fn(),
+  getDataSummary: jest.fn(),
+  getSystemHealth: jest.fn(),
+} as jest.Mocked<IDataApplicationService>;
 
-const mockTeamApplicationService: ITeamApplicationService = {
-  getTeams: jest.fn(),
-  getTeam: jest.fn(),
+const mockTeamApplicationService = {
   createTeam: jest.fn(),
   updateTeam: jest.fn(),
-  deleteTeam: jest.fn(),
-  addPlayerToTeam: jest.fn(),
-  removePlayerFromTeam: jest.fn(),
-  updatePlayerInTeam: jest.fn(),
-};
+  addPlayer: jest.fn(),
+  updatePlayer: jest.fn(),
+  removePlayer: jest.fn(),
+  archiveTeam: jest.fn(),
+  getTeamById: jest.fn(),
+  getTeams: jest.fn(),
+  getTeamsBySeason: jest.fn(),
+  searchTeams: jest.fn(),
+  getTeamRoster: jest.fn(),
+  getTeamStatistics: jest.fn(),
+  isTeamNameAvailable: jest.fn(),
+  isJerseyNumberAvailable: jest.fn(),
+} as jest.Mocked<ITeamApplicationService>;
 
 // Test data fixtures
 const mockGameDto: GameDto = {
   id: 'game-1',
   name: 'Test Game',
+  teamName: 'Test Team',
   opponent: 'Test Opponent',
   date: new Date('2025-08-17'),
   location: 'Test Field',
   isHomeGame: true,
   teamId: 'team-1',
-  status: 'setup' as GameStatus,
+  status: 'scheduled' as GameStatus,
   seasonId: 'season-1',
   gameTypeId: 'gametype-1',
-  lineupId: null,
-  inningIds: [],
-  finalScore: null,
   createdAt: new Date('2025-08-16'),
   updatedAt: new Date('2025-08-16'),
 };
@@ -99,6 +116,10 @@ const mockSeasonDto: SeasonDto = {
   endDate: new Date('2025-10-31'),
   description: 'Test season',
   isActive: true,
+  isArchived: false,
+  teamCount: 0,
+  gameCount: 0,
+  playerCount: 0,
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
 };
@@ -109,8 +130,13 @@ const mockGameTypeDto: GameTypeDto = {
   description: 'Standard softball game',
   defaultInnings: 7,
   allowTies: false,
-  mercyRule: 10,
+  mercyRule: {
+    enabled: true,
+    runDifferential: 10,
+    minimumInning: 5,
+  },
   isActive: true,
+  gameCount: 5,
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
 };
@@ -118,9 +144,10 @@ const mockGameTypeDto: GameTypeDto = {
 const mockTeamDto: TeamDto = {
   id: 'team-1',
   name: 'Test Team',
-  description: 'Test team description',
+  organizationId: 'org-1',
+  seasonIds: ['season-1'],
+  playerCount: 2,
   isActive: true,
-  playerIds: ['player-1', 'player-2'],
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
 };
@@ -186,9 +213,9 @@ describe('GamesStore - Comprehensive Tests', () => {
   describe('loadGames', () => {
     it('should load games successfully', async () => {
       const games = [mockGameDto];
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockResolvedValue(Result.success(games));
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.success(games)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -205,9 +232,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load games failure', async () => {
       const errorMessage = 'Database connection failed';
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockResolvedValue(Result.failure(errorMessage));
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.failure(errorMessage)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -228,9 +255,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load games exception', async () => {
       const error = new Error('Network error');
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockRejectedValue(error);
+      mockGameApplicationService.getCurrentGames.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -253,9 +278,9 @@ describe('GamesStore - Comprehensive Tests', () => {
           opponent: 'Team B',
         },
       ];
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockResolvedValue(Result.success(games));
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.success(games)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -274,18 +299,18 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should apply status filter when loading games', async () => {
       const games = [
-        { ...mockGameDto, id: 'game-1', status: 'setup' as GameStatus },
+        { ...mockGameDto, id: 'game-1', status: 'scheduled' as GameStatus },
         { ...mockGameDto, id: 'game-2', status: 'in_progress' as GameStatus },
       ];
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockResolvedValue(Result.success(games));
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.success(games)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
       // Set status filter first
       act(() => {
-        useGamesStore.setState({ statusFilter: 'setup' });
+        useGamesStore.setState({ statusFilter: 'scheduled' });
       });
 
       await act(async () => {
@@ -293,13 +318,13 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       expect(result.current.games).toHaveLength(1);
-      expect(result.current.games[0].status).toBe('setup');
+      expect(result.current.games[0].status).toBe('scheduled');
     });
 
     it('should handle unknown error type', async () => {
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockRejectedValue('string error');
+      mockGameApplicationService.getCurrentGames.mockRejectedValue(
+        'string error'
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -314,7 +339,7 @@ describe('GamesStore - Comprehensive Tests', () => {
   describe('loadSeasons', () => {
     it('should load seasons successfully', async () => {
       const seasons = [mockSeasonDto];
-      (mockDataApplicationService.getSeasons as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.getSeasons.mockResolvedValue(
         Result.success(seasons)
       );
 
@@ -331,7 +356,7 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should handle load seasons failure', async () => {
-      (mockDataApplicationService.getSeasons as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.getSeasons.mockResolvedValue(
         Result.failure('Seasons not found')
       );
 
@@ -347,9 +372,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load seasons exception', async () => {
       const error = new Error('Database error');
-      (mockDataApplicationService.getSeasons as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockDataApplicationService.getSeasons.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -371,7 +394,7 @@ describe('GamesStore - Comprehensive Tests', () => {
   describe('loadGameTypes', () => {
     it('should load game types successfully', async () => {
       const gameTypes = [mockGameTypeDto];
-      (mockDataApplicationService.getGameTypes as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.getGameTypes.mockResolvedValue(
         Result.success(gameTypes)
       );
 
@@ -388,7 +411,7 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should handle load game types failure', async () => {
-      (mockDataApplicationService.getGameTypes as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.getGameTypes.mockResolvedValue(
         Result.failure('Game types not found')
       );
 
@@ -404,9 +427,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load game types exception', async () => {
       const error = new Error('Service unavailable');
-      (mockDataApplicationService.getGameTypes as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockDataApplicationService.getGameTypes.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -424,7 +445,7 @@ describe('GamesStore - Comprehensive Tests', () => {
   describe('loadTeams', () => {
     it('should load teams successfully', async () => {
       const teams = [mockTeamDto];
-      (mockTeamApplicationService.getTeams as jest.Mock).mockResolvedValue(
+      mockTeamApplicationService.getTeams.mockResolvedValue(
         Result.success(teams)
       );
 
@@ -441,7 +462,7 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should handle load teams failure', async () => {
-      (mockTeamApplicationService.getTeams as jest.Mock).mockResolvedValue(
+      mockTeamApplicationService.getTeams.mockResolvedValue(
         Result.failure('Teams not found')
       );
 
@@ -457,9 +478,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load teams exception', async () => {
       const error = new Error('Connection timeout');
-      (mockTeamApplicationService.getTeams as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockTeamApplicationService.getTeams.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -529,7 +548,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should create game successfully', async () => {
       const newGame = { ...mockGameDto, id: 'game-new', name: 'New Game' };
-      (mockGameApplicationService.createGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.createGame.mockResolvedValue(
         Result.success(newGame)
       );
 
@@ -555,7 +574,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle create game failure', async () => {
       const errorMessage = 'Invalid game data';
-      (mockGameApplicationService.createGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.createGame.mockResolvedValue(
         Result.failure(errorMessage)
       );
 
@@ -577,33 +596,25 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should handle create game with no result value', async () => {
-      (mockGameApplicationService.createGame as jest.Mock).mockResolvedValue(
-        Result.success(null)
+      mockGameApplicationService.createGame.mockResolvedValue(
+        Result.failure('No game created')
       );
 
       const { result } = renderHook(() => useGamesStore());
 
       await act(async () => {
-        try {
-          await result.current.createGame(mockCommand);
-        } catch (error) {
-          expect((error as Error).message).toBe(
-            'Game creation returned no result'
-          );
-        }
+        await result.current.createGame(mockCommand);
       });
 
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe(
-        'Failed to create game: Game creation returned no result'
+        'Failed to create game: No game created'
       );
     });
 
     it('should handle create game exception', async () => {
       const error = new Error('Service unavailable');
-      (mockGameApplicationService.createGame as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockGameApplicationService.createGame.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -630,7 +641,7 @@ describe('GamesStore - Comprehensive Tests', () => {
         useGamesStore.setState({ games: [existingGame] });
       });
 
-      (mockGameApplicationService.createGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.createGame.mockResolvedValue(
         Result.success(newGame)
       );
 
@@ -648,7 +659,7 @@ describe('GamesStore - Comprehensive Tests', () => {
     const updatedGame = { ...mockGameDto, name: 'Updated Game' };
 
     it('should update game successfully', async () => {
-      (mockGameApplicationService.updateGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.updateGame.mockResolvedValue(
         Result.success(updatedGame)
       );
 
@@ -676,7 +687,7 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should update selected game if it matches', async () => {
-      (mockGameApplicationService.updateGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.updateGame.mockResolvedValue(
         Result.success(updatedGame)
       );
 
@@ -699,7 +710,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should not update selected game if it does not match', async () => {
       const differentGame = { ...mockGameDto, id: 'different-game' };
-      (mockGameApplicationService.updateGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.updateGame.mockResolvedValue(
         Result.success(updatedGame)
       );
 
@@ -722,7 +733,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle update game failure', async () => {
       const errorMessage = 'Update validation failed';
-      (mockGameApplicationService.updateGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.updateGame.mockResolvedValue(
         Result.failure(errorMessage)
       );
 
@@ -740,9 +751,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle update game exception', async () => {
       const error = new Error('Database error');
-      (mockGameApplicationService.updateGame as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockGameApplicationService.updateGame.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -764,8 +773,16 @@ describe('GamesStore - Comprehensive Tests', () => {
     const defensivePositions = ['1B', '2B'];
 
     it('should save lineup successfully', async () => {
-      (mockGameApplicationService.setupLineup as jest.Mock).mockResolvedValue(
-        Result.success({ lineupId: 'lineup-1' })
+      mockGameApplicationService.setupLineup.mockResolvedValue(
+        Result.success({
+          id: 'lineup-1',
+          gameId: 'game-1',
+          playerIds: ['player-1'],
+          defensivePositions: ['1B'],
+          battingOrder: [1],
+          isActive: true,
+          createdAt: new Date(),
+        })
       );
 
       const { result } = renderHook(() => useGamesStore());
@@ -801,7 +818,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle save lineup failure', async () => {
       const errorMessage = 'Invalid lineup configuration';
-      (mockGameApplicationService.setupLineup as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.setupLineup.mockResolvedValue(
         Result.failure(errorMessage)
       );
 
@@ -828,9 +845,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle save lineup exception', async () => {
       const error = new Error('Service timeout');
-      (mockGameApplicationService.setupLineup as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockGameApplicationService.setupLineup.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -858,8 +873,8 @@ describe('GamesStore - Comprehensive Tests', () => {
     const gameId = 'game-1';
 
     it('should delete game successfully', async () => {
-      (mockGameApplicationService.deleteGame as jest.Mock).mockResolvedValue(
-        Result.success(true)
+      mockGameApplicationService.deleteGame.mockResolvedValue(
+        Result.success(void 0)
       );
 
       // Set initial games in store
@@ -883,8 +898,8 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should clear selection if deleted game was selected', async () => {
-      (mockGameApplicationService.deleteGame as jest.Mock).mockResolvedValue(
-        Result.success(true)
+      mockGameApplicationService.deleteGame.mockResolvedValue(
+        Result.success(void 0)
       );
 
       // Set initial games and selected game in store
@@ -906,8 +921,8 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should not clear selection if different game was selected', async () => {
       const differentGame = { ...mockGameDto, id: 'different-game' };
-      (mockGameApplicationService.deleteGame as jest.Mock).mockResolvedValue(
-        Result.success(true)
+      mockGameApplicationService.deleteGame.mockResolvedValue(
+        Result.success(void 0)
       );
 
       // Set initial games and different selected game in store
@@ -929,7 +944,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle delete game failure', async () => {
       const errorMessage = 'Game has associated data';
-      (mockGameApplicationService.deleteGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.deleteGame.mockResolvedValue(
         Result.failure(errorMessage)
       );
 
@@ -947,7 +962,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle delete game with error fallback', async () => {
       const errorMessage = 'Delete operation failed';
-      (mockGameApplicationService.deleteGame as jest.Mock).mockResolvedValue(
+      mockGameApplicationService.deleteGame.mockResolvedValue(
         Result.failure(errorMessage)
       );
 
@@ -964,9 +979,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle delete game exception', async () => {
       const error = new Error('Network error');
-      (mockGameApplicationService.deleteGame as jest.Mock).mockRejectedValue(
-        error
-      );
+      mockGameApplicationService.deleteGame.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1087,9 +1100,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       it('should reload all games when search query is empty', () => {
-        (
-          mockGameApplicationService.getCurrentGames as jest.Mock
-        ).mockResolvedValue(Result.success(testGames));
+        mockGameApplicationService.getCurrentGames.mockResolvedValue(
+          Result.success(testGames)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1101,9 +1114,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       it('should reload all games when search query is whitespace only', () => {
-        (
-          mockGameApplicationService.getCurrentGames as jest.Mock
-        ).mockResolvedValue(Result.success(testGames));
+        mockGameApplicationService.getCurrentGames.mockResolvedValue(
+          Result.success(testGames)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1117,7 +1130,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     describe('filterGamesByStatus', () => {
       const gamesWithDifferentStatuses = [
-        { ...mockGameDto, id: 'game-1', status: 'setup' as GameStatus },
+        { ...mockGameDto, id: 'game-1', status: 'scheduled' as GameStatus },
         { ...mockGameDto, id: 'game-2', status: 'in_progress' as GameStatus },
         { ...mockGameDto, id: 'game-3', status: 'completed' as GameStatus },
       ];
@@ -1132,15 +1145,15 @@ describe('GamesStore - Comprehensive Tests', () => {
         const { result } = renderHook(() => useGamesStore());
 
         act(() => {
-          result.current.filterGamesByStatus('setup');
+          result.current.filterGamesByStatus('scheduled');
         });
 
-        expect(result.current.statusFilter).toBe('setup');
+        expect(result.current.statusFilter).toBe('scheduled');
         expect(result.current.games).toHaveLength(1);
-        expect(result.current.games[0].status).toBe('setup');
+        expect(result.current.games[0].status).toBe('scheduled');
         expect(mockConsole.log).toHaveBeenCalledWith(
           '🎭 Filtering games by status:',
-          'setup'
+          'scheduled'
         );
       });
 
@@ -1167,9 +1180,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       it('should reload all games when filter is "all"', () => {
-        (
-          mockGameApplicationService.getCurrentGames as jest.Mock
-        ).mockResolvedValue(Result.success(gamesWithDifferentStatuses));
+        mockGameApplicationService.getCurrentGames.mockResolvedValue(
+          Result.success(gamesWithDifferentStatuses)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1212,9 +1225,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       it('should reload all games when teamId is empty', () => {
-        (
-          mockGameApplicationService.getCurrentGames as jest.Mock
-        ).mockResolvedValue(Result.success(gamesWithDifferentTeams));
+        mockGameApplicationService.getCurrentGames.mockResolvedValue(
+          Result.success(gamesWithDifferentTeams)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1229,24 +1242,35 @@ describe('GamesStore - Comprehensive Tests', () => {
 
   describe('loadDefaultData', () => {
     const mockDefaultDataResult: LoadDefaultDataResultDto = {
-      teamsCreated: 2,
-      playersCreated: 10,
-      seasonsCreated: 1,
-      gameTypesCreated: 3,
-      message: 'Default data loaded successfully',
+      success: true,
+      summary: {
+        teamsCreated: 2,
+        playersCreated: 10,
+        seasonsCreated: 1,
+        gameTypesCreated: 3,
+      },
+      details: {
+        teams: [],
+        players: [],
+        seasons: [],
+        gameTypes: [],
+      },
+      warnings: [],
+      errors: [],
+      executionTime: 150,
     };
 
     it('should load default data successfully', async () => {
-      (
-        mockDataApplicationService.loadDefaultData as jest.Mock
-      ).mockResolvedValue(Result.success(mockDefaultDataResult));
-      (mockTeamApplicationService.getTeams as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.loadDefaultData.mockResolvedValue(
+        Result.success(mockDefaultDataResult)
+      );
+      mockTeamApplicationService.getTeams.mockResolvedValue(
         Result.success([mockTeamDto])
       );
-      (mockDataApplicationService.getSeasons as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.getSeasons.mockResolvedValue(
         Result.success([mockSeasonDto])
       );
-      (mockDataApplicationService.getGameTypes as jest.Mock).mockResolvedValue(
+      mockDataApplicationService.getGameTypes.mockResolvedValue(
         Result.success([mockGameTypeDto])
       );
 
@@ -1275,9 +1299,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load default data failure', async () => {
       const errorMessage = 'Default data creation failed';
-      (
-        mockDataApplicationService.loadDefaultData as jest.Mock
-      ).mockResolvedValue(Result.failure(errorMessage));
+      mockDataApplicationService.loadDefaultData.mockResolvedValue(
+        Result.failure(errorMessage)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1296,9 +1320,21 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should handle load default data with no result', async () => {
-      (
-        mockDataApplicationService.loadDefaultData as jest.Mock
-      ).mockResolvedValue(Result.success(null));
+      mockDataApplicationService.loadDefaultData.mockResolvedValue(
+        Result.success({
+          success: true,
+          summary: {
+            teamsCreated: 0,
+            playersCreated: 0,
+            seasonsCreated: 0,
+            gameTypesCreated: 0,
+          },
+          details: { teams: [], players: [], seasons: [], gameTypes: [] },
+          warnings: [],
+          errors: [],
+          executionTime: 100,
+        })
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1313,9 +1349,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
     it('should handle load default data exception', async () => {
       const error = new Error('Service error');
-      (
-        mockDataApplicationService.loadDefaultData as jest.Mock
-      ).mockRejectedValue(error);
+      mockDataApplicationService.loadDefaultData.mockRejectedValue(error);
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1334,9 +1368,9 @@ describe('GamesStore - Comprehensive Tests', () => {
     });
 
     it('should handle unknown error type in loadDefaultData', async () => {
-      (
-        mockDataApplicationService.loadDefaultData as jest.Mock
-      ).mockRejectedValue('string error');
+      mockDataApplicationService.loadDefaultData.mockRejectedValue(
+        'string error'
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1373,9 +1407,9 @@ describe('GamesStore - Comprehensive Tests', () => {
           id: 'season-new',
           name: '2026 Season',
         };
-        (
-          mockDataApplicationService.createSeason as jest.Mock
-        ).mockResolvedValue(Result.success(newSeason));
+        mockDataApplicationService.createSeason.mockResolvedValue(
+          Result.success(newSeason)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1399,9 +1433,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle create season failure', async () => {
         const errorMessage = 'Season already exists';
-        (
-          mockDataApplicationService.createSeason as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.createSeason.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1421,9 +1455,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle create season exception', async () => {
         const error = new Error('Database error');
-        (
-          mockDataApplicationService.createSeason as jest.Mock
-        ).mockRejectedValue(error);
+        mockDataApplicationService.createSeason.mockRejectedValue(error);
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1447,10 +1479,10 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should update season successfully', async () => {
         const refreshedSeasons = [updatedSeason];
-        (
-          mockDataApplicationService.updateSeason as jest.Mock
-        ).mockResolvedValue(Result.success(true));
-        (mockDataApplicationService.getSeasons as jest.Mock).mockResolvedValue(
+        mockDataApplicationService.updateSeason.mockResolvedValue(
+          Result.success(updatedSeason)
+        );
+        mockDataApplicationService.getSeasons.mockResolvedValue(
           Result.success(refreshedSeasons)
         );
 
@@ -1474,9 +1506,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle update season failure', async () => {
         const errorMessage = 'Season update failed';
-        (
-          mockDataApplicationService.updateSeason as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.updateSeason.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1491,10 +1523,10 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       it('should handle refresh seasons failure after update', async () => {
-        (
-          mockDataApplicationService.updateSeason as jest.Mock
-        ).mockResolvedValue(Result.success(true));
-        (mockDataApplicationService.getSeasons as jest.Mock).mockResolvedValue(
+        mockDataApplicationService.updateSeason.mockResolvedValue(
+          Result.success(updatedSeason)
+        );
+        mockDataApplicationService.getSeasons.mockResolvedValue(
           Result.failure('Failed to fetch seasons')
         );
 
@@ -1512,9 +1544,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle update season exception', async () => {
         const error = new Error('Service error');
-        (
-          mockDataApplicationService.updateSeason as jest.Mock
-        ).mockRejectedValue(error);
+        mockDataApplicationService.updateSeason.mockRejectedValue(error);
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1533,9 +1563,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       const seasonId = 'season-1';
 
       it('should delete season successfully', async () => {
-        (
-          mockDataApplicationService.archiveSeason as jest.Mock
-        ).mockResolvedValue(Result.success(true));
+        mockDataApplicationService.archiveSeason.mockResolvedValue(
+          Result.success(void 0)
+        );
 
         // Set initial seasons in store
         act(() => {
@@ -1572,9 +1602,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle delete season failure', async () => {
         const errorMessage = 'Archive failed';
-        (
-          mockDataApplicationService.archiveSeason as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.archiveSeason.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1590,9 +1620,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle delete season exception', async () => {
         const error = new Error('Archive service error');
-        (
-          mockDataApplicationService.archiveSeason as jest.Mock
-        ).mockRejectedValue(error);
+        mockDataApplicationService.archiveSeason.mockRejectedValue(error);
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1615,7 +1643,11 @@ describe('GamesStore - Comprehensive Tests', () => {
         description: 'Tournament format game',
         defaultInnings: 9,
         allowTies: false,
-        mercyRule: 15,
+        mercyRule: {
+          enabled: true,
+          runDifferential: 15,
+          minimumInning: 5,
+        },
         isActive: true,
       };
 
@@ -1627,12 +1659,12 @@ describe('GamesStore - Comprehensive Tests', () => {
         };
         const refreshedGameTypes = [newGameType];
 
-        (
-          mockDataApplicationService.createGameType as jest.Mock
-        ).mockResolvedValue(Result.success(newGameType));
-        (
-          mockDataApplicationService.getGameTypes as jest.Mock
-        ).mockResolvedValue(Result.success(refreshedGameTypes));
+        mockDataApplicationService.createGameType.mockResolvedValue(
+          Result.success(newGameType)
+        );
+        mockDataApplicationService.getGameTypes.mockResolvedValue(
+          Result.success(refreshedGameTypes)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1655,9 +1687,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle create game type failure', async () => {
         const errorMessage = 'Game type validation failed';
-        (
-          mockDataApplicationService.createGameType as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.createGameType.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1677,12 +1709,12 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle refresh game types failure after creation', async () => {
         const newGameType = { ...mockGameTypeDto, id: 'gametype-new' };
-        (
-          mockDataApplicationService.createGameType as jest.Mock
-        ).mockResolvedValue(Result.success(newGameType));
-        (
-          mockDataApplicationService.getGameTypes as jest.Mock
-        ).mockResolvedValue(Result.failure('Failed to refresh game types'));
+        mockDataApplicationService.createGameType.mockResolvedValue(
+          Result.success(newGameType)
+        );
+        mockDataApplicationService.getGameTypes.mockResolvedValue(
+          Result.failure('Failed to refresh game types')
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1704,9 +1736,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle create game type exception', async () => {
         const error = new Error('Service unavailable');
-        (
-          mockDataApplicationService.createGameType as jest.Mock
-        ).mockRejectedValue(error);
+        mockDataApplicationService.createGameType.mockRejectedValue(error);
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1730,12 +1760,12 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should update game type successfully', async () => {
         const refreshedGameTypes = [updatedGameType];
-        (
-          mockDataApplicationService.updateGameType as jest.Mock
-        ).mockResolvedValue(Result.success(true));
-        (
-          mockDataApplicationService.getGameTypes as jest.Mock
-        ).mockResolvedValue(Result.success(refreshedGameTypes));
+        mockDataApplicationService.updateGameType.mockResolvedValue(
+          Result.success(updatedGameType)
+        );
+        mockDataApplicationService.getGameTypes.mockResolvedValue(
+          Result.success(refreshedGameTypes)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1771,9 +1801,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle update game type failure', async () => {
         const errorMessage = 'Game type update failed';
-        (
-          mockDataApplicationService.updateGameType as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.updateGameType.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1788,12 +1818,12 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       it('should handle refresh game types failure after update', async () => {
-        (
-          mockDataApplicationService.updateGameType as jest.Mock
-        ).mockResolvedValue(Result.success(true));
-        (
-          mockDataApplicationService.getGameTypes as jest.Mock
-        ).mockResolvedValue(Result.failure('Refresh failed'));
+        mockDataApplicationService.updateGameType.mockResolvedValue(
+          Result.success(updatedGameType)
+        );
+        mockDataApplicationService.getGameTypes.mockResolvedValue(
+          Result.failure('Refresh failed')
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1809,9 +1839,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle update game type exception', async () => {
         const error = new Error('Database connection lost');
-        (
-          mockDataApplicationService.updateGameType as jest.Mock
-        ).mockRejectedValue(error);
+        mockDataApplicationService.updateGameType.mockRejectedValue(error);
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1830,9 +1858,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       const gameTypeId = 'gametype-1';
 
       it('should delete game type successfully', async () => {
-        (
-          mockDataApplicationService.deleteGameType as jest.Mock
-        ).mockResolvedValue(Result.success(true));
+        mockDataApplicationService.deleteGameType.mockResolvedValue(
+          Result.success(void 0)
+        );
 
         // Set initial game types in store
         act(() => {
@@ -1859,9 +1887,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle delete game type failure', async () => {
         const errorMessage = 'Game type is in use';
-        (
-          mockDataApplicationService.deleteGameType as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.deleteGameType.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1877,9 +1905,9 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle delete game type with error fallback', async () => {
         const errorMessage = 'Cannot delete game type in use';
-        (
-          mockDataApplicationService.deleteGameType as jest.Mock
-        ).mockResolvedValue(Result.failure(errorMessage));
+        mockDataApplicationService.deleteGameType.mockResolvedValue(
+          Result.failure(errorMessage)
+        );
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1894,9 +1922,7 @@ describe('GamesStore - Comprehensive Tests', () => {
 
       it('should handle delete game type exception', async () => {
         const error = new Error('Delete operation failed');
-        (
-          mockDataApplicationService.deleteGameType as jest.Mock
-        ).mockRejectedValue(error);
+        mockDataApplicationService.deleteGameType.mockRejectedValue(error);
 
         const { result } = renderHook(() => useGamesStore());
 
@@ -1964,9 +1990,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       const games = [mockGameDto];
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockResolvedValue(Result.success(games));
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.success(games)
+      );
 
       const { result } = renderHook(() => useGamesStore());
 
@@ -1986,9 +2012,9 @@ describe('GamesStore - Comprehensive Tests', () => {
       });
 
       // Fail the next operation
-      (
-        mockGameApplicationService.getCurrentGames as jest.Mock
-      ).mockResolvedValue(Result.failure('Network error'));
+      mockGameApplicationService.getCurrentGames.mockResolvedValue(
+        Result.failure('Network error')
+      );
 
       const { result } = renderHook(() => useGamesStore());
 

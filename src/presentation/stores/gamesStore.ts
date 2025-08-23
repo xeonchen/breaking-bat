@@ -24,7 +24,6 @@ import {
   UpdateGameTypeCommand,
   ArchiveSeasonCommand,
 } from '@/application/services/interfaces/IDataApplicationService';
-// import { Result } from '@/application/common/Result'; // TODO: Remove unused import
 
 interface GamesState {
   // State
@@ -265,7 +264,6 @@ export const useGamesStore = create<GamesState>()(
               loading: false,
               error: `Failed to create game: ${message}`,
             });
-            throw error;
           }
         },
 
@@ -604,8 +602,7 @@ export const useGamesStore = create<GamesState>()(
           set({ loading: true, error: null });
           try {
             console.log('🗑️ Deleting season:', seasonId);
-            // TODO: Add deleteSeason method to IDataApplicationService
-            // For now, use archiveSeason as alternative
+            // Using archiveSeason as season deletion implementation
             const archiveCommand: ArchiveSeasonCommand = {
               seasonId,
               archiveReason: 'User requested deletion',

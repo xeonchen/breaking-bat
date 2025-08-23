@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import ScoringPage from '@/presentation/pages/ScoringPage';
-import { Game, Team, Position } from '@/domain';
+import { Game, Team, Position, Player, Scoreboard } from '@/domain';
 import theme from '@/presentation/theme';
 
 // Mock React Router
@@ -26,33 +26,38 @@ const mockGetTeams = jest.fn();
 const mockGetLineup = jest.fn();
 
 // Mock game data
+const mockPlayers = [
+  new Player(
+    'player-1',
+    'John Smith',
+    12,
+    'team-1',
+    [Position.pitcher()],
+    true
+  ),
+  new Player(
+    'player-2',
+    'Mike Johnson',
+    23,
+    'team-1',
+    [Position.catcher()],
+    true
+  ),
+  new Player(
+    'player-3',
+    'Tom Wilson',
+    34,
+    'team-1',
+    [Position.firstBase()],
+    true
+  ),
+];
+
 const mockTeam = new Team(
   'team-1',
   'Yankees',
   [],
-  [
-    {
-      id: 'player-1',
-      name: 'John Smith',
-      jerseyNumber: '12',
-      position: Position.pitcher(),
-      isActive: true,
-    },
-    {
-      id: 'player-2',
-      name: 'Mike Johnson',
-      jerseyNumber: '23',
-      position: Position.catcher(),
-      isActive: true,
-    },
-    {
-      id: 'player-3',
-      name: 'Tom Wilson',
-      jerseyNumber: '34',
-      position: Position.firstBase(),
-      isActive: true,
-    },
-  ]
+  mockPlayers.map((p) => p.id)
 );
 
 const mockGame = new Game(
@@ -67,19 +72,15 @@ const mockGame = new Game(
   'in_progress',
   'lineup-1',
   [],
-  {
-    homeScore: 6,
-    awayScore: 3,
-    inningScores: [
-      { inning: 1, homeRuns: 1, awayRuns: 0 },
-      { inning: 2, homeRuns: 0, awayRuns: 2 },
-      { inning: 3, homeRuns: 2, awayRuns: 0 },
-      { inning: 4, homeRuns: 1, awayRuns: 1 },
-      { inning: 5, homeRuns: 0, awayRuns: 0 },
-      { inning: 6, homeRuns: 1, awayRuns: 0 },
-      { inning: 7, homeRuns: 0, awayRuns: 0 },
-    ],
-  }
+  new Scoreboard(5, 3, [
+    { inning: 1, homeRuns: 1, awayRuns: 0 },
+    { inning: 2, homeRuns: 0, awayRuns: 2 },
+    { inning: 3, homeRuns: 2, awayRuns: 0 },
+    { inning: 4, homeRuns: 1, awayRuns: 1 },
+    { inning: 5, homeRuns: 0, awayRuns: 0 },
+    { inning: 6, homeRuns: 1, awayRuns: 0 },
+    { inning: 7, homeRuns: 0, awayRuns: 0 },
+  ])
 );
 
 const mockLineup = [
@@ -594,19 +595,19 @@ describe('ScoringPage Component', () => {
       const originalLoading = mockGameStoreState.loading;
       const originalGame = mockGameStoreState.currentGame;
       mockGameStoreState.loading = true;
-      mockGameStoreState.currentGame = null;
+      mockGameStoreState.currentGame = null as any;
 
       renderWithChakra(<ScoringPage />);
 
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
 
       mockGameStoreState.loading = originalLoading;
-      mockGameStoreState.currentGame = originalGame;
+      (mockGameStoreState as any).currentGame = originalGame;
     });
 
     it('should display error message when game fails to load', () => {
       const originalError = mockGameStoreState.error;
-      mockGameStoreState.error = 'Failed to load game data';
+      mockGameStoreState.error = 'Failed to load game data' as any;
 
       renderWithChakra(<ScoringPage />);
 
@@ -620,7 +621,7 @@ describe('ScoringPage Component', () => {
     it('should allow retrying after error', async () => {
       const user = userEvent.setup();
       const originalError = mockGameStoreState.error;
-      mockGameStoreState.error = 'Failed to load game data';
+      mockGameStoreState.error = 'Failed to load game data' as any;
 
       renderWithChakra(<ScoringPage />);
 
@@ -811,19 +812,19 @@ describe('ScoringPage Component', () => {
         mockGame.status,
         mockGame.lineupId,
         Array.from({ length: 15 }, (_, i) => `inning-${i + 1}`),
-        mockGame.finalScore,
+        mockGame.scoreboard,
         mockGame.createdAt,
         mockGame.updatedAt
       );
 
       const originalGame = mockGameStoreState.currentGame;
-      mockGameStoreState.currentGame = largeGameData;
+      (mockGameStoreState as any).currentGame = largeGameData;
 
       renderWithChakra(<ScoringPage />);
 
       expect(screen.getByTestId('scoring-page')).toBeInTheDocument();
 
-      mockGameStoreState.currentGame = originalGame;
+      (mockGameStoreState as any).currentGame = originalGame;
     });
 
     it('should memoize expensive calculations', () => {

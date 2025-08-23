@@ -49,7 +49,6 @@ describe('ApplicationFacade', () => {
       getGamesByTeam: jest.fn(),
       getGamesBySeason: jest.fn(),
       getCurrentGames: jest.fn(),
-      getAllGames: jest.fn(),
       startGame: jest.fn(),
       endGame: jest.fn(),
       pauseGame: jest.fn(),
@@ -82,7 +81,7 @@ describe('ApplicationFacade', () => {
       getAdvancedAnalytics: jest.fn(),
       createStatisticsSnapshot: jest.fn(),
       generatePerformanceReport: jest.fn(),
-    } as jest.Mocked<IStatisticsApplicationService>;
+    } as unknown as jest.Mocked<IStatisticsApplicationService>;
 
     mockDataService = {
       loadDefaultData: jest.fn(),
@@ -106,7 +105,7 @@ describe('ApplicationFacade', () => {
       createMigration: jest.fn(),
       applyMigration: jest.fn(),
       rollbackMigration: jest.fn(),
-    } as jest.Mocked<IDataApplicationService>;
+    } as unknown as jest.Mocked<IDataApplicationService>;
 
     // Create facade instance
     facade = new ApplicationFacade(
@@ -241,7 +240,7 @@ describe('ApplicationFacade', () => {
     it('should provide access to game service', () => {
       expect(facade.gameService).toBe(mockGameService);
       expect(typeof facade.gameService.createGame).toBe('function');
-      expect(typeof facade.gameService.getAllGames).toBe('function');
+      expect(typeof facade.gameService.getCurrentGames).toBe('function');
     });
 
     it('should provide access to statistics service', () => {
@@ -459,7 +458,7 @@ describe('ApplicationFacade', () => {
   describe('Memory Management', () => {
     it('should not retain references after reset', () => {
       setApplicationFacade(facade);
-      const weakRef = new WeakRef(facade);
+      const weakRef = new (globalThis as any).WeakRef(facade);
 
       resetApplicationFacade();
 
@@ -521,7 +520,7 @@ describe('ApplicationFacade', () => {
     });
 
     it('should handle concurrent set/get/reset operations', () => {
-      const operations = [];
+      const operations: any[] = [];
 
       for (let i = 0; i < 10; i++) {
         operations.push(() => setApplicationFacade(facade));

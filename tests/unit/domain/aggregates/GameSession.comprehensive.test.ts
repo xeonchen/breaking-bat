@@ -11,7 +11,6 @@ describe('GameSession - Comprehensive Tests', () => {
   let setupGame: Game;
   let inProgressGame: Game;
   let completedGame: Game;
-  let suspendedGame: Game;
   let lineup: CurrentBatter[];
   let gameSession: GameSession;
 
@@ -31,7 +30,7 @@ describe('GameSession - Comprehensive Tests', () => {
     const scoreboard = new Scoreboard();
     inProgressGame = setupGame.start('lineup-1');
     completedGame = inProgressGame.complete(scoreboard);
-    suspendedGame = inProgressGame.suspend();
+    // suspendedGame = inProgressGame.suspend();
 
     lineup = [
       {
@@ -111,7 +110,10 @@ describe('GameSession - Comprehensive Tests', () => {
         'regular',
         'away',
         'team-1',
-        'cancelled'
+        'completed',
+        null, // lineupId
+        [], // inningIds
+        new Scoreboard(5, 3, []) // scoreboard
       );
 
       expect(() => new GameSession(cancelledGame, lineup)).toThrow(
@@ -855,13 +857,12 @@ describe('GameSession - Comprehensive Tests', () => {
         inProgressGame.opponent,
         inProgressGame.date,
         inProgressGame.seasonId,
-        inProgressGame.type,
-        inProgressGame.venue,
+        inProgressGame.gameTypeId,
+        inProgressGame.homeAway,
         inProgressGame.teamId,
         'in_progress',
         'lineup-1', // Add lineup ID required for in-progress games
-        undefined,
-        undefined,
+        [],
         scoreboard
       );
       const session = new GameSession(gameWithScoreboard, lineup);

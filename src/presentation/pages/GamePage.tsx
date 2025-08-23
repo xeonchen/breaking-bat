@@ -340,8 +340,6 @@ export default function GamePage() {
     }>;
   }) => {
     try {
-      console.log('Saving lineup:', lineupData);
-
       // Find the current game
       const currentGame = games.find((g) => g.id === lineupData.gameId);
       if (!currentGame) {

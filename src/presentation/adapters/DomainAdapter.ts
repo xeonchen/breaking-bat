@@ -6,6 +6,7 @@
 import {
   Team as DomainTeam,
   Player as DomainPlayer,
+  PlayerStatistics,
   Game as DomainGame,
   Season as DomainSeason,
   GameType as DomainGameType,
@@ -73,9 +74,7 @@ export class DomainAdapter {
       isActive: domainPlayer.isActive,
       teamId: domainPlayer.teamId,
       statistics: domainPlayer.statistics
-        ? this.playerStatisticsToDTO(
-            domainPlayer.statistics as Record<string, unknown>
-          )
+        ? this.playerStatisticsToDTO(domainPlayer.statistics)
         : undefined,
     };
   }
@@ -91,34 +90,21 @@ export class DomainAdapter {
    * Convert domain player statistics to DTO
    */
   public static playerStatisticsToDTO(
-    domainStats: Record<string, unknown>
+    domainStats: PlayerStatistics
   ): PlayerStatisticsDTO {
     return {
-      atBats: typeof domainStats.atBats === 'number' ? domainStats.atBats : 0,
-      hits: typeof domainStats.hits === 'number' ? domainStats.hits : 0,
-      doubles:
-        typeof domainStats.doubles === 'number' ? domainStats.doubles : 0,
-      triples:
-        typeof domainStats.triples === 'number' ? domainStats.triples : 0,
-      homeRuns:
-        typeof domainStats.homeRuns === 'number' ? domainStats.homeRuns : 0,
-      runs: typeof domainStats.runs === 'number' ? domainStats.runs : 0,
-      rbis: typeof domainStats.rbis === 'number' ? domainStats.rbis : 0,
-      walks: typeof domainStats.walks === 'number' ? domainStats.walks : 0,
-      strikeouts:
-        typeof domainStats.strikeouts === 'number' ? domainStats.strikeouts : 0,
-      battingAverage:
-        typeof domainStats.battingAverage === 'number'
-          ? domainStats.battingAverage
-          : 0,
-      onBasePercentage:
-        typeof domainStats.onBasePercentage === 'number'
-          ? domainStats.onBasePercentage
-          : 0,
-      sluggingPercentage:
-        typeof domainStats.sluggingPercentage === 'number'
-          ? domainStats.sluggingPercentage
-          : 0,
+      atBats: domainStats.atBats,
+      hits: domainStats.hits,
+      doubles: domainStats.doubles,
+      triples: domainStats.triples,
+      homeRuns: domainStats.homeRuns,
+      runs: domainStats.runs,
+      rbis: domainStats.rbis,
+      walks: domainStats.walks,
+      strikeouts: domainStats.strikeouts,
+      battingAverage: domainStats.battingAverage,
+      onBasePercentage: domainStats.onBasePercentage,
+      sluggingPercentage: domainStats.sluggingPercentage,
     };
   }
 

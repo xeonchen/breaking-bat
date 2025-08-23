@@ -110,25 +110,15 @@ test.describe('Lineup Setup Management (@lineup-configuration:AC001-@lineup-conf
     if (lineupInterface) {
       console.log('=== TESTING LINEUP INTERFACE COMPLETENESS ===');
 
-      // Test defensive positions
-      await testDefensivePositions(page);
-
-      // Test batting order
-      await testBattingOrder(page);
-
-      // Test substitute management
-      await testSubstituteManagement(page);
-
-      // Test lineup validation
-      await testLineupValidation(page);
-
-      // Test save functionality
-      await testLineupSaving(page);
+      // TODO: Test defensive positions
+      // TODO: Test batting order
+      // TODO: Test substitute management
+      // TODO: Test lineup validation
+      // TODO: Test save functionality
     } else {
       console.log('⚠️ Could not access lineup interface - documenting gap');
 
-      // Document what we expect to see
-      await documentExpectedLineupInterface(page);
+      // TODO: Document what we expect to see in lineup interface
     }
   });
 
@@ -549,44 +539,6 @@ async function testLineupInterface(page: Page): Promise<void> {
       console.log(`    ✅ Found ${element}`);
     }
   }
-}
-
-/**
- * Additional test functions for comprehensive lineup testing
- */
-async function testDefensivePositions(page: Page): Promise<void> {
-  console.log('Testing defensive positions...');
-  // Implementation would test all 9 defensive positions
-}
-
-async function testBattingOrder(page: Page): Promise<void> {
-  console.log('Testing batting order...');
-  // Implementation would test batting order from 1-9
-}
-
-async function testSubstituteManagement(page: Page): Promise<void> {
-  console.log('Testing substitute management...');
-  // Implementation would test bench players and substitutions
-}
-
-async function testLineupValidation(page: Page): Promise<void> {
-  console.log('Testing lineup validation...');
-  // Implementation would test validation rules
-}
-
-async function testLineupSaving(page: Page): Promise<void> {
-  console.log('Testing lineup saving...');
-  // Implementation would test save functionality
-}
-
-async function documentExpectedLineupInterface(page: Page): Promise<void> {
-  console.log('=== EXPECTED LINEUP INTERFACE ===');
-  console.log('The lineup interface should include:');
-  console.log('1. Defensive position assignments (9 positions)');
-  console.log('2. Batting order configuration (1-9)');
-  console.log('3. Substitute/bench player management');
-  console.log('4. Validation for complete lineup');
-  console.log('5. Save/confirm functionality');
 }
 
 async function setupBasicLineup(page: Page): Promise<void> {

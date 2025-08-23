@@ -2,10 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
-import {
-  PresentationPosition,
-  PresentationBattingResult,
-} from '@/presentation/types/presentation-values';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
 // Mock current batter data

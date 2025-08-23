@@ -1,5 +1,11 @@
 import { Game } from '@/domain/entities/Game';
 
+export interface LineupData {
+  lineupId: string;
+  playerIds: string[];
+  defensivePositions: string[];
+}
+
 /**
  * Repository interface for Game entities
  * Defines the contract for game data persistence
@@ -53,8 +59,5 @@ export interface IGameRepository {
   /**
    * Save lineup for a game
    */
-  saveLineup(
-    gameId: string,
-    lineupData: Record<string, unknown>
-  ): Promise<void>;
+  saveLineup(gameId: string, lineupData: LineupData): Promise<void>;
 }

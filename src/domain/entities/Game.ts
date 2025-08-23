@@ -295,6 +295,13 @@ export class Game extends BaseEntity {
   }
 
   /**
+   * Check if the game is completed
+   */
+  public isCompleted(): boolean {
+    return this.status === 'completed';
+  }
+
+  /**
    * Check if the game is suspended
    */
   public isSuspended(): boolean {

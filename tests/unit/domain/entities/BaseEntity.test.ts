@@ -246,7 +246,6 @@ describe('BaseEntity', () => {
 
       // In JavaScript, we can still modify these properties even though TypeScript prevents it
       // This tests the runtime behavior
-      const originalId = entity.id;
       const originalCreatedAt = entity.createdAt;
       const originalUpdatedAt = entity.updatedAt;
 

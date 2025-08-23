@@ -45,7 +45,10 @@ test.describe('Live Scoring - At-Bat Recording (@live-game-scoring:AC001, @live-
       });
       console.log('✅ Scoring page loaded successfully');
     } catch (e) {
-      console.log('❌ Scoring page failed to load:', e.message);
+      console.log(
+        '❌ Scoring page failed to load:',
+        e instanceof Error ? e.message : String(e)
+      );
     }
 
     // Should navigate to live scoring page

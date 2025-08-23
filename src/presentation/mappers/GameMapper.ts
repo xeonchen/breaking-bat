@@ -47,6 +47,7 @@ export class GameMapper {
       postponed: 'suspended',
       suspended: 'suspended',
     };
+    // eslint-disable-next-line security/detect-object-injection
     return statusMap[status] || 'setup';
   }
 
@@ -62,6 +63,7 @@ export class GameMapper {
       completed: 'completed',
       suspended: 'cancelled',
     };
+    // eslint-disable-next-line security/detect-object-injection
     return statusMap[status] || 'scheduled';
   }
 
@@ -94,49 +96,49 @@ class PresentationGameImpl implements PresentationGame {
   constructor(private readonly gameDto: GameDto) {}
 
   // Delegate properties to wrapped GameDto
-  get id(): string {
+  public get id(): string {
     return this.gameDto.id;
   }
-  get name(): string {
+  public get name(): string {
     return this.gameDto.name;
   }
-  get teamId(): string {
+  public get teamId(): string {
     return this.gameDto.teamId;
   }
-  get teamName(): string {
+  public get teamName(): string {
     return this.gameDto.teamName;
   }
-  get opponent(): string {
+  public get opponent(): string {
     return this.gameDto.opponent;
   }
-  get date(): Date {
+  public get date(): Date {
     return this.gameDto.date;
   }
-  get lineupId(): string | undefined {
-    return undefined;
-  } // TODO: Add to GameDto if needed
+  public get lineupId(): string | undefined {
+    return this.gameDto.lineupId;
+  }
 
-  get status(): PresentationGameStatus {
+  public get status(): PresentationGameStatus {
     return GameMapper.statusToPresentation(this.gameDto.status);
   }
 
-  get finalScore(): PresentationGameScore | undefined {
+  public get finalScore(): PresentationGameScore | undefined {
     return this.gameDto.score
       ? GameMapper.scoreToPresentation(this.gameDto.score)
       : undefined;
   }
 
   // Implement required methods
-  getVenueText(): string {
+  public getVenueText(): string {
     const location = this.gameDto.location || 'Unknown Location';
     const homeAway = this.gameDto.isHomeGame ? 'vs' : '@';
     return `${homeAway} ${location}`;
   }
 
-  setLineup(_lineupId: string): PresentationGameMethods {
+  public setLineup(lineupId: string): PresentationGameMethods {
     // Return a new instance with the lineup ID set
     // Note: This is a pure function that doesn't mutate the original
-    const updatedDto = { ...this.gameDto };
+    const updatedDto = { ...this.gameDto, lineupId };
     return new PresentationGameImpl(updatedDto);
   }
 }

@@ -24,6 +24,7 @@ export interface IPlayerRepository {
    * Find players by team ID
    */
   findByTeamId(teamId: string): Promise<Player[]>;
+  findActiveByTeamId(teamId: string): Promise<Player[]>;
 
   /**
    * Find players by position

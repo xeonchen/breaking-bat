@@ -219,7 +219,7 @@ describe('TeamsPage Component', () => {
     it('should handle team creation errors', async () => {
       // Set error state in mock store
       const originalError = mockStoreState.error;
-      mockStoreState.error = 'Team name already exists';
+      (mockStoreState as any).error = 'Team name already exists';
 
       renderWithChakra(<TeamsPage />);
 
@@ -421,7 +421,7 @@ describe('TeamsPage Component', () => {
     it('should display error message when teams fail to load', () => {
       // Set error state in mock store
       const originalError = mockStoreState.error;
-      mockStoreState.error = 'Failed to load teams';
+      (mockStoreState as any).error = 'Failed to load teams';
 
       renderWithChakra(<TeamsPage />);
 
@@ -440,7 +440,7 @@ describe('TeamsPage Component', () => {
       // Set error state and mock clear function
       const originalError = mockStoreState.error;
       const originalClearError = mockStoreState.clearError;
-      mockStoreState.error = 'Failed to load teams';
+      (mockStoreState as any).error = 'Failed to load teams';
       mockStoreState.clearError = mockClearError;
 
       renderWithChakra(<TeamsPage />);

@@ -50,7 +50,7 @@ describe('SeasonsPage Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useGamesStore as jest.Mock).mockReturnValue(mockStore);
+    (useGamesStore as any).mockReturnValue(mockStore);
   });
 
   const renderSeasonsPage = () => {
@@ -87,7 +87,7 @@ describe('SeasonsPage Component', () => {
 
   describe('Loading State', () => {
     it('should show loading spinner when loading is true', () => {
-      (useGamesStore as jest.Mock).mockReturnValue({
+      (useGamesStore as any).mockReturnValue({
         ...mockStore,
         loading: true,
       });
@@ -150,7 +150,7 @@ describe('SeasonsPage Component', () => {
     });
 
     it('should show empty state when no seasons exist', () => {
-      (useGamesStore as jest.Mock).mockReturnValue({
+      (useGamesStore as any).mockReturnValue({
         ...mockStore,
         seasons: [],
       });

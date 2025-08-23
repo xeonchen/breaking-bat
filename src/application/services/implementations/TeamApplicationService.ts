@@ -12,6 +12,7 @@ import {
   ArchiveTeamCommand,
   GetTeamByIdQuery,
   GetTeamsBySeasonQuery,
+  GetTeamsQuery,
   SearchTeamsQuery,
   GetTeamRosterQuery,
   GetTeamStatisticsQuery,
@@ -649,12 +650,22 @@ export class TeamApplicationService implements ITeamApplicationService {
     }
   }
 
-  public async getTeams(
-    _query?: Record<string, unknown>
-  ): Promise<Result<Team[]>> {
+  public async getTeams(_query?: GetTeamsQuery): Promise<Result<TeamDto[]>> {
     try {
       const teams = await this.teamPersistencePort.findAll();
-      return Result.success(teams);
+      const teamDtos = await Promise.all(
+        teams.map(async (team) => ({
+          id: team.id,
+          name: team.name,
+          organizationId: undefined, // Team doesn't have organizationId
+          seasonIds: team.seasonIds || [],
+          playerCount: await this.getPlayerCount(team.id),
+          isActive: true, // Default to active
+          createdAt: team.createdAt,
+          updatedAt: team.updatedAt,
+        }))
+      );
+      return Result.success(teamDtos);
     } catch (error) {
       this.loggingPort.error('Failed to get teams', error as Error);
       return Result.failure(`Failed to get teams: ${(error as Error).message}`);

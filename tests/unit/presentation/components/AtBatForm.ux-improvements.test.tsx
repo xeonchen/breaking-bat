@@ -9,7 +9,7 @@
  * 5. AC017A-C: Baserunner validation rules
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { AtBatForm } from '@/presentation/components/AtBatForm';

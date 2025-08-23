@@ -1,6 +1,5 @@
 import { BaserunnerAdvancementService } from '@/domain/services/BaserunnerAdvancementService';
 import { BattingResult, BaserunnerState } from '@/domain';
-import type { BaserunnerUI } from '@/presentation/types/BaserunnerUI';
 
 describe('BaserunnerAdvancementService', () => {
   let service: BaserunnerAdvancementService;
@@ -276,11 +275,7 @@ describe('BaserunnerAdvancementService', () => {
     });
 
     it('should validate RBI limits', () => {
-      const initialState: BaserunnerState = {
-        first: { playerId: 'player-a', playerName: 'Player A' },
-        second: null,
-        third: null,
-      };
+      const initialState = new BaserunnerState('player-a', null, null);
       const battingResult = BattingResult.single();
       const batterId = 'batter-1';
 

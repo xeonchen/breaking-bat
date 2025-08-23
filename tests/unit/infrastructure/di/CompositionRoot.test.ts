@@ -460,7 +460,7 @@ describe('CompositionRoot', () => {
     it('should allow garbage collection after reset', () => {
       compositionRoot.compose();
       const container = compositionRoot.getContainer();
-      const weakRef = new WeakRef(container);
+      const weakRef = new (globalThis as any).WeakRef(container);
 
       compositionRoot.reset();
 

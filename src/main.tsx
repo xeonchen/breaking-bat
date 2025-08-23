@@ -11,7 +11,6 @@ import { ApplicationBootstrap } from './infrastructure/bootstrap/ApplicationBoot
 async function startApplication() {
   try {
     // Bootstrap application with Clean Architecture dependency composition
-    console.log('🚀 Starting Clean Architecture application...');
     await ApplicationBootstrap.bootstrap();
 
     // Render React application after successful initialization
@@ -28,8 +27,6 @@ async function startApplication() {
       </StrictMode>
     );
   } catch (error) {
-    console.error('Failed to start application:', error);
-
     // Display error to user
     const rootElement = document.getElementById('root');
     if (rootElement) {

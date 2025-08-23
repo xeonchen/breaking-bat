@@ -260,14 +260,16 @@ export class IndexedDBAtBatRepository implements IAtBatPersistencePort {
   // Required interface methods
   public async findByInning(
     gameId: string,
-    _inning: number,
+    inning: number,
     _isTopInning?: boolean
   ): Promise<AtBat[]> {
-    // For now, we'll need to find by gameId and filter
-    // In a full implementation, we'd need to track inning number and half
+    // Build inning ID based on inning number and half
+    const half =
+      _isTopInning !== undefined ? (_isTopInning ? 'top' : 'bottom') : '';
+    const inningId = half ? `inning-${inning}-${half}` : `inning${inning}`;
+
     const atBats = await this.findByGameId(gameId);
-    // TODO: Add proper inning filtering when inning structure is implemented
-    return atBats;
+    return atBats.filter((atBat) => atBat.inningId === inningId);
   }
 
   public async findByResult(
@@ -293,25 +295,40 @@ export class IndexedDBAtBatRepository implements IAtBatPersistencePort {
     runs: number;
     rbis: number;
   }> {
-    const atBats = await this.db
-      .table('atBats')
-      .where('gameId')
-      .equals(gameId)
-      .filter((record: AtBatRecord) => record.batterId === playerId)
-      .toArray();
+    // Get all at-bats for the game and filter for this player
+    const allAtBats = await this.findByGameId(gameId);
+    const playerAtBats = allAtBats.filter(
+      (atBat) => atBat.batterId === playerId
+    );
 
     let atBatCount = 0;
     let hits = 0;
     let runs = 0;
     let rbis = 0;
 
-    atBats.forEach((record) => {
-      atBatCount++;
-      rbis += record.rbis;
-      runs += record.runsScored?.length || 0;
+    // Also check all at-bats for runs scored by this player
+    allAtBats.forEach((atBat) => {
+      if (atBat.runsScored && atBat.runsScored.includes(playerId)) {
+        runs++;
+      }
+    });
+
+    playerAtBats.forEach((atBat) => {
+      rbis += atBat.rbis;
+
+      const result = atBat.result.value;
+
+      // Count walks separately (not at-bats)
+      if (result === 'BB' || result === 'IBB') {
+        return;
+      }
+
+      // Count at-bats (excludes walks and sacrifices)
+      if (result !== 'SF') {
+        atBatCount++;
+      }
 
       // Check if result is a hit
-      const result = record.result;
       if (['1B', '2B', '3B', 'HR'].includes(result)) {
         hits++;
       }

@@ -1,9 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import {
-  createTestPrerequisites,
-  createTestGame,
-  setupTestLineup,
-} from './helpers/test-data-setup';
+import { createTestGame, setupTestLineup } from './helpers/test-data-setup';
 
 /**
  * UI Simplification and Enhanced User Experience E2E Tests
@@ -124,25 +120,27 @@ test.describe('UI Simplification and Enhanced User Experience (@app-framework:AC
 
       console.log('✅ Mobile full workflow test completed with AC validation');
     } catch (error) {
-      console.log(`❌ Mobile full workflow failed: ${error.message}`);
+      console.log(
+        `❌ Mobile full workflow failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       // Complete the test gracefully
     }
   });
 
-  test('should test mobile-specific UI elements', async ({ page }) => {
+  test('should test mobile-specific UI elements', async () => {
     console.log('=== TESTING MOBILE-SPECIFIC UI ELEMENTS ===');
 
-    // Test hamburger menu
-    await testMobileMenu(page);
+    // TODO: Implement mobile menu testing
+    console.log('Testing mobile-specific UI elements - hamburger menu');
 
-    // Test touch interactions
-    await testTouchInteractions(page);
+    // TODO: Implement touch interaction testing
+    console.log('Testing mobile-specific UI elements - touch interactions');
 
-    // Test mobile forms
-    await testMobileForms(page);
+    // TODO: Implement mobile form testing
+    console.log('Testing mobile-specific UI elements - forms');
 
-    // Test mobile tables/cards
-    await testMobileDataDisplay(page);
+    // TODO: Implement mobile data display testing
+    console.log('Testing mobile-specific UI elements - tables/cards');
   });
 
   test('should test landscape orientation workflow', async ({ page }) => {
@@ -264,7 +262,9 @@ test.describe('UI Simplification and Enhanced User Experience (@app-framework:AC
         '✅ Tablet scoring workflow test completed with app-framework:AC009 validation'
       );
     } catch (error) {
-      console.log(`❌ Tablet workflow test failed: ${error.message}`);
+      console.log(
+        `❌ Tablet workflow test failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       // Still complete the test to avoid cascading failures
     }
   });
@@ -349,7 +349,9 @@ test.describe('UI Simplification and Enhanced User Experience (@app-framework:AC
 
       console.log('✅ Mobile scoring AC validation completed');
     } catch (error) {
-      console.log(`❌ Mobile scoring test encountered issue: ${error.message}`);
+      console.log(
+        `❌ Mobile scoring test encountered issue: ${error instanceof Error ? error.message : String(error)}`
+      );
 
       // Fallback: Test mobile scoring page accessibility without full workflow
       await page.goto('/scoring');
@@ -367,30 +369,30 @@ test.describe('UI Simplification and Enhanced User Experience (@app-framework:AC
     }
   });
 
-  test('should test mobile accessibility features', async ({ page }) => {
+  test('should test mobile accessibility features', async () => {
     console.log('=== TESTING MOBILE ACCESSIBILITY ===');
 
-    // Test touch target sizes
-    await testTouchTargetSizes(page);
+    // TODO: Implement touch target size testing
+    console.log('Testing mobile accessibility - touch target sizes');
 
-    // Test mobile keyboard navigation
-    await testMobileKeyboardNavigation(page);
+    // TODO: Implement mobile keyboard navigation testing
+    console.log('Testing mobile accessibility - keyboard navigation');
 
-    // Test mobile screen reader compatibility
-    await testMobileScreenReader(page);
+    // TODO: Implement mobile screen reader testing
+    console.log('Testing mobile accessibility - screen reader compatibility');
   });
 
-  test('should test mobile error handling', async ({ page }) => {
+  test('should test mobile error handling', async () => {
     console.log('=== TESTING MOBILE ERROR HANDLING ===');
 
-    // Test network errors on mobile
-    await testMobileNetworkErrors(page);
+    // TODO: Implement mobile network error testing
+    console.log('Testing mobile error handling - network errors');
 
-    // Test form validation on mobile
-    await testMobileFormValidation(page);
+    // TODO: Implement mobile form validation testing
+    console.log('Testing mobile error handling - form validation');
 
-    // Test mobile error recovery
-    await testMobileErrorRecovery(page);
+    // TODO: Implement mobile error recovery testing
+    console.log('Testing mobile error handling - error recovery');
   });
 
   test('should test mobile performance', async ({ page }) => {
@@ -415,8 +417,8 @@ test.describe('UI Simplification and Enhanced User Experience (@app-framework:AC
       .isVisible({ timeout: 500 });
     console.log(`Loading spinner shown: ${hasLoadingSpinner}`);
 
-    // Test navigation performance
-    await testMobileNavigationPerformance(page);
+    // TODO: Implement mobile navigation performance testing
+    console.log('Testing mobile performance - navigation performance');
   });
 });
 
@@ -483,265 +485,4 @@ async function testMobileNavigation(page: Page): Promise<void> {
       await page.waitForTimeout(500);
     }
   }
-}
-
-/**
- * Helper: Create prerequisites on mobile
- */
-async function createPrerequisitesOnMobile(page: Page): Promise<void> {
-  console.log('Creating prerequisites on mobile...');
-
-  // Use dedicated test setup instead of sample data button
-  await createTestPrerequisites(page, {
-    teamName: 'Mobile Test Team',
-    playerCount: 12,
-    seasonName: 'Mobile Season',
-    gameTypeName: 'Mobile Game Type',
-  });
-
-  console.log('  ✅ Prerequisites created on mobile');
-}
-
-/**
- * Helper: Create game on mobile using dedicated test setup
- */
-async function createGameOnMobile(page: Page, gameName: string): Promise<void> {
-  console.log('Creating game on mobile using dedicated test setup...');
-
-  try {
-    // Check if page is still available before proceeding
-    if (page.isClosed()) {
-      console.log('❌ Page closed before mobile game creation');
-      return;
-    }
-
-    await createTestGame(page, {
-      name: gameName,
-      opponent: 'Mobile Opponents',
-      teamName: 'Mobile Test Team',
-      seasonName: 'Mobile Season',
-      gameTypeName: 'Mobile Game Type',
-    });
-
-    console.log('  ✅ Game created on mobile with dedicated setup');
-  } catch (error) {
-    console.log(`❌ Mobile game creation failed: ${error.message}`);
-    // Don't throw to avoid cascading failures
-  }
-}
-
-/**
- * Helper: Test game management on mobile
- */
-async function testGameManagementOnMobile(
-  page: Page,
-  gameName: string
-): Promise<void> {
-  console.log('Testing game management on mobile...');
-
-  try {
-    // Check if page is still available
-    if (page.isClosed()) {
-      console.log('❌ Page closed before game management test');
-      return;
-    }
-
-    await page.goto('/games');
-    await page.waitForTimeout(1000);
-  } catch (error) {
-    console.log(`❌ Navigation failed: ${error.message}`);
-    return;
-  }
-
-  const gameCard = page
-    .locator('[data-testid*="game-"]')
-    .filter({ hasText: gameName })
-    .first();
-
-  if (await gameCard.isVisible({ timeout: 2000 })) {
-    console.log('  ✅ Game card visible on mobile');
-
-    // Test mobile game card interactions
-    const cardHeight = await gameCard.boundingBox();
-    console.log(`  Mobile game card height: ${cardHeight?.height}px`);
-
-    // Test if all information is readable
-    const cardText = await gameCard.textContent();
-    const hasEssentialInfo =
-      cardText?.includes(gameName) && cardText?.includes('Mobile Opponents');
-    console.log(`  Essential info visible: ${hasEssentialInfo}`);
-
-    // Test mobile action buttons
-    const actionButtons = gameCard.locator('button');
-    const buttonCount = await actionButtons.count();
-    console.log(`  Action buttons available: ${buttonCount}`);
-
-    // Test button accessibility on mobile
-    if (buttonCount > 0) {
-      const firstButton = actionButtons.first();
-      const buttonSize = await firstButton.boundingBox();
-      console.log(
-        `  First button size: ${buttonSize?.width}x${buttonSize?.height}px`
-      );
-
-      // Check if button is large enough for touch (44px minimum recommended)
-      const isTouchFriendly =
-        (buttonSize?.width || 0) >= 44 && (buttonSize?.height || 0) >= 44;
-      console.log(`  Touch-friendly button size: ${isTouchFriendly}`);
-    }
-  } else {
-    console.log('  ❌ Game card not visible on mobile');
-  }
-}
-
-/**
- * Helper: Test lineup setup on mobile
- */
-async function testLineupSetupOnMobile(
-  page: Page,
-  gameName: string
-): Promise<void> {
-  console.log('Testing lineup setup on mobile...');
-
-  const gameCard = page
-    .locator('[data-testid*="game-"]')
-    .filter({ hasText: gameName })
-    .first();
-
-  // Look for lineup setup button
-  const setupLineupBtn = gameCard.locator(
-    '[data-testid="setup-lineup-button"]'
-  );
-
-  if (await setupLineupBtn.isVisible({ timeout: 2000 })) {
-    await setupLineupBtn.click();
-
-    // Wait for lineup modal to appear
-    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
-      timeout: 5000,
-    });
-    console.log('  ✅ Mobile lineup interface accessible');
-
-    // Complete lineup setup for all 9 positions
-    for (let i = 1; i <= 9; i++) {
-      await page
-        .getByTestId(`batting-position-${i}-player`)
-        .selectOption({ index: i });
-      await page
-        .getByTestId(`batting-position-${i}-defensive-position`)
-        .selectOption({ index: i });
-    }
-
-    // Save the lineup
-    await page.getByTestId('save-lineup-button').click();
-    console.log('  ✅ Lineup setup completed on mobile');
-
-    // Wait for modal to close
-    await page.waitForSelector('[data-testid="lineup-setup-modal"]', {
-      state: 'hidden',
-      timeout: 3000,
-    });
-  } else {
-    console.log('  ❌ No lineup setup available on mobile');
-  }
-}
-
-/**
- * Helper: Test game starting on mobile
- */
-async function testGameStartOnMobile(
-  page: Page,
-  gameName: string
-): Promise<void> {
-  console.log('Testing game start on mobile...');
-
-  const gameCard = page
-    .locator('[data-testid*="game-"]')
-    .filter({ hasText: gameName })
-    .first();
-
-  const startGameBtn = gameCard.locator('[data-testid="start-game-button"]');
-
-  if (await startGameBtn.isVisible({ timeout: 2000 })) {
-    console.log('  ✅ Start game button visible on mobile');
-
-    const buttonSize = await startGameBtn.boundingBox();
-    console.log(
-      `  Start button size: ${buttonSize?.width}x${buttonSize?.height}px`
-    );
-
-    await startGameBtn.click();
-    await page.waitForTimeout(2000);
-
-    // Check what happened
-    const currentUrl = page.url();
-    const navigationOccurred = currentUrl.includes('/scoring');
-    const errorShown = await page
-      .locator('text=Lineup Required')
-      .isVisible({ timeout: 1000 });
-
-    console.log(`  Navigation to scoring: ${navigationOccurred}`);
-    console.log(`  Lineup error shown: ${errorShown}`);
-  } else {
-    console.log('  ❌ Start game button not visible on mobile');
-  }
-}
-
-/**
- * Additional mobile-specific test helper functions
- */
-async function testMobileMenu(page: Page): Promise<void> {
-  console.log('Testing mobile menu functionality...');
-}
-
-async function testTouchInteractions(page: Page): Promise<void> {
-  console.log('Testing touch interactions...');
-}
-
-async function testMobileForms(page: Page): Promise<void> {
-  console.log('Testing mobile form usability...');
-}
-
-async function testMobileDataDisplay(page: Page): Promise<void> {
-  console.log('Testing mobile data display...');
-}
-
-async function testMobileScoringLayout(page: Page): Promise<void> {
-  console.log('Testing mobile scoring layout...');
-}
-
-async function testMobileAtBatRecording(page: Page): Promise<void> {
-  console.log('Testing mobile at-bat recording...');
-}
-
-async function testMobileGameControls(page: Page): Promise<void> {
-  console.log('Testing mobile game controls...');
-}
-
-async function testTouchTargetSizes(page: Page): Promise<void> {
-  console.log('Testing touch target sizes...');
-}
-
-async function testMobileKeyboardNavigation(page: Page): Promise<void> {
-  console.log('Testing mobile keyboard navigation...');
-}
-
-async function testMobileScreenReader(page: Page): Promise<void> {
-  console.log('Testing mobile screen reader compatibility...');
-}
-
-async function testMobileNetworkErrors(page: Page): Promise<void> {
-  console.log('Testing mobile network error handling...');
-}
-
-async function testMobileFormValidation(page: Page): Promise<void> {
-  console.log('Testing mobile form validation...');
-}
-
-async function testMobileErrorRecovery(page: Page): Promise<void> {
-  console.log('Testing mobile error recovery...');
-}
-
-async function testMobileNavigationPerformance(page: Page): Promise<void> {
-  console.log('Testing mobile navigation performance...');
 }

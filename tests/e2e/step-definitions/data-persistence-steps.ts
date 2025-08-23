@@ -170,7 +170,7 @@ Then('all data should persist between browser sessions', async () => {
 // @app-framework:AC013 - Offline functionality
 Given('the application is offline', async () => {
   // Simulate offline mode
-  await page.setOfflineMode(true);
+  await page.context().setOffline(true);
 });
 
 When('I use the application', async () => {
@@ -183,5 +183,5 @@ Then('all features should work without network connection', async () => {
   await expect(page.getByTestId('teams-page')).toBeVisible();
 
   // Re-enable online mode for cleanup
-  await page.setOfflineMode(false);
+  await page.context().setOffline(false);
 });

@@ -136,6 +136,7 @@ export interface GameDto {
   location?: string;
   isHomeGame: boolean;
   status: GameStatus;
+  lineupId?: string;
   seasonId?: string;
   gameTypeId?: string;
   currentInning?: number;

@@ -46,7 +46,7 @@ describe('Simple Player Creation Test', () => {
     console.log('Team creation result:', teamResult);
     expect(teamResult.isSuccess).toBe(true);
     expect(teamResult.value).toBeDefined();
-    testTeamId = teamResult.value.id;
+    testTeamId = teamResult.value!.id;
     console.log('✅ Test team created with ID:', testTeamId);
   });
 
@@ -74,8 +74,8 @@ describe('Simple Player Creation Test', () => {
 
     expect(result.isSuccess).toBe(true);
     expect(result.value).toBeDefined();
-    expect(result.value.name).toBe('Ted Williams');
-    expect(result.value.jerseyNumber).toBe(9);
+    expect(result.value!.name).toBe('Ted Williams');
+    expect(result.value!.jerseyNumber).toBe(9);
 
     console.log('✅ Player created successfully');
   });

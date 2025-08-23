@@ -12,10 +12,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import userEvent from '@testing-library/user-event';
 import { AtBatForm } from '@/presentation/components/AtBatForm';
-import {
-  PresentationPosition,
-  PresentationBattingResult,
-} from '@/presentation/types/presentation-values';
+import { PresentationPosition } from '@/presentation/types/presentation-values';
 import theme from '@/presentation/theme';
 
 const mockCurrentBatter = {
@@ -131,7 +128,7 @@ describe('Missing Buttons - AC003 Coverage', () => {
         });
       } catch (error) {
         // Expected to fail until button is implemented
-        expect(error.message).toContain('Unable to find an element');
+        expect((error as Error).message).toContain('Unable to find an element');
       }
     });
 
@@ -161,7 +158,7 @@ describe('Missing Buttons - AC003 Coverage', () => {
         });
       } catch (error) {
         // Expected to fail until button is implemented
-        expect(error.message).toContain('Unable to find an element');
+        expect((error as Error).message).toContain('Unable to find an element');
       }
     });
   });
@@ -202,7 +199,7 @@ describe('Missing Buttons - AC003 Coverage', () => {
       expect(fastActionButtons).toHaveLength(13);
 
       // All previously missing buttons are now implemented
-      const missingButtons = [];
+      const missingButtons: string[] = [];
 
       missingButtons.forEach((buttonId) => {
         expect(screen.queryByTestId(buttonId)).toBeNull();

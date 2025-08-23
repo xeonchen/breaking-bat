@@ -5,7 +5,6 @@ import { AddPlayerUseCase } from '@/application/use-cases/AddPlayerUseCase';
 import { UpdatePlayerUseCase } from '@/application/use-cases/UpdatePlayerUseCase';
 import { RemovePlayerUseCase } from '@/application/use-cases/RemovePlayerUseCase';
 import { CreateTeamUseCase } from '@/application/use-cases/CreateTeamUseCase';
-import { TeamHydrationService } from '@/presentation/adapters/TeamHydrationService';
 import {
   initializeTeamsStore,
   useTeamsStore,
@@ -20,7 +19,6 @@ describe('Teams Store Integration Tests', () => {
   let db: Dexie;
   let teamRepository: IndexedDBTeamRepository;
   let playerRepository: IndexedDBPlayerRepository;
-  let teamHydrationService: TeamHydrationService;
   let addPlayerUseCase: AddPlayerUseCase;
   let updatePlayerUseCase: UpdatePlayerUseCase;
   let removePlayerUseCase: RemovePlayerUseCase;
@@ -35,14 +33,10 @@ describe('Teams Store Integration Tests', () => {
     // Initialize repositories and services
     teamRepository = new IndexedDBTeamRepository(db);
     playerRepository = new IndexedDBPlayerRepository(db);
-    teamHydrationService = new TeamHydrationService(playerRepository);
 
     // Initialize use cases
     addPlayerUseCase = new AddPlayerUseCase(playerRepository, teamRepository);
-    updatePlayerUseCase = new UpdatePlayerUseCase(
-      playerRepository,
-      teamRepository
-    );
+    updatePlayerUseCase = new UpdatePlayerUseCase(playerRepository);
     removePlayerUseCase = new RemovePlayerUseCase(
       playerRepository,
       teamRepository
@@ -51,18 +45,36 @@ describe('Teams Store Integration Tests', () => {
 
     // Create a simple application service wrapper for integration testing
     const teamApplicationService = {
-      getTeams: async (query?: any) => {
+      getTeams: async () => {
         const teams = await teamRepository.findAll();
         return { isSuccess: true, value: teams };
       },
       createTeam: async (command: any) => {
-        return await createTeamUseCase.execute(command);
+        const result = await createTeamUseCase.execute(command);
+        if (!result.isSuccess) {
+          return { isSuccess: false, error: result.error, value: null };
+        }
+
+        // Convert Team domain entity to TeamDto
+        const team = result.value!;
+        const teamDto = {
+          id: team.id,
+          name: team.name,
+          seasonIds: team.seasonIds,
+          playerIds: team.playerIds,
+          playerCount: team.playerIds.length,
+          isActive: true,
+          createdAt: team.createdAt,
+          updatedAt: team.updatedAt,
+        };
+
+        return { isSuccess: true, value: teamDto, error: null };
       },
-      updateTeam: async (command: any) => {
+      updateTeam: async () => {
         // Not implemented for this test
         return { isSuccess: true, value: null };
       },
-      deleteTeam: async (teamId: string) => {
+      deleteTeam: async () => {
         // Not implemented for this test
         return { isSuccess: true, value: null };
       },
@@ -109,8 +121,7 @@ describe('Teams Store Integration Tests', () => {
 
     // Initialize the store with the application service
     initializeTeamsStore({
-      teamApplicationService,
-      teamHydrationService,
+      teamApplicationService: teamApplicationService as any,
     });
 
     // Create a test team

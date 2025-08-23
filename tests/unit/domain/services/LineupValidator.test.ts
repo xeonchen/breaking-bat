@@ -200,13 +200,9 @@ describe('LineupValidator - TDD Tests', () => {
   describe('Player Team Validation', () => {
     test('should return invalid when player is not on the team', () => {
       // Create a player not on the correct team
-      new Player(
-        'invalid-player',
-        'Invalid Player',
-        99,
+      new Player('invalid-player', 'Invalid Player', 99, 'other-team', [
         Position.pitcher(),
-        'other-team'
-      );
+      ]);
       const lineupPositions = [
         new LineupPosition(1, 'invalid-player', 'Pitcher', true),
         new LineupPosition(2, 'player-2', 'Catcher', true),

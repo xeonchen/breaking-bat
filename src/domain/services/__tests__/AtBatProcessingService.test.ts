@@ -66,6 +66,11 @@ describe('AtBatProcessingService', () => {
         null,
         'runner-2'
       );
+      const mockFinalBaserunnersInterface = {
+        first: { playerId: 'batter-1', playerName: 'Batter 1' },
+        second: null,
+        third: { playerId: 'runner-2', playerName: 'Runner 2' },
+      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -78,7 +83,7 @@ describe('AtBatProcessingService', () => {
       });
       mockScoringService.calculateOuts.mockReturnValue(0);
       mockGameSessionService.convertBaserunnerStateToInterface.mockReturnValue(
-        mockFinalBaserunners
+        mockFinalBaserunnersInterface
       );
       mockGameSessionService.advanceToNextBatter.mockReturnValue('batter-2');
 
@@ -113,6 +118,11 @@ describe('AtBatProcessingService', () => {
 
       const mockBaserunnerClass = new BaserunnerState('runner-1', null, null);
       const mockFinalBaserunners = new BaserunnerState('runner-1', null, null);
+      const mockFinalBaserunnersInterface = {
+        first: { playerId: 'runner-1', playerName: 'Runner 1' },
+        second: null,
+        third: null,
+      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -125,7 +135,7 @@ describe('AtBatProcessingService', () => {
       });
       mockScoringService.calculateOuts.mockReturnValue(1);
       mockGameSessionService.convertBaserunnerStateToInterface.mockReturnValue(
-        mockFinalBaserunners
+        mockFinalBaserunnersInterface
       );
       mockGameSessionService.advanceToNextBatter.mockReturnValue('batter-2');
 
@@ -173,6 +183,11 @@ describe('AtBatProcessingService', () => {
         null,
         'runner-1'
       );
+      const mockFinalBaserunnersInterface = {
+        first: { playerId: 'batter-1', playerName: 'Batter 1' },
+        second: null,
+        third: { playerId: 'runner-1', playerName: 'Runner 1' },
+      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -186,7 +201,7 @@ describe('AtBatProcessingService', () => {
       });
       mockScoringService.calculateOuts.mockReturnValue(0);
       mockGameSessionService.convertBaserunnerStateToInterface.mockReturnValue(
-        mockFinalBaserunners
+        mockFinalBaserunnersInterface
       );
       mockGameSessionService.advanceToNextBatter.mockReturnValue('batter-2');
 
@@ -220,6 +235,11 @@ describe('AtBatProcessingService', () => {
       const mockBaserunnerClass = new BaserunnerState(null, null, null);
       const mockNewState = new BaserunnerState('batter-1', null, null);
       const mockFinalBaserunners = new BaserunnerState('batter-1', null, null);
+      const mockFinalBaserunnersInterface = {
+        first: { playerId: 'batter-1', playerName: 'Batter 1' },
+        second: null,
+        third: null,
+      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -232,7 +252,7 @@ describe('AtBatProcessingService', () => {
       });
       mockScoringService.calculateOuts.mockReturnValue(0);
       mockGameSessionService.convertBaserunnerStateToInterface.mockReturnValue(
-        mockFinalBaserunners
+        mockFinalBaserunnersInterface
       );
       mockGameSessionService.advanceToNextBatter.mockReturnValue('batter-2');
 
@@ -259,6 +279,11 @@ describe('AtBatProcessingService', () => {
 
       const mockBaserunnerClass = new BaserunnerState(null, null, null);
       const mockFinalBaserunners = new BaserunnerState(null, null, null);
+      const mockFinalBaserunnersInterface = {
+        first: null,
+        second: null,
+        third: null,
+      };
 
       mockGameSessionService.convertBaserunnerStateToClass.mockReturnValue(
         mockBaserunnerClass
@@ -271,7 +296,7 @@ describe('AtBatProcessingService', () => {
       });
       mockScoringService.calculateOuts.mockReturnValue(1);
       mockGameSessionService.convertBaserunnerStateToInterface.mockReturnValue(
-        mockFinalBaserunners
+        mockFinalBaserunnersInterface
       );
       mockGameSessionService.advanceToNextBatter.mockReturnValue('batter-2');
 

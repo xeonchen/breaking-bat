@@ -230,15 +230,13 @@ describe('AC046C: Home run immediately clears all baserunners and scores everyon
         },
       ];
 
-      testCases.forEach(
-        ({ description, currentScore, runners, expectedNewScore }) => {
-          const newScore = HomeRunService.calculateScoreUpdate(
-            currentScore,
-            runners
-          );
-          expect(newScore).toBe(expectedNewScore);
-        }
-      );
+      testCases.forEach(({ currentScore, runners, expectedNewScore }) => {
+        const newScore = HomeRunService.calculateScoreUpdate(
+          currentScore,
+          runners
+        );
+        expect(newScore).toBe(expectedNewScore);
+      });
     });
   });
 

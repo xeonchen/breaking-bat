@@ -401,8 +401,8 @@ describe('AC046B: Additional Advancement Defaults - Error, FC, SF', () => {
         );
 
         // Should have pre-selected values (not empty)
-        expect(firstRunnerSelect.value).not.toBe('');
-        expect(thirdRunnerSelect.value).not.toBe('');
+        expect((firstRunnerSelect as HTMLSelectElement).value).not.toBe('');
+        expect((thirdRunnerSelect as HTMLSelectElement).value).not.toBe('');
 
         // Should be able to confirm immediately with defaults
         const confirmButton = screen.getByTestId('confirm-advancement');
