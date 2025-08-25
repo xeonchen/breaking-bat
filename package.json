@@ -57,7 +57,7 @@
     "react-router-dom": "^7.8.0",
     "uuid": "^11.1.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zustand": "^5.0.7"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
